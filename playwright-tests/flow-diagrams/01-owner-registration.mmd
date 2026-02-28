@@ -1,0 +1,95 @@
+flowchart TD
+    Start([Start]) --> Navigate[Navigate to /auth/register]
+    Navigate --> CheckPage{Page loaded?}
+    
+    CheckPage -->|No| Error1[Error: Page does not load]
+    CheckPage -->|Yes| Screenshot1[Screenshot: Empty form]
+    
+    Screenshot1 --> FillForm[Fill form:<br/>Email, Password, Name, Role OWNER]
+    
+    FillForm --> Screenshot2[Screenshot: Form filled]
+    Screenshot2 --> ClickRegister[Click Register button]
+    
+    ClickRegister --> WaitResponse[Wait server response]
+    
+    WaitResponse --> CheckResponse{Registration successful?}
+    
+    CheckResponse -->|No - Email exists| Error2[Error: Email already registered]
+    CheckResponse -->|No - Weak password| Error3[Error: Password does not meet requirements]
+    CheckResponse -->|No - Empty fields| Error4[Error: Required fields]
+    CheckResponse -->|No - Server error| Error5[Error: 500 Internal Server Error]
+    
+    CheckResponse -->|Yes| VerifyToken[Verify JWT token in localStorage]
+    
+    VerifyToken --> CheckToken{Token saved?}
+    CheckToken -->|No| Error6[Error: Token not saved]
+    CheckToken -->|Yes| VerifyRedirect[Verify redirect]
+    
+    VerifyRedirect --> CheckRedirect{Redirected to<br/>/app/onboarding?}
+    
+    CheckRedirect -->|No| Error7[Error: Incorrect redirect]
+    CheckRedirect -->|Yes| Screenshot3[Screenshot: Onboarding page]
+    
+    Screenshot3 --> VerifyOnboarding[Verify onboarding elements:<br/>Project form<br/>Visible fields<br/>Create Project button]
+    
+    VerifyOnboarding --> FillProject[Fill project form:<br/>Name, Description, Category]
+    
+    FillProject --> Screenshot4[Screenshot: Project filled]
+    Screenshot4 --> ClickCreate[Click Create Project]
+    
+    ClickCreate --> WaitProject[Wait project creation]
+    
+    WaitProject --> CheckProject{Project created?}
+    
+    CheckProject -->|No| Error8[Error: Could not create project]
+    CheckProject -->|Yes| VerifyDashboard[Verify redirect to /app/dashboard]
+    
+    VerifyDashboard --> CheckDashboard{In dashboard?}
+    
+    CheckDashboard -->|No| Error9[Error: Did not redirect to dashboard]
+    CheckDashboard -->|Yes| Screenshot5[Screenshot: Dashboard with project]
+    
+    Screenshot5 --> VerifyElements[Verify dashboard elements:<br/>Project name<br/>Side menu<br/>Tasks section<br/>New Task button]
+    
+    VerifyElements --> VerifyAPI[Verify API calls:<br/>GET /api/auth/me<br/>GET /api/projects/my-project<br/>GET /api/tasks]
+    
+    VerifyAPI --> TestLogout[Test logout]
+    TestLogout --> ClickLogout[Click Logout]
+    
+    ClickLogout --> CheckLogout{Logout successful?}
+    
+    CheckLogout -->|No| Error10[Error: Logout failed]
+    CheckLogout -->|Yes| VerifyLogout[Verify:<br/>Token removed<br/>Redirected to /auth/login]
+    
+    VerifyLogout --> Screenshot6[Screenshot: Login page after logout]
+    Screenshot6 --> End([Test Completed])
+    
+    Error1 --> End
+    Error2 --> End
+    Error3 --> End
+    Error4 --> End
+    Error5 --> End
+    Error6 --> End
+    Error7 --> End
+    Error8 --> End
+    Error9 --> End
+    Error10 --> End
+    
+    style Start fill:#90EE90
+    style End fill:#90EE90
+    style Error1 fill:#FFB6C1
+    style Error2 fill:#FFB6C1
+    style Error3 fill:#FFB6C1
+    style Error4 fill:#FFB6C1
+    style Error5 fill:#FFB6C1
+    style Error6 fill:#FFB6C1
+    style Error7 fill:#FFB6C1
+    style Error8 fill:#FFB6C1
+    style Error9 fill:#FFB6C1
+    style Error10 fill:#FFB6C1
+    style Screenshot1 fill:#87CEEB
+    style Screenshot2 fill:#87CEEB
+    style Screenshot3 fill:#87CEEB
+    style Screenshot4 fill:#87CEEB
+    style Screenshot5 fill:#87CEEB
+    style Screenshot6 fill:#87CEEB

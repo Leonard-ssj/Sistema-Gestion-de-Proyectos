@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "0"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "playwright_get_visible_html",
+        "playwright_screenshot",
+        "playwright_click",
+        "playwright_evaluate",
+        "playwright_fill",
+        "playwright_fill",
+        "playwright_get_visible_text",
+        "playwright_console_logs",
+        "playwright_navigate",
+        "playwright_close",
+        "playwright_press_key"
+      ]
+    }
+  }
+}

@@ -1,0 +1,78 @@
+flowchart TD
+    Start([Start]) --> Navigate[Navigate to /auth/login]
+    Navigate --> CheckPage{Page loaded?}
+    
+    CheckPage -->|No| Error1[Error: Page does not load]
+    CheckPage -->|Yes| Screenshot1[Screenshot: Empty login form]
+    
+    Screenshot1 --> FillForm[Fill form:<br/>Email, Password]
+    
+    FillForm --> Screenshot2[Screenshot: Form filled]
+    Screenshot2 --> ClickLogin[Click Login button]
+    
+    ClickLogin --> WaitResponse[Wait server response]
+    
+    WaitResponse --> CheckResponse{Login successful?}
+    
+    CheckResponse -->|No - Invalid credentials| Error2[Error: Invalid email or password]
+    CheckResponse -->|No - Empty fields| Error3[Error: Required fields]
+    CheckResponse -->|No - User not found| Error4[Error: User does not exist]
+    CheckResponse -->|No - Server error| Error5[Error: 500 Internal Server Error]
+    
+    CheckResponse -->|Yes| VerifyToken[Verify JWT token in localStorage]
+    
+    VerifyToken --> CheckToken{Token saved?}
+    CheckToken -->|No| Error6[Error: Token not saved]
+    CheckToken -->|Yes| CheckRole{User role?}
+    
+    CheckRole -->|OWNER| RedirectOwner[Redirect to /app/dashboard]
+    CheckRole -->|EMPLOYEE| RedirectEmployee[Redirect to /app/dashboard]
+    CheckRole -->|SUPERADMIN| RedirectAdmin[Redirect to /admin/dashboard]
+    
+    RedirectOwner --> Screenshot3Owner[Screenshot: Owner dashboard]
+    RedirectEmployee --> Screenshot3Employee[Screenshot: Employee dashboard]
+    RedirectAdmin --> Screenshot3Admin[Screenshot: Admin dashboard]
+    
+    Screenshot3Owner --> VerifyOwnerElements[Verify owner elements:<br/>All menu items<br/>Project management<br/>Team management]
+    
+    Screenshot3Employee --> VerifyEmployeeElements[Verify employee elements:<br/>Limited menu items<br/>Tasks view<br/>No team management]
+    
+    Screenshot3Admin --> VerifyAdminElements[Verify admin elements:<br/>Admin panel<br/>User management<br/>System settings]
+    
+    VerifyOwnerElements --> TestLogout
+    VerifyEmployeeElements --> TestLogout
+    VerifyAdminElements --> TestLogout
+    
+    TestLogout[Test logout] --> ClickLogout[Click Logout]
+    
+    ClickLogout --> CheckLogout{Logout successful?}
+    
+    CheckLogout -->|No| Error7[Error: Logout failed]
+    CheckLogout -->|Yes| VerifyLogout[Verify:<br/>Token removed<br/>Redirected to /auth/login]
+    
+    VerifyLogout --> Screenshot4[Screenshot: Login page after logout]
+    Screenshot4 --> End([Test Completed])
+    
+    Error1 --> End
+    Error2 --> End
+    Error3 --> End
+    Error4 --> End
+    Error5 --> End
+    Error6 --> End
+    Error7 --> End
+    
+    style Start fill:#90EE90
+    style End fill:#90EE90
+    style Error1 fill:#FFB6C1
+    style Error2 fill:#FFB6C1
+    style Error3 fill:#FFB6C1
+    style Error4 fill:#FFB6C1
+    style Error5 fill:#FFB6C1
+    style Error6 fill:#FFB6C1
+    style Error7 fill:#FFB6C1
+    style Screenshot1 fill:#87CEEB
+    style Screenshot2 fill:#87CEEB
+    style Screenshot3Owner fill:#87CEEB
+    style Screenshot3Employee fill:#87CEEB
+    style Screenshot3Admin fill:#87CEEB
+    style Screenshot4 fill:#87CEEB

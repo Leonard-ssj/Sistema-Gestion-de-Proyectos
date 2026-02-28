@@ -1,0 +1,92 @@
+flowchart TD
+    Start([Start: Owner logged in]) --> Navigate[Navigate to /app/team]
+    Navigate --> CheckPage{Page loaded?}
+    
+    CheckPage -->|No| Error1[Error: Page does not load]
+    CheckPage -->|Yes| Screenshot1[Screenshot: Team page]
+    
+    Screenshot1 --> ClickInvite[Click Invite Member button]
+    
+    ClickInvite --> CheckModal{Modal opened?}
+    
+    CheckModal -->|No| Error2[Error: Modal did not open]
+    CheckModal -->|Yes| Screenshot2[Screenshot: Invite modal]
+    
+    Screenshot2 --> FillForm[Fill form:<br/>Email, Role EMPLOYEE]
+    
+    FillForm --> Screenshot3[Screenshot: Form filled]
+    Screenshot3 --> ClickSend[Click Send Invitation]
+    
+    ClickSend --> WaitResponse[Wait server response]
+    
+    WaitResponse --> CheckResponse{Invitation sent?}
+    
+    CheckResponse -->|No - Email exists| Error3[Error: User already in project]
+    CheckResponse -->|No - Invalid email| Error4[Error: Invalid email format]
+    CheckResponse -->|No - Server error| Error5[Error: 500 Internal Server Error]
+    
+    CheckResponse -->|Yes| VerifyNotification[Verify success notification]
+    
+    VerifyNotification --> Screenshot4[Screenshot: Success notification]
+    
+    Screenshot4 --> VerifyTable[Verify invite in table:<br/>Email visible<br/>Status: Pending<br/>Role: EMPLOYEE]
+    
+    VerifyTable --> Screenshot5[Screenshot: Invite in table]
+    
+    Screenshot5 --> CheckEmail[Check email sent]
+    
+    CheckEmail --> EmployeeFlow[EMPLOYEE FLOW:<br/>Employee receives email]
+    
+    EmployeeFlow --> EmployeeClick[Employee clicks invite link]
+    
+    EmployeeClick --> EmployeeRegister[Navigate to /auth/register?token=XXX]
+    
+    EmployeeRegister --> Screenshot6[Screenshot: Register with token]
+    
+    Screenshot6 --> EmployeeFill[Fill form:<br/>Name, Password<br/>Email pre-filled]
+    
+    EmployeeFill --> Screenshot7[Screenshot: Employee form filled]
+    
+    Screenshot7 --> EmployeeSubmit[Click Register]
+    
+    EmployeeSubmit --> CheckEmployeeReg{Registration successful?}
+    
+    CheckEmployeeReg -->|No| Error6[Error: Registration failed]
+    CheckEmployeeReg -->|Yes| EmployeeRedirect[Redirect to /app/dashboard]
+    
+    EmployeeRedirect --> Screenshot8[Screenshot: Employee dashboard]
+    
+    Screenshot8 --> VerifyEmployeeAccess[Verify employee access:<br/>Limited menu<br/>Can see tasks<br/>Cannot manage team]
+    
+    VerifyEmployeeAccess --> OwnerVerify[OWNER VERIFICATION:<br/>Owner checks team page]
+    
+    OwnerVerify --> Screenshot9[Screenshot: Updated team table]
+    
+    Screenshot9 --> VerifyStatus[Verify invite status:<br/>Status: Accepted<br/>User visible in team]
+    
+    VerifyStatus --> End([Test Completed])
+    
+    Error1 --> End
+    Error2 --> End
+    Error3 --> End
+    Error4 --> End
+    Error5 --> End
+    Error6 --> End
+    
+    style Start fill:#90EE90
+    style End fill:#90EE90
+    style Error1 fill:#FFB6C1
+    style Error2 fill:#FFB6C1
+    style Error3 fill:#FFB6C1
+    style Error4 fill:#FFB6C1
+    style Error5 fill:#FFB6C1
+    style Error6 fill:#FFB6C1
+    style Screenshot1 fill:#87CEEB
+    style Screenshot2 fill:#87CEEB
+    style Screenshot3 fill:#87CEEB
+    style Screenshot4 fill:#87CEEB
+    style Screenshot5 fill:#87CEEB
+    style Screenshot6 fill:#87CEEB
+    style Screenshot7 fill:#87CEEB
+    style Screenshot8 fill:#87CEEB
+    style Screenshot9 fill:#87CEEB

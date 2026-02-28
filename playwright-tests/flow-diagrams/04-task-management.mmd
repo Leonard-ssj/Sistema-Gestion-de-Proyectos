@@ -1,0 +1,105 @@
+flowchart TD
+    Start([Start: User logged in]) --> Navigate[Navigate to /app/tasks]
+    Navigate --> CheckPage{Page loaded?}
+    
+    CheckPage -->|No| Error1[Error: Page does not load]
+    CheckPage -->|Yes| Screenshot1[Screenshot: Tasks page empty]
+    
+    Screenshot1 --> ClickNew[Click New Task button]
+    
+    ClickNew --> CheckModal{Modal opened?}
+    
+    CheckModal -->|No| Error2[Error: Modal did not open]
+    CheckModal -->|Yes| Screenshot2[Screenshot: New task modal]
+    
+    Screenshot2 --> FillTask[Fill form:<br/>Title, Description<br/>Priority, Due Date<br/>Assignee]
+    
+    FillTask --> Screenshot3[Screenshot: Task form filled]
+    Screenshot3 --> ClickCreate[Click Create Task]
+    
+    ClickCreate --> WaitResponse[Wait server response]
+    
+    WaitResponse --> CheckResponse{Task created?}
+    
+    CheckResponse -->|No - Empty title| Error3[Error: Title required]
+    CheckResponse -->|No - Invalid date| Error4[Error: Invalid due date]
+    CheckResponse -->|No - Server error| Error5[Error: 500 Internal Server Error]
+    
+    CheckResponse -->|Yes| VerifyNotification[Verify success notification]
+    
+    VerifyNotification --> Screenshot4[Screenshot: Success notification]
+    
+    Screenshot4 --> VerifyTaskList[Verify task in list:<br/>Title visible<br/>Status: TODO<br/>Assignee visible]
+    
+    VerifyTaskList --> Screenshot5[Screenshot: Task in list]
+    
+    Screenshot5 --> TestEdit[TEST EDIT:<br/>Click on task]
+    
+    TestEdit --> CheckEditModal{Edit modal opened?}
+    
+    CheckEditModal -->|No| Error6[Error: Edit modal did not open]
+    CheckEditModal -->|Yes| Screenshot6[Screenshot: Edit modal]
+    
+    Screenshot6 --> EditTask[Edit task:<br/>Change status to IN_PROGRESS<br/>Update description]
+    
+    EditTask --> Screenshot7[Screenshot: Task edited]
+    Screenshot7 --> ClickSave[Click Save]
+    
+    ClickSave --> VerifyUpdate[Verify task updated:<br/>Status changed<br/>Description updated]
+    
+    VerifyUpdate --> Screenshot8[Screenshot: Updated task]
+    
+    Screenshot8 --> TestDelete[TEST DELETE:<br/>Click delete button]
+    
+    TestDelete --> CheckConfirm{Confirm dialog?}
+    
+    CheckConfirm -->|No| Error7[Error: No confirmation]
+    CheckConfirm -->|Yes| Screenshot9[Screenshot: Delete confirmation]
+    
+    Screenshot9 --> ClickConfirm[Click Confirm Delete]
+    
+    ClickConfirm --> VerifyDeleted[Verify task deleted:<br/>Not in list<br/>Success notification]
+    
+    VerifyDeleted --> Screenshot10[Screenshot: Task deleted]
+    
+    Screenshot10 --> TestBoard[TEST BOARD VIEW:<br/>Navigate to /app/board]
+    
+    TestBoard --> Screenshot11[Screenshot: Board view]
+    
+    Screenshot11 --> TestDragDrop[Test drag and drop:<br/>Move task between columns]
+    
+    TestDragDrop --> VerifyDrag[Verify task moved:<br/>Status updated<br/>Position changed]
+    
+    VerifyDrag --> Screenshot12[Screenshot: Task moved]
+    
+    Screenshot12 --> End([Test Completed])
+    
+    Error1 --> End
+    Error2 --> End
+    Error3 --> End
+    Error4 --> End
+    Error5 --> End
+    Error6 --> End
+    Error7 --> End
+    
+    style Start fill:#90EE90
+    style End fill:#90EE90
+    style Error1 fill:#FFB6C1
+    style Error2 fill:#FFB6C1
+    style Error3 fill:#FFB6C1
+    style Error4 fill:#FFB6C1
+    style Error5 fill:#FFB6C1
+    style Error6 fill:#FFB6C1
+    style Error7 fill:#FFB6C1
+    style Screenshot1 fill:#87CEEB
+    style Screenshot2 fill:#87CEEB
+    style Screenshot3 fill:#87CEEB
+    style Screenshot4 fill:#87CEEB
+    style Screenshot5 fill:#87CEEB
+    style Screenshot6 fill:#87CEEB
+    style Screenshot7 fill:#87CEEB
+    style Screenshot8 fill:#87CEEB
+    style Screenshot9 fill:#87CEEB
+    style Screenshot10 fill:#87CEEB
+    style Screenshot11 fill:#87CEEB
+    style Screenshot12 fill:#87CEEB

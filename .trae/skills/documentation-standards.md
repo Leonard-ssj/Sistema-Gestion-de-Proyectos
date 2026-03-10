@@ -4,7 +4,7 @@ Estandares para mantener la documentacion actualizada.
 
 ## Archivos de Documentacion
 
-ProGest tiene 11 archivos de documentacion en `.kiro/`:
+ProGest tiene 11 archivos de documentacion en `.trae/`:
 
 1. `INDEX.md` - Indice maestro
 2. `DOCUMENTACION_CONSOLIDADA.md` - Estado del proyecto

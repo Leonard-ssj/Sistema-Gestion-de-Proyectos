@@ -1,20 +1,20 @@
 # Skills de ProGest
 
-Este directorio contiene skills (habilidades) que Kiro carga automaticamente para ayudarte a mantener consistencia en el proyecto.
+Este directorio contiene skills (habilidades) que Trae carga automaticamente para ayudarte a mantener consistencia en el proyecto.
 
 ## Que son las Skills
 
-Las skills son instrucciones especializadas que se cargan en el contexto de Kiro cuando son relevantes. Funcionan como "conocimiento adicional" que la IA usa para dar mejores sugerencias y mantener consistencia.
+Las skills son instrucciones especializadas que se cargan en el contexto de Trae cuando son relevantes. Funcionan como "conocimiento adicional" que la IA usa para dar mejores sugerencias y mantener consistencia.
 
 ## Como Funcionan
 
-Kiro carga las skills automaticamente basandose en:
+Trae carga las skills automaticamente basandose en:
 
 1. **Archivos que estas editando** - Si editas un archivo Python, carga `backend-conventions.md`
 2. **Palabras clave en tu pregunta** - Si mencionas "migracion", carga `database-migrations.md`
 3. **Contexto de la conversacion** - Si estas trabajando con Git, carga `git-workflow.md`
 
-**No necesitas hacer nada especial** - Kiro las carga automaticamente cuando las necesita.
+**No necesitas hacer nada especial** - Trae las carga automaticamente cuando las necesita.
 
 ## Skills Disponibles
 
@@ -33,7 +33,7 @@ Kiro carga las skills automaticamente basandose en:
 **Ejemplo de uso:**
 ```
 Tu: "Crea un endpoint para filtrar tareas por prioridad"
-Kiro: [Carga backend-conventions.md]
+Trae: [Carga backend-conventions.md]
       [Genera codigo siguiendo las convenciones]
       - Usa decoradores correctos
       - Formato JSON estandar
@@ -55,7 +55,7 @@ Kiro: [Carga backend-conventions.md]
 **Ejemplo de uso:**
 ```
 Tu: "Crea una funcion para obtener todas las tareas"
-Kiro: [Carga security-multitenancy.md]
+Trae: [Carga security-multitenancy.md]
       [Genera codigo con filtro de project_id]
       def get_tasks(project_id):
           return Task.query.filter_by(project_id=project_id).all()
@@ -76,7 +76,7 @@ Kiro: [Carga security-multitenancy.md]
 **Ejemplo de uso:**
 ```
 Tu: "Crea un componente para listar tareas"
-Kiro: [Carga frontend-conventions.md]
+Trae: [Carga frontend-conventions.md]
       [Genera componente con:]
       - 'use client' directive
       - Loading state
@@ -100,7 +100,7 @@ Kiro: [Carga frontend-conventions.md]
 **Ejemplo de uso:**
 ```
 Tu: "Agrega un campo email_verified al modelo User"
-Kiro: [Carga database-migrations.md]
+Trae: [Carga database-migrations.md]
       [Genera codigo del modelo]
       [Te recuerda:]
       "No olvides crear la migracion:
@@ -120,7 +120,7 @@ Kiro: [Carga database-migrations.md]
 **Ejemplo de uso:**
 ```
 Tu: "Cree un nuevo endpoint para estadisticas"
-Kiro: [Carga documentation-standards.md]
+Trae: [Carga documentation-standards.md]
       [Te recuerda actualizar:]
       - API_COMPLETE_DOCUMENTATION.md
       - Regenerar API_ENDPOINTS.md
@@ -142,7 +142,7 @@ Kiro: [Carga documentation-standards.md]
 **Ejemplo de uso:**
 ```
 Tu: "Como hago un commit de estos cambios?"
-Kiro: [Carga git-workflow.md]
+Trae: [Carga git-workflow.md]
       [Sugiere:]
       git add .
       git commit -m "feat(tasks): add priority filter endpoint"
@@ -153,14 +153,14 @@ Kiro: [Carga git-workflow.md]
 Las skills pueden estar en dos lugares:
 
 ### Skills del Proyecto (Compartidas)
-**Ubicacion:** `.kiro/skills/`
+**Ubicacion:** `.trae/skills/`
 
 Estas skills son para TODO el equipo. Se commitean en Git y todos los desarrolladores las usan.
 
 **Ejemplo:** Las 6 skills de ProGest estan aqui.
 
 ### Skills Personales (Solo tu)
-**Ubicacion:** `~/.kiro/skills/`
+**Ubicacion:** `~/.trae/skills/`
 
 Estas skills son solo para ti. No se commitean en Git.
 
@@ -168,7 +168,7 @@ Estas skills son solo para ti. No se commitean en Git.
 
 ## Como Agregar Nuevas Skills
 
-1. Crear archivo `.md` en `.kiro/skills/`
+1. Crear archivo `.md` en `.trae/skills/`
 2. Usar formato claro y conciso
 3. Incluir ejemplos practicos
 4. Commitear en Git para compartir con el equipo
@@ -216,7 +216,7 @@ Explicar cuando aplicar esta skill.
 ```
 Tu: "Crea un endpoint GET /api/tasks/stats"
 
-Kiro carga automaticamente:
+Trae carga automaticamente:
 - backend-conventions.md (estructura de codigo)
 - security-multitenancy.md (filtro por project_id)
 - documentation-standards.md (que documentar)
@@ -232,7 +232,7 @@ Resultado:
 ```
 Tu: "Agrega campo priority_level a Task"
 
-Kiro carga automaticamente:
+Trae carga automaticamente:
 - backend-conventions.md (como definir campos)
 - database-migrations.md (como crear migracion)
 - documentation-standards.md (actualizar data-model.md)
@@ -248,7 +248,7 @@ Resultado:
 ```
 Tu: "Crea componente para filtrar tareas"
 
-Kiro carga automaticamente:
+Trae carga automaticamente:
 - frontend-conventions.md (estructura de componente)
 - documentation-standards.md (documentar componente)
 
@@ -281,19 +281,19 @@ Si identificas un patron que se repite:
 ## Preguntas Frecuentes
 
 **P: Necesito activar las skills manualmente?**
-R: No, Kiro las carga automaticamente cuando son relevantes.
+R: No, Trae las carga automaticamente cuando son relevantes.
 
 **P: Puedo desactivar una skill?**
 R: Si, eliminando o renombrando el archivo (cambiar extension a .txt por ejemplo).
 
 **P: Las skills afectan el performance?**
-R: No, Kiro solo carga las skills relevantes para tu contexto actual.
+R: No, Trae solo carga las skills relevantes para tu contexto actual.
 
 **P: Puedo tener skills personales?**
-R: Si, creandolas en `~/.kiro/skills/` (no se commitean en Git).
+R: Si, creandolas en `~/.trae/skills/` (no se commitean en Git).
 
 **P: Como se que skill esta activa?**
-R: Kiro las carga silenciosamente. Si sigues las convenciones, estan funcionando.
+R: Trae las carga silenciosamente. Si sigues las convenciones, estan funcionando.
 
 ## Recursos Adicionales
 

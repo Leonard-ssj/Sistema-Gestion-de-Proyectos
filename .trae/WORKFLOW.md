@@ -105,9 +105,9 @@ npm run dev
 
 **1.2 Revisar Documentacion Existente**
 
-- `.kiro/architecture.md` - Arquitectura del sistema
-- `.kiro/data-model.md` - Modelos de datos
-- `.kiro/API_COMPLETE_DOCUMENTATION.md` - Endpoints existentes
+- `.trae/architecture.md` - Arquitectura del sistema
+- `.trae/data-model.md` - Modelos de datos
+- `.trae/API_COMPLETE_DOCUMENTATION.md` - Endpoints existentes
 
 **1.3 Crear Branch de Trabajo**
 
@@ -559,7 +559,7 @@ npx playwright show-report
 
 ### 1. Documentar Endpoint en API_COMPLETE_DOCUMENTATION.md
 
-Agregar o actualizar en `.kiro/API_COMPLETE_DOCUMENTATION.md`:
+Agregar o actualizar en `.trae/API_COMPLETE_DOCUMENTATION.md`:
 
 ```markdown
 ### 3.10 GET /api/tasks (con filtro de prioridad)
@@ -602,7 +602,7 @@ python list_endpoints.py
 
 ### 4. Actualizar DOCUMENTACION_CONSOLIDADA.md
 
-Agregar cambios relevantes en `.kiro/DOCUMENTACION_CONSOLIDADA.md`:
+Agregar cambios relevantes en `.trae/DOCUMENTACION_CONSOLIDADA.md`:
 
 ```markdown
 ## Cambios Recientes
@@ -695,13 +695,13 @@ Descripcion:
 
 ### Archivos de Referencia
 
-- `.kiro/INDEX.md` - Indice de toda la documentacion
-- `.kiro/architecture.md` - Arquitectura del sistema
-- `.kiro/data-model.md` - Modelos de datos
-- `.kiro/backend.md` - Documentacion del backend
-- `.kiro/frontend.md` - Documentacion del frontend
-- `.kiro/development-guide.md` - Guia de desarrollo
-- `.kiro/TESTING_GUIDE.md` - Guia de testing
+- `.trae/INDEX.md` - Indice de toda la documentacion
+- `.trae/architecture.md` - Arquitectura del sistema
+- `.trae/data-model.md` - Modelos de datos
+- `.trae/backend.md` - Documentacion del backend
+- `.trae/frontend.md` - Documentacion del frontend
+- `.trae/development-guide.md` - Guia de desarrollo
+- `.trae/TESTING_GUIDE.md` - Guia de testing
 - `project-management-backend/MIGRATIONS_README.md` - Guia de migraciones
 
 ### Scripts Utiles

@@ -289,7 +289,7 @@ git commit -m "feat(tasks): add priority filter endpoint"
 git add app/schemas/task_schema.py
 git commit -m "feat(tasks): add priority validation"
 
-git add .kiro/API_COMPLETE_DOCUMENTATION.md
+git add .trae/API_COMPLETE_DOCUMENTATION.md
 git commit -m "docs(api): document priority filter endpoint"
 ```
 

@@ -9,7 +9,7 @@
 ### En Raiz
 1. **[../README.md](../README.md)** - Guia de inicio rapido del proyecto
 
-### En `.kiro/`
+### En `.trae/`
 2. **[INDEX.md](INDEX.md)** - Este archivo - Indice maestro de toda la documentacion
 3. **[DOCUMENTACION_CONSOLIDADA.md](DOCUMENTACION_CONSOLIDADA.md)** - Estado completo del proyecto
 4. **[architecture.md](architecture.md)** - Arquitectura del sistema
@@ -143,7 +143,7 @@
 Monorepo_gestion_proyectos_saas/
 ├── README.md                       # README principal
 │
-├── .kiro/                          # Documentacion centralizada (11 archivos)
+├── .trae/                          # Documentacion centralizada (11 archivos)
 │   ├── INDEX.md                    # Este archivo
 │   ├── DOCUMENTACION_CONSOLIDADA.md
 │   ├── architecture.md
@@ -154,7 +154,7 @@ Monorepo_gestion_proyectos_saas/
 │   ├── WORKFLOW.md                 # Workflow de desarrollo
 │   ├── frontend.md
 │   ├── backend.md
-│   ├── skills/                     # Skills de Kiro (6 skills)
+│   ├── skills/                     # Skills del editor (6 skills)
 │   │   ├── README.md               # Documentacion de skills
 │   │   ├── backend-conventions.md
 │   │   ├── security-multitenancy.md
@@ -275,12 +275,12 @@ Ver documentacion completa: [API_COMPLETE_DOCUMENTATION.md](API_COMPLETE_DOCUMEN
 ## NOTAS IMPORTANTES
 
 - Documentacion limpia: Solo 11 archivos .md esenciales
-- Todo centralizado: Toda la documentacion esta en `.kiro/`
+- Todo centralizado: Toda la documentacion esta en `.trae/`
 - Sin duplicados: Cada informacion esta en un solo lugar
 - Facil mantenimiento: Menos archivos que actualizar
 - Navegacion simple: Este INDEX.md es el punto de entrada
 - Workflow documentado: WORKFLOW.md cubre todo el proceso de desarrollo
-- Skills de Kiro: 6 skills que se cargan automaticamente para mantener consistencia
+- Skills del editor: 6 skills que se cargan automaticamente para mantener consistencia
 
 ---
 

@@ -343,6 +343,28 @@ Deberías ver:
 
 ---
 
+## ⚡ Ejecución Rápida (Desarrollo)
+
+Si ya tienes el proyecto configurado, usa estos comandos en terminales separadas para iniciar el entorno de desarrollo:
+
+**Terminal 1: Backend**
+```bash
+cd project-management-backend
+# Activar entorno virtual (Windows)
+.\backend-env\Scripts\activate
+# Iniciar servidor
+python app.py
+```
+
+**Terminal 2: Frontend**
+```bash
+cd project-management-frontend
+# Iniciar servidor de desarrollo
+npm run dev
+```
+
+---
+
 ## 🎉 ¡Listo! Accede a la Aplicación
 
 Abre tu navegador y ve a: **http://localhost:3000**
@@ -403,7 +425,7 @@ Sistema-Gestion-de-Proyectos/
 │   ├── ProGest_API_Complete.postman_collection.json
 │   └── ProGest_Development.postman_environment.json
 │
-├── 📁 .kiro/                         # Documentación del proyecto
+├── 📁 .trae/                         # Documentación del proyecto
 │   ├── DOCUMENTACION_CONSOLIDADA.md # Documentación completa
 │   ├── architecture.md               # Arquitectura del sistema
 │   ├── data-model.md                 # Modelo de datos
@@ -476,7 +498,7 @@ curl -X POST http://localhost:5000/api/tasks \
 3. Selecciona el environment "ProGest - Development"
 4. ¡Prueba los 41 endpoints!
 
-📖 **Documentación completa de API:** `.kiro/API_COMPLETE_DOCUMENTATION.md`
+📖 **Documentación completa de API:** `.trae/API_COMPLETE_DOCUMENTATION.md`
 
 ---
 
@@ -521,7 +543,7 @@ cat playwright-tests/team-credentials.json
 
 ## 📚 Documentación
 
-El proyecto cuenta con documentación exhaustiva en la carpeta `.kiro/`:
+El proyecto cuenta con documentación exhaustiva en la carpeta `.trae/`:
 
 | Documento | Descripción |
 |-----------|-------------|

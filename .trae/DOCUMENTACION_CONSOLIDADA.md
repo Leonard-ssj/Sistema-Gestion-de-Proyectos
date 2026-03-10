@@ -320,7 +320,7 @@ ProGest es un sistema SaaS de gestion de proyectos multitenant que permite a emp
 - `wsgi.py` - Entry point para Flask-Migrate
 
 ### Workflow de Desarrollo
-- Documentado en `.kiro/WORKFLOW.md`
+- Documentado en `.trae/WORKFLOW.md`
 - Flujo completo: Backend → Postman → Frontend → Git
 - Incluye testing, documentacion y control de versiones
 

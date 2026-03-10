@@ -134,11 +134,11 @@ Este documento especifica los requerimientos funcionales y no funcionales del si
 
 ### 1.4 Referencias
 
-- **Documentación técnica:** `.kiro/DOCUMENTACION_CONSOLIDADA.md`
-- **Arquitectura del sistema:** `.kiro/architecture.md`
-- **Modelo de datos:** `.kiro/data-model.md`
-- **Documentación de API:** `.kiro/API_COMPLETE_DOCUMENTATION.md`
-- **Guía de desarrollo:** `.kiro/development-guide.md`
+- **Documentación técnica:** `.trae/DOCUMENTACION_CONSOLIDADA.md`
+- **Arquitectura del sistema:** `.trae/architecture.md`
+- **Modelo de datos:** `.trae/data-model.md`
+- **Documentación de API:** `.trae/API_COMPLETE_DOCUMENTATION.md`
+- **Guía de desarrollo:** `.trae/development-guide.md`
 
 ### 1.5 Visión General
 
@@ -2490,13 +2490,13 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 ### 6.3 Referencias Técnicas
 
 **Documentación del Proyecto:**
-- Documentación consolidada: `.kiro/DOCUMENTACION_CONSOLIDADA.md`
-- Arquitectura del sistema: `.kiro/architecture.md`
-- Modelo de datos: `.kiro/data-model.md`
-- Documentación de API: `.kiro/API_COMPLETE_DOCUMENTATION.md`
-- Guía de desarrollo: `.kiro/development-guide.md`
-- Guía de testing: `.kiro/TESTING_GUIDE.md`
-- Workflow de desarrollo: `.kiro/WORKFLOW.md`
+- Documentación consolidada: `.trae/DOCUMENTACION_CONSOLIDADA.md`
+- Arquitectura del sistema: `.trae/architecture.md`
+- Modelo de datos: `.trae/data-model.md`
+- Documentación de API: `.trae/API_COMPLETE_DOCUMENTATION.md`
+- Guía de desarrollo: `.trae/development-guide.md`
+- Guía de testing: `.trae/TESTING_GUIDE.md`
+- Workflow de desarrollo: `.trae/WORKFLOW.md`
 
 **Tecnologías Utilizadas:**
 - Flask: https://flask.palletsprojects.com/

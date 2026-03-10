@@ -1,0 +1,4 @@
+ALTER TABLE projects
+  ADD COLUMN timezone VARCHAR(64) NOT NULL DEFAULT 'America/Mexico_City',
+  ADD COLUMN date_format VARCHAR(32) NOT NULL DEFAULT 'dd/MM/yyyy',
+  ADD COLUMN state VARCHAR(64) NULL;

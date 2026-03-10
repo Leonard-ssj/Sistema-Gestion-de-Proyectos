@@ -15,7 +15,8 @@ from app.schemas import (
     UserRegisterSchema,
     UserLoginSchema,
     UserSchema,
-    AcceptInviteSchema
+    AcceptInviteSchema,
+    UserUpdateSchema
 )
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -25,6 +26,7 @@ user_register_schema = UserRegisterSchema()
 user_login_schema = UserLoginSchema()
 user_schema = UserSchema()
 accept_invite_schema = AcceptInviteSchema()
+user_update_schema = UserUpdateSchema()
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -60,9 +62,12 @@ def register():
                 'success': False,
                 'error': {
                     'code': 'EMAIL_EXISTS',
-                    'message': 'El email ya está registrado'
+                    'message': 'El email ya está registrado',
+                    'details': {
+                        'email': ['El email ya está registrado']
+                    }
                 }
-            }), 400
+            }), 409
         
         # Crear usuario
         password_hash = AuthService.hash_password(password)
@@ -559,6 +564,82 @@ def get_me():
         }), 200
         
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'SERVER_ERROR',
+                'message': str(e)
+            }
+        }), 500
+
+
+@auth_bp.route('/me', methods=['PATCH'])
+@jwt_required()
+def update_me():
+    try:
+        user_id = get_current_user_id()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'USER_NOT_FOUND',
+                    'message': 'Usuario no encontrado'
+                }
+            }), 404
+        
+        data = request.get_json() or {}
+        
+        try:
+            validated_data = user_update_schema.load(data, partial=True)
+        except ValidationError as err:
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'VALIDATION_ERROR',
+                    'message': 'Errores de validación',
+                    'details': err.messages
+                }
+            }), 400
+        
+        if 'avatar' in validated_data and validated_data['avatar'] is not None:
+            allowed = {
+                '/avatars/owners/owner-01.svg',
+                '/avatars/owners/owner-02.svg',
+                '/avatars/owners/owner-03.svg',
+                '/avatars/owners/owner-04.svg',
+                '/avatars/owners/owner-05.svg'
+            }
+            if validated_data['avatar'] not in allowed:
+                return jsonify({
+                    'success': False,
+                    'error': {
+                        'code': 'INVALID_AVATAR',
+                        'message': 'Avatar inválido',
+                        'details': {
+                            'avatar': ['Avatar inválido']
+                        }
+                    }
+                }), 400
+        
+        for key, value in validated_data.items():
+            if hasattr(user, key):
+                setattr(user, key, value)
+        
+        db.session.commit()
+        
+        user_data = user_schema.dump(user)
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'user': user_data
+            }
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
         return jsonify({
             'success': False,
             'error': {

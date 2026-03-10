@@ -87,9 +87,17 @@ export function Topbar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                {session?.user?.name?.charAt(0) || "U"}
-              </div>
+              {session?.user?.avatar ? (
+                <img
+                  src={session.user.avatar}
+                  alt=""
+                  className="h-7 w-7 rounded-full border border-border bg-card"
+                />
+              ) : (
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                  {session?.user?.name?.charAt(0) || "U"}
+                </div>
+              )}
               <span className="hidden text-sm sm:inline">{session?.user?.name || "Usuario"}</span>
             </Button>
           </DropdownMenuTrigger>

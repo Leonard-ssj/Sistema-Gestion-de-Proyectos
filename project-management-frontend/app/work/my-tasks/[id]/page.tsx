@@ -35,18 +35,21 @@ export default function WorkTaskDetailPage({ params }: { params: Promise<{ id: s
     )
   }
 
+  const taskId = task.id
+  const taskComments = task.comments
   const assignee = users.find((u) => u.id === task.assigned_to)
-  const checklistDone = task.checklist.filter((c) => c.completed).length
+  const checklist = task.checklist ?? []
+  const checklistDone = checklist.filter((c) => c.completed).length
 
   function toggleChecklist(itemId: string) {
-    const updated = task.checklist.map((c) => c.id === itemId ? { ...c, completed: !c.completed } : c)
-    updateTask(task.id, { checklist: updated })
+    const updated = checklist.map((c) => c.id === itemId ? { ...c, completed: !c.completed } : c)
+    updateTask(taskId, { checklist: updated })
   }
 
   function addChecklistItem() {
     if (!newCheckItem.trim()) return
     const item: ChecklistItem = { id: `cl-${Date.now()}`, text: newCheckItem.trim(), completed: false }
-    updateTask(task.id, { checklist: [...task.checklist, item] })
+    updateTask(taskId, { checklist: [...checklist, item] })
     setNewCheckItem("")
   }
 
@@ -54,13 +57,13 @@ export default function WorkTaskDetailPage({ params }: { params: Promise<{ id: s
     if (!commentText.trim() || !session?.user) return
     const comment: Comment = {
       id: `com-${Date.now()}`,
-      task_id: task.id,
+      task_id: taskId,
       user_id: session.user.id,
       user_name: session.user.name,
       text: commentText.trim(),
       created_at: new Date().toISOString(),
     }
-    updateTask(task.id, { comments: [...task.comments, comment] })
+    updateTask(taskId, { comments: [...taskComments, comment] })
     setCommentText("")
   }
 
@@ -75,7 +78,7 @@ export default function WorkTaskDetailPage({ params }: { params: Promise<{ id: s
             <Badge variant="outline" className={TASK_PRIORITY_COLORS[task.priority]}>{TASK_PRIORITY_LABELS[task.priority]}</Badge>
           </div>
         </div>
-        <Select value={task.status} onValueChange={(v) => updateTask(task.id, { status: v as TaskStatus })}>
+        <Select value={task.status} onValueChange={(v) => updateTask(taskId, { status: v as TaskStatus })}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>{Object.entries(TASK_STATUS_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
         </Select>
@@ -87,9 +90,9 @@ export default function WorkTaskDetailPage({ params }: { params: Promise<{ id: s
       </Card>
 
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Checklist ({checklistDone}/{task.checklist.length})</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Checklist ({checklistDone}/{checklist.length})</CardTitle></CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {task.checklist.map((item) => (
+          {checklist.map((item) => (
             <div key={item.id} className="flex items-center gap-3 rounded-lg border p-2">
               <Checkbox checked={item.completed} onCheckedChange={() => toggleChecklist(item.id)} />
               <span className={`flex-1 text-sm ${item.completed ? "line-through text-muted-foreground" : ""}`}>{item.text}</span>

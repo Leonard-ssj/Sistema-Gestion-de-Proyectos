@@ -91,7 +91,7 @@ export async function registerService(data: {
   email: string
   password: string
   role?: string
-}): Promise<{ success: boolean; user?: User; session?: AuthSession; error?: string }> {
+}): Promise<{ success: boolean; user?: User; session?: AuthSession; error?: string; fieldErrors?: Record<string, string> }> {
   try {
     // Convertir rol a formato backend si se proporciona
     const roleToSend = data.role ? mapRoleToBackend(data.role as any) : 'OWNER'
@@ -122,9 +122,30 @@ export async function registerService(data: {
       }
     }
   } catch (error: any) {
+    const responseData = error?.response?.data
+    const backendError = responseData?.error
+    const details = backendError?.details
+    const errorMessage = backendError?.message || error.message || 'Error al registrar usuario'
+    
+    if (details && typeof details === 'object' && !Array.isArray(details)) {
+      const fieldErrors: Record<string, string> = {}
+      for (const [key, value] of Object.entries(details)) {
+        if (Array.isArray(value) && typeof value[0] === 'string') {
+          fieldErrors[key] = value[0]
+        } else if (typeof value === 'string') {
+          fieldErrors[key] = value
+        }
+      }
+      return {
+        success: false,
+        error: errorMessage,
+        fieldErrors
+      }
+    }
+    
     return {
       success: false,
-      error: error.message || 'Error al registrar usuario'
+      error: errorMessage
     }
   }
 }
@@ -140,6 +161,20 @@ export async function getMeService(): Promise<User | null> {
   } catch (error) {
     console.error('Error getting current user:', error)
     return null
+  }
+}
+
+export async function updateMeService(data: { name?: string; avatar?: string }): Promise<{ success: boolean; user?: User; error?: string }> {
+  try {
+    const response = await api.patch<{ user: any }>('/auth/me', data)
+    return { success: true, user: mapUserFromBackend(response.user) }
+  } catch (error: any) {
+    const responseData = error?.response?.data
+    const backendError = responseData?.error
+    return {
+      success: false,
+      error: backendError?.message || error.message || 'Error al actualizar perfil'
+    }
   }
 }
 

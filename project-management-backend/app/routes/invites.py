@@ -141,7 +141,7 @@ def create_invite():
         # Simular envío de email (log en consola)
         invite_url = f"http://localhost:3000/invite/accept?token={invite.token}"
         print(f"\n{'='*60}")
-        print(f"📧 EMAIL SIMULADO - Invitación enviada")
+        print("EMAIL SIMULADO - Invitación enviada")
         print(f"{'='*60}")
         print(f"Para: {email}")
         print(f"De: {user.name} ({user.email})")
@@ -505,7 +505,7 @@ def resend_invite(invite_id):
         # Simular reenvío de email
         invite_url = f"http://localhost:3000/invite/accept?token={invite.token}"
         print(f"\n{'='*60}")
-        print(f"📧 EMAIL SIMULADO - Invitación reenviada")
+        print("EMAIL SIMULADO - Invitación reenviada")
         print(f"{'='*60}")
         print(f"Para: {invite.email}")
         print(f"De: {user.name} ({user.email})")

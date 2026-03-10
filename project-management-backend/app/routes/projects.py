@@ -77,12 +77,18 @@ def create_project():
         name = validated_data['name']
         description = validated_data.get('description')
         category = validated_data.get('category')
+        timezone = validated_data.get('timezone')
+        date_format = validated_data.get('date_format')
+        state = validated_data.get('state')
         
         # Crear proyecto
         new_project = Project(
             name=name,
             description=description,
             category=category,
+            timezone=timezone,
+            date_format=date_format,
+            state=state,
             owner_id=user_id,
             status='active'
         )
@@ -97,7 +103,7 @@ def create_project():
             action='project_created',
             entity_type='project',
             entity_id=new_project.id,
-            details={'name': name, 'category': category},
+            details={'name': name, 'category': category, 'timezone': timezone, 'date_format': date_format, 'state': state},
             ip_address=request.remote_addr,
             user_agent=request.headers.get('User-Agent')
         )

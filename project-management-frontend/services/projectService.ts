@@ -1,26 +1,33 @@
 import { api } from '@/lib/api'
+import type { TenantStatus } from '@/mock/types'
 
 export interface CreateProjectData {
   name: string
-  description?: string
-  category?: string
+  description: string
+  category: string
+  timezone: string
+  date_format: string
+  state: string
 }
 
 export interface ProjectResponse {
-  id: number
+  id: string
   name: string
   description: string | null
   category: string | null
-  owner_id: number
-  status: string
+  timezone: string
+  date_format: string
+  state: string | null
+  owner_id: string
+  status: TenantStatus
   created_at: string
   updated_at: string
 }
 
-export async function createProjectService(data: CreateProjectData) {
+export async function createProjectService(data: CreateProjectData): Promise<{ success: boolean; project?: ProjectResponse; error?: string }> {
   try {
     const result = await api.post<{ project: ProjectResponse }>('/projects', data)
-    return { success: true, data: result }
+    return { success: true, project: result.project }
   } catch (error: any) {
     return { success: false, error: error.message }
   }

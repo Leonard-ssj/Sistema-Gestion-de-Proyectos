@@ -13,6 +13,11 @@ class Project(db.Model):
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     category = db.Column(db.String(100), nullable=True)
+
+    # Project settings
+    timezone = db.Column(db.String(64), nullable=False, default='America/Mexico_City')
+    date_format = db.Column(db.String(32), nullable=False, default='dd/MM/yyyy')
+    state = db.Column(db.String(64), nullable=True)
     
     # Owner (1 proyecto por owner - RF-007)
     owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True, index=True)
@@ -52,6 +57,9 @@ class Project(db.Model):
             'name': self.name,
             'description': self.description,
             'category': self.category,
+            'timezone': self.timezone,
+            'date_format': self.date_format,
+            'state': self.state,
             'owner_id': self.owner_id,
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,

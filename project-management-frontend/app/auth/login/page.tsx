@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AuthAnimatedBackground } from "@/components/marketing/auth-animated-background"
 import { useAuthStore } from "@/stores/authStore"
 import { loginService } from "@/services/authService"
 import { getHomeRoute } from "@/lib/guards"
 import { toast } from "sonner"
-import { Loader2, FolderKanban, Eye, EyeOff, ArrowLeft } from "lucide-react"
+import { AlertCircle, Loader2, FolderKanban, Eye, EyeOff, ArrowLeft } from "lucide-react"
 
 const schema = z.object({
   email: z.string().email("Email invalido"),
@@ -31,6 +33,8 @@ export default function LoginPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    mode: "onBlur",
+    reValidateMode: "onChange",
   })
 
   async function onSubmit(data: FormData) {
@@ -53,13 +57,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
-      {/* Fondo animado con gradiente */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950">
-        {/* Círculos animados */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl animate-blob" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-400/20 dark:bg-indigo-600/20 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl animate-blob animation-delay-4000" />
-      </div>
+      <AuthAnimatedBackground />
 
       {/* Botón de regresar */}
       <Button
@@ -82,11 +80,30 @@ export default function LoginPage() {
           <CardDescription>Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
         </CardHeader>
         <CardContent>
+          {(errors.email || errors.password) && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle />
+              <AlertTitle>Revisa tus datos</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc pl-4">
+                  {errors.email?.message && <li>{errors.email.message}</li>}
+                  {errors.password?.message && <li>{errors.password.message}</li>}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="tu@email.com" {...register("email")} />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+              <Input
+                id="email"
+                type="email"
+                placeholder="tu@email.com"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                {...register("email")}
+              />
+              {errors.email && <p id="email-error" className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -100,7 +117,9 @@ export default function LoginPage() {
                   id="password" 
                   type={showPw ? "text" : "password"} 
                   placeholder="********" 
-                  {...register("password")} 
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? "password-error" : undefined}
+                  {...register("password")}
                   className="pr-10"
                 />
                 <Button
@@ -117,7 +136,7 @@ export default function LoginPage() {
                   )}
                 </Button>
               </div>
-              {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+              {errors.password && <p id="password-error" className="text-sm text-destructive">{errors.password.message}</p>}
             </div>
             <Button type="submit" disabled={loading} className="w-full">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -129,14 +148,6 @@ export default function LoginPage() {
             <Link href="/auth/register" className="text-primary hover:underline">
               Registrate como Owner
             </Link>
-          </div>
-          <div className="mt-6 rounded-lg border bg-muted/50 p-3">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">Cuentas demo:</p>
-            <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-              <span><strong>Owner:</strong> owner@demo.com / Owner123!</span>
-              <span><strong>Empleado:</strong> employee@demo.com / Emp123!</span>
-              <span><strong>Admin:</strong> admin@demo.com / Admin123!</span>
-            </div>
           </div>
         </CardContent>
       </Card>

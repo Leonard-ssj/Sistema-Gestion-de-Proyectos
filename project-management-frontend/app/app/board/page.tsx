@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TASK_STATUS_LABELS, TASK_PRIORITY_COLORS, TASK_PRIORITY_LABELS } from "@/lib/constants"
-import type { TaskStatus, Task, Membership } from "@/mock/types"
+import type { TaskStatus, Task, Membership, User } from "@/mock/types"
 import Link from "next/link"
 import { fetchTasks, updateTaskStatus } from "@/services/taskService"
 import { listMembers } from "@/services/memberService"
@@ -82,7 +82,9 @@ export default function BoardPage() {
       if (membersResponse.success && membersResponse.members) {
         setMembers(membersResponse.members)
         // Update users in store for assignee display
-        const usersData = membersResponse.members.map(m => m.user)
+        const usersData = membersResponse.members
+          .map((m) => m.user)
+          .filter((u): u is User => !!u)
         setUsers(usersData)
       } else {
         const errorMsg = membersResponse.error || "Error al cargar miembros"

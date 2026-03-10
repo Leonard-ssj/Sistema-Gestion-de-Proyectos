@@ -158,18 +158,18 @@ All task endpoints support a `checklist` field for managing sub-items within tas
 #### Permission Rules for Checklist Operations
 
 **Owner Permissions:**
-- ✅ Create tasks with checklist items
-- ✅ Add new checklist items to existing tasks
-- ✅ Edit checklist item text
-- ✅ Remove checklist items
-- ✅ Toggle checklist item completion status
+- Create tasks with checklist items
+- Add new checklist items to existing tasks
+- Edit checklist item text
+- Remove checklist items
+- Toggle checklist item completion status
 
 **Employee Permissions:**
-- ❌ Cannot create tasks with checklist items
-- ❌ Cannot add new checklist items
-- ❌ Cannot edit checklist item text
-- ❌ Cannot remove checklist items
-- ✅ Can toggle checklist item completion status (for any task in the project)
+- Cannot create tasks with checklist items
+- Cannot add new checklist items
+- Cannot edit checklist item text
+- Cannot remove checklist items
+- Can toggle checklist item completion status (for any task in the project)
 
 **Permission Enforcement:**
 - Backend validates checklist modifications on `PATCH /api/tasks/<task_id>`

@@ -33,8 +33,10 @@ export interface User {
 export interface Project {
   id: string
   name: string
-  description: string
-  category: string
+  description: string | null
+  category: string | null
+  timezone?: string
+  date_format?: string
   owner_id: string
   status: TenantStatus
   created_at: string

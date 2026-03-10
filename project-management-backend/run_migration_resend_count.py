@@ -12,7 +12,7 @@ def run_migration():
         conn = psycopg2.connect(Config.SQLALCHEMY_DATABASE_URI)
         cursor = conn.cursor()
         
-        print("🔄 Ejecutando migración: add_resend_count_to_invites")
+        print("Ejecutando migración: add_resend_count_to_invites")
         print("=" * 60)
         
         # Leer archivo SQL
@@ -23,7 +23,7 @@ def run_migration():
         cursor.execute(sql)
         conn.commit()
         
-        print("✅ Migración ejecutada exitosamente")
+        print("Migración ejecutada exitosamente")
         print("=" * 60)
         
         # Verificar cambios
@@ -41,7 +41,7 @@ def run_migration():
         columns = cursor.fetchall()
         
         if columns:
-            print("\n📋 Columnas agregadas:")
+            print("\nColumnas agregadas:")
             for col in columns:
                 print(f"  - {col[0]}: {col[1]} (default: {col[2]})")
         
@@ -60,19 +60,19 @@ def run_migration():
         invites = cursor.fetchall()
         
         if invites:
-            print("\n📧 Invitaciones existentes (primeras 5):")
+            print("\nInvitaciones existentes (primeras 5):")
             for inv in invites:
                 print(f"  - {inv[1]}: status={inv[2]}, resend_count={inv[3]}")
         else:
-            print("\n📧 No hay invitaciones en la base de datos")
+            print("\nNo hay invitaciones en la base de datos")
         
         cursor.close()
         conn.close()
         
-        print("\n✅ Migración completada exitosamente")
+        print("\nMigración completada exitosamente")
         
     except Exception as e:
-        print(f"\n❌ Error ejecutando migración: {e}")
+        print(f"\nError ejecutando migración: {e}")
         raise
 
 if __name__ == '__main__':

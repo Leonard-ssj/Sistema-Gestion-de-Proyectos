@@ -1,4 +1,4 @@
-# 🚀 ProGest - Sistema de Gestión de Proyectos SaaS
+# ProGest - Sistema de Gestión de Proyectos SaaS
 
 <div align="center">
 
@@ -13,68 +13,68 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.10+-yellow)](https://www.python.org/)
 
-[Características](#-características-principales) •
-[Instalación](#-instalación-rápida) •
-[Documentación](#-documentación) •
-[API](#-api-rest) •
-[Testing](#-testing)
+[Características](#características-principales) •
+[Instalación](#instalación-rápida) •
+[Documentación](#documentación) •
+[API](#api-rest) •
+[Testing](#testing)
 
 </div>
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
-- [Descripción](#-descripción)
-- [Características Principales](#-características-principales)
-- [Arquitectura](#-arquitectura)
-- [Requisitos Previos](#-requisitos-previos)
-- [Instalación Rápida](#-instalación-rápida)
-- [Configuración Detallada](#-configuración-detallada)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
-- [API REST](#-api-rest)
-- [Testing](#-testing)
-- [Documentación](#-documentación)
-- [Scripts Útiles](#-scripts-útiles)
-- [Troubleshooting](#-troubleshooting)
-- [Contribuir](#-contribuir)
-- [Licencia](#-licencia)
+- [Descripción](#descripción)
+- [Características Principales](#características-principales)
+- [Arquitectura](#arquitectura)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación Rápida](#instalación-rápida)
+- [Configuración Detallada](#configuración-detallada)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [API REST](#api-rest)
+- [Testing](#testing)
+- [Documentación](#documentación)
+- [Scripts Útiles](#scripts-útiles)
+- [Troubleshooting](#troubleshooting)
+- [Contribuir](#contribuir)
+- [Licencia](#licencia)
 
 ---
 
-## 🎯 Descripción
+## Descripción
 
 **ProGest** es un sistema SaaS (Software as a Service) completo para la gestión de proyectos empresariales. Construido con tecnologías modernas, ofrece una arquitectura multitenant robusta que permite a múltiples organizaciones gestionar sus proyectos de forma aislada y segura.
 
 ### ¿Qué hace ProGest?
 
-- ✅ Gestión completa de proyectos y tareas
-- ✅ Sistema de invitaciones y gestión de equipos
-- ✅ Notificaciones en tiempo real
-- ✅ Sistema de comentarios y colaboración
-- ✅ Panel de administración para superusuarios
-- ✅ API REST completa (41 endpoints)
-- ✅ Autenticación JWT con refresh tokens
-- ✅ Aislamiento multitenant de datos
+- Gestión completa de proyectos y tareas
+- Sistema de invitaciones y gestión de equipos
+- Notificaciones en tiempo real
+- Sistema de comentarios y colaboración
+- Panel de administración para superusuarios
+- API REST completa (41 endpoints)
+- Autenticación JWT con refresh tokens
+- Aislamiento multitenant de datos
 
 ---
 
-## ✨ Características Principales
+## Características Principales
 
-### 🔐 Autenticación y Seguridad
+### Autenticación y Seguridad
 - Sistema de autenticación JWT con tokens de acceso y refresh
 - Roles de usuario: Owner, Employee, SuperAdmin
 - Contraseñas hasheadas con bcrypt
 - Aislamiento completo de datos entre proyectos (multitenant)
 - Logs de auditoría de todas las acciones importantes
 
-### 📊 Gestión de Proyectos
+### Gestión de Proyectos
 - Creación y configuración de proyectos
 - Categorización de proyectos
 - Estadísticas en tiempo real
 - Un proyecto por Owner
 
-### ✅ Gestión de Tareas
+### Gestión de Tareas
 - CRUD completo de tareas
 - Estados: Pending, In Progress, Blocked, Done
 - Prioridades: Low, Medium, High, Urgent
@@ -85,24 +85,24 @@
 - Filtros y búsqueda avanzada
 - Drag & Drop en tablero Kanban
 
-### 👥 Gestión de Equipos
+### Gestión de Equipos
 - Invitaciones por email con tokens seguros
 - Perfiles enriquecidos de empleados
 - Gestión de miembros del equipo
 - Desactivación/reactivación de miembros
 
-### 🔔 Sistema de Notificaciones
+### Sistema de Notificaciones
 - Notificaciones en tiempo real
 - Contador de notificaciones no leídas
 - Tipos: asignación de tareas, comentarios, cambios de estado
 - Marcar como leídas/no leídas
 
-### 💬 Sistema de Comentarios
+### Sistema de Comentarios
 - Comentarios en tareas
 - Edición y eliminación de comentarios propios
 - Historial completo de conversaciones
 
-### 🛠️ Panel de Administración
+### Panel de Administración
 - Gestión de todos los usuarios y proyectos
 - Estadísticas globales del sistema
 - Logs de auditoría completos
@@ -110,7 +110,7 @@
 
 ---
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -148,7 +148,7 @@
 
 ---
 
-## 📦 Requisitos Previos
+## Requisitos Previos
 
 Antes de comenzar, asegúrate de tener instalado:
 
@@ -187,7 +187,7 @@ git --version
 
 ---
 
-## 🚀 Instalación Rápida
+## Instalación Rápida
 
 ### Paso 1: Clonar el Repositorio
 
@@ -266,7 +266,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 FRONTEND_URL=http://localhost:3000
 ```
 
-⚠️ **IMPORTANTE**: Reemplaza `TU_PASSWORD_MYSQL_AQUI` con tu contraseña real de MySQL.
+**IMPORTANTE**: Reemplaza `TU_PASSWORD_MYSQL_AQUI` con tu contraseña real de MySQL.
 
 ### Paso 4: Instalar Dependencias del Backend
 
@@ -312,7 +312,7 @@ Deberías ver:
  * Restarting with stat
 ```
 
-✅ **Backend corriendo en:** http://localhost:5000
+**Backend corriendo en:** http://localhost:5000
 
 ### Paso 7: Instalar Dependencias del Frontend
 
@@ -339,11 +339,11 @@ Deberías ver:
   - Ready in 2.5s
 ```
 
-✅ **Frontend corriendo en:** http://localhost:3000
+**Frontend corriendo en:** http://localhost:3000
 
 ---
 
-## ⚡ Ejecución Rápida (Desarrollo)
+## Ejecución Rápida (Desarrollo)
 
 Si ya tienes el proyecto configurado, usa estos comandos en terminales separadas para iniciar el entorno de desarrollo:
 
@@ -365,7 +365,7 @@ npm run dev
 
 ---
 
-## 🎉 ¡Listo! Accede a la Aplicación
+## ¡Listo! Accede a la Aplicación
 
 Abre tu navegador y ve a: **http://localhost:3000**
 
@@ -381,13 +381,13 @@ Abre tu navegador y ve a: **http://localhost:3000**
 
 ---
 
-## ⚙️ Configuración Detallada
+## Configuración Detallada
 
 ### Estructura de Carpetas del Monorepo
 
 ```
 Sistema-Gestion-de-Proyectos/
-├── 📁 project-management-backend/    # Backend Flask
+├── project-management-backend/      # Backend Flask
 │   ├── app/                          # Código de la aplicación
 │   │   ├── models/                   # Modelos SQLAlchemy
 │   │   ├── routes/                   # Blueprints de rutas
@@ -400,7 +400,7 @@ Sistema-Gestion-de-Proyectos/
 │   ├── config.py                     # Configuración
 │   └── requirements.txt              # Dependencias Python
 │
-├── 📁 project-management-frontend/   # Frontend Next.js
+├── project-management-frontend/     # Frontend Next.js
 │   ├── app/                          # App Router de Next.js
 │   │   ├── (marketing)/              # Rutas públicas
 │   │   ├── auth/                     # Autenticación
@@ -416,16 +416,16 @@ Sistema-Gestion-de-Proyectos/
 │   ├── package.json                  # Dependencias Node.js
 │   └── next.config.js                # Configuración Next.js
 │
-├── 📁 playwright-tests/              # Tests E2E
+├── playwright-tests/                # Tests E2E
 │   ├── flow-diagrams/                # Diagramas de flujo
 │   ├── generated-tests/              # Tests generados
 │   └── create-team.spec.ts           # Script de creación de equipo
 │
-├── 📁 postman/                       # Colecciones Postman
+├── postman/                         # Colecciones Postman
 │   ├── ProGest_API_Complete.postman_collection.json
 │   └── ProGest_Development.postman_environment.json
 │
-├── 📁 .trae/                         # Documentación del proyecto
+├── .trae/                           # Documentación del proyecto
 │   ├── DOCUMENTACION_CONSOLIDADA.md # Documentación completa
 │   ├── architecture.md               # Arquitectura del sistema
 │   ├── data-model.md                 # Modelo de datos
@@ -442,7 +442,7 @@ Sistema-Gestion-de-Proyectos/
 
 ---
 
-## 🔌 API REST
+## API REST
 
 El backend expone **41 endpoints REST** organizados en 8 categorías:
 
@@ -498,11 +498,11 @@ curl -X POST http://localhost:5000/api/tasks \
 3. Selecciona el environment "ProGest - Development"
 4. ¡Prueba los 41 endpoints!
 
-📖 **Documentación completa de API:** `.trae/API_COMPLETE_DOCUMENTATION.md`
+**Documentación completa de API:** `.trae/API_COMPLETE_DOCUMENTATION.md`
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Testing con Playwright
 
@@ -521,11 +521,11 @@ npx playwright test playwright-tests/create-team.spec.ts --headed
 ```
 
 **El script crea:**
-- ✅ 1 Owner (Carlos Mendez)
-- ✅ 1 Proyecto (Auditoría Financiera Q1 2024)
-- ✅ 3 Empleados (Ana Rodríguez, Miguel Torres, Laura García)
-- ✅ 5 Tareas de auditoría financiera
-- ✅ Archivo `playwright-tests/team-credentials.json` con credenciales
+- 1 Owner (Carlos Mendez)
+- 1 Proyecto (Auditoría Financiera Q1 2024)
+- 3 Empleados (Ana Rodríguez, Miguel Torres, Laura García)
+- 5 Tareas de auditoría financiera
+- Archivo `playwright-tests/team-credentials.json` con credenciales
 
 #### Ver Credenciales Generadas
 
@@ -537,11 +537,11 @@ type playwright-tests\team-credentials.json
 cat playwright-tests/team-credentials.json
 ```
 
-📖 **Guía completa de testing:** `playwright-tests/README.md`
+**Guía completa de testing:** `playwright-tests/README.md`
 
 ---
 
-## 📚 Documentación
+## Documentación
 
 El proyecto cuenta con documentación exhaustiva en la carpeta `.trae/`:
 
@@ -560,7 +560,7 @@ El proyecto cuenta con documentación exhaustiva en la carpeta `.trae/`:
 
 ### Documento de Requerimientos
 
-📄 **REQUERIMIENTOS_PROGEST.md** - Documento profesional con **85+ requerimientos** detallados:
+**REQUERIMIENTOS_PROGEST.md** - Documento profesional con **85+ requerimientos** detallados:
 - 70 Requerimientos Funcionales (RF-001 a RF-085)
 - 40 Requerimientos No Funcionales (RNF-001 a RNF-040)
 - Interfaces externas
@@ -568,7 +568,7 @@ El proyecto cuenta con documentación exhaustiva en la carpeta `.trae/`:
 
 ---
 
-## 🛠️ Scripts Útiles
+## Scripts Útiles
 
 ### Backend
 
@@ -643,7 +643,7 @@ npx playwright show-report
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Problema: Error de conexión a MySQL
 
@@ -734,7 +734,7 @@ python manage_migrations.py upgrade
 
 ---
 
-## 🤝 Contribuir
+## Contribuir
 
 ¡Las contribuciones son bienvenidas! Por favor:
 
@@ -753,13 +753,13 @@ python manage_migrations.py upgrade
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
 ---
 
-## 👨‍💻 Autor
+## Autor
 
 **Leonard Pardo**
 - GitHub: [@Leonard-ssj](https://github.com/Leonard-ssj)
@@ -767,7 +767,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 ---
 
-## 🙏 Agradecimientos
+## Agradecimientos
 
 - [Next.js](https://nextjs.org/) - Framework de React
 - [Flask](https://flask.palletsprojects.com/) - Framework de Python
@@ -778,25 +778,25 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 ---
 
-## 📊 Estado del Proyecto
+## Estado del Proyecto
 
-- ✅ **Backend:** 41 endpoints implementados y funcionando
-- ✅ **Frontend:** Aplicación completa con todas las vistas
-- ✅ **Base de Datos:** 8 tablas con relaciones optimizadas
-- ✅ **Autenticación:** JWT con refresh tokens
-- ✅ **Testing:** Tests E2E con Playwright
-- ✅ **Documentación:** Completa y actualizada
-- ✅ **API:** Colección Postman con 41 endpoints
+- **Backend:** 41 endpoints implementados y funcionando
+- **Frontend:** Aplicación completa con todas las vistas
+- **Base de Datos:** 8 tablas con relaciones optimizadas
+- **Autenticación:** JWT con refresh tokens
+- **Testing:** Tests E2E con Playwright
+- **Documentación:** Completa y actualizada
+- **API:** Colección Postman con 41 endpoints
 
 **Versión actual:** 2.0.0  
-**Estado:** Producción Ready ✨
+**Estado:** Producción Ready
 
 ---
 
 <div align="center">
 
-**⭐ Si este proyecto te fue útil, considera darle una estrella en GitHub ⭐**
+**Si este proyecto te fue útil, considera darle una estrella en GitHub**
 
-[⬆ Volver arriba](#-progest---sistema-de-gestión-de-proyectos-saas)
+[Volver arriba](#progest---sistema-de-gestión-de-proyectos-saas)
 
 </div>

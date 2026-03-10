@@ -21,7 +21,7 @@ function cleanupFolder(folderName) {
   const folderPath = path.join(SCREENSHOTS_DIR, folderName);
   
   if (!fs.existsSync(folderPath)) {
-    console.log(`❌ Carpeta no existe: ${folderPath}`);
+    console.log(`Carpeta no existe: ${folderPath}`);
     return;
   }
 
@@ -29,7 +29,7 @@ function cleanupFolder(folderName) {
   const pngFiles = files.filter(file => file.endsWith('.png'));
 
   if (pngFiles.length === 0) {
-    console.log(`ℹ️  No hay screenshots en: ${folderName}`);
+    console.log(`No hay screenshots en: ${folderName}`);
     return;
   }
 
@@ -39,13 +39,13 @@ function cleanupFolder(folderName) {
     try {
       fs.unlinkSync(filePath);
       deletedCount++;
-      console.log(`🗑️  Eliminado: ${file}`);
+      console.log(`Eliminado: ${file}`);
     } catch (error) {
-      console.error(`❌ Error al eliminar ${file}:`, error.message);
+      console.error(`Error al eliminar ${file}:`, error.message);
     }
   });
 
-  console.log(`✅ Eliminados ${deletedCount} screenshots de ${folderName}\n`);
+  console.log(`Eliminados ${deletedCount} screenshots de ${folderName}\n`);
 }
 
 /**
@@ -53,7 +53,7 @@ function cleanupFolder(folderName) {
  */
 function cleanupAll() {
   if (!fs.existsSync(SCREENSHOTS_DIR)) {
-    console.log(`❌ Directorio de screenshots no existe: ${SCREENSHOTS_DIR}`);
+    console.log(`Directorio de screenshots no existe: ${SCREENSHOTS_DIR}`);
     return;
   }
 
@@ -62,13 +62,13 @@ function cleanupAll() {
     .map(dirent => dirent.name);
 
   if (folders.length === 0) {
-    console.log('ℹ️  No hay carpetas de screenshots');
+    console.log('No hay carpetas de screenshots');
     return;
   }
 
-  console.log(`🧹 Limpiando ${folders.length} carpetas...\n`);
+  console.log(`Limpiando ${folders.length} carpetas...\n`);
   folders.forEach(folder => cleanupFolder(folder));
-  console.log('✅ Limpieza completada');
+  console.log('Limpieza completada');
 }
 
 /**
@@ -78,7 +78,7 @@ function keepLatest(folderName, count = 5) {
   const folderPath = path.join(SCREENSHOTS_DIR, folderName);
   
   if (!fs.existsSync(folderPath)) {
-    console.log(`❌ Carpeta no existe: ${folderPath}`);
+    console.log(`Carpeta no existe: ${folderPath}`);
     return;
   }
 
@@ -92,7 +92,7 @@ function keepLatest(folderName, count = 5) {
     .sort((a, b) => b.time - a.time); // Más recientes primero
 
   if (files.length <= count) {
-    console.log(`ℹ️  Solo hay ${files.length} screenshots, no se elimina nada`);
+    console.log(`Solo hay ${files.length} screenshots, no se elimina nada`);
     return;
   }
 
@@ -100,20 +100,20 @@ function keepLatest(folderName, count = 5) {
   toDelete.forEach(file => {
     try {
       fs.unlinkSync(file.path);
-      console.log(`🗑️  Eliminado: ${file.name}`);
+      console.log(`Eliminado: ${file.name}`);
     } catch (error) {
-      console.error(`❌ Error al eliminar ${file.name}:`, error.message);
+      console.error(`Error al eliminar ${file.name}:`, error.message);
     }
   });
 
-  console.log(`✅ Mantenidos ${count} screenshots más recientes, eliminados ${toDelete.length}`);
+  console.log(`Mantenidos ${count} screenshots más recientes, eliminados ${toDelete.length}`);
 }
 
 // Main
 const args = process.argv.slice(2);
 const command = args[0] || 'help';
 
-console.log('🧹 Screenshot Cleanup Utility\n');
+console.log('Screenshot Cleanup Utility\n');
 
 switch (command) {
   case 'all':
@@ -124,7 +124,7 @@ switch (command) {
     const folder = args[1];
     const count = parseInt(args[2]) || 5;
     if (!folder) {
-      console.log('❌ Uso: node cleanup-screenshots.js keep-latest <folder> [count]');
+      console.log('Uso: node cleanup-screenshots.js keep-latest <folder> [count]');
       process.exit(1);
     }
     keepLatest(folder, count);

@@ -26,19 +26,21 @@ interface BackendMember {
 }
 
 function mapMemberFromBackend(member: BackendMember): Membership {
+  const membershipStatus = (member.status === 'disabled' ? 'inactive' : member.status) as 'active' | 'inactive'
+  const userStatus = (member.status === 'inactive' || member.status === 'disabled' ? 'disabled' : member.status) as 'active' | 'disabled'
   return {
     id: member.membership_id || `owner-${member.id}`,
     user_id: member.id,
     project_id: '',
     role: member.role.toLowerCase() as 'owner' | 'employee',
-    status: member.status as 'active' | 'inactive',
+    status: membershipStatus,
     joined_at: member.joined_at || member.created_at,
     user: {
       id: member.id,
       email: member.email,
       name: member.name,
       role: member.role.toLowerCase() as 'owner' | 'employee',
-      status: member.status as 'active' | 'inactive',
+      status: userStatus,
       avatar: member.avatar,
       job_title: member.job_title,
       description: member.description,

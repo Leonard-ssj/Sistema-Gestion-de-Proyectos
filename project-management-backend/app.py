@@ -44,6 +44,26 @@ from app.models import User, Project, Membership, Task, Invite, Notification, Co
 # Importar rutas
 from app.routes import auth_bp, projects_bp, invites_bp, members_bp, tasks_bp, notifications_bp, comments_bp, admin_bp
 
+def ensure_project_schema():
+    columns = db.session.execute(text("""
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = :schema AND table_name = 'projects'
+    """), {'schema': Config.DB_NAME}).fetchall()
+    existing = {row[0] for row in columns}
+    
+    alters = []
+    if 'timezone' not in existing:
+        alters.append("ADD COLUMN timezone VARCHAR(64) NOT NULL DEFAULT 'America/Mexico_City'")
+    if 'date_format' not in existing:
+        alters.append("ADD COLUMN date_format VARCHAR(32) NOT NULL DEFAULT 'dd/MM/yyyy'")
+    if 'state' not in existing:
+        alters.append("ADD COLUMN state VARCHAR(64) NULL")
+    
+    if alters:
+        db.session.execute(text(f"ALTER TABLE projects {', '.join(alters)}"))
+        db.session.commit()
+
 # Registrar blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(projects_bp)
@@ -120,6 +140,7 @@ if __name__ == '__main__':
             # Crear todas las tablas
             print('\nCreando tablas en la base de datos...')
             db.create_all()
+            ensure_project_schema()
             print('✓ Tablas creadas exitosamente\n')
             
             # Mostrar tablas creadas

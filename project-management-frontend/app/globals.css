@@ -152,6 +152,48 @@
   animation-delay: 4s;
 }
 
+@keyframes grid-pan {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-48px, -48px, 0);
+  }
+}
+
+.animate-grid-pan {
+  animation: grid-pan 18s linear infinite;
+}
+
+@keyframes floaty {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(var(--float-rot, 0deg));
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) rotate(var(--float-rot, 0deg));
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--float-rot, 0deg));
+  }
+}
+
+.animate-float {
+  animation: floaty 10s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: floaty 7s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: floaty 14s ease-in-out infinite;
+}
+
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
 /* Estilos para react-day-picker calendar */
 .rdp {
   --rdp-cell-size: 2.25rem;

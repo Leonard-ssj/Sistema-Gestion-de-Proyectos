@@ -317,7 +317,7 @@ Antes de aplicar en produccion:
 
 1. **Backup de BD**
 ```bash
-mysqldump -u root -p project_management_db_mysql > backup.sql
+pg_dump -h localhost -p 5432 -U postgres project_management_db_postgres > backup.sql
 ```
 
 2. **Aplicar migracion en desarrollo**
@@ -338,7 +338,7 @@ python manage_migrations.py downgrade
 
 5. **Restaurar backup si es necesario**
 ```bash
-mysql -u root -p project_management_db_mysql < backup.sql
+psql -h localhost -p 5432 -U postgres -d project_management_db_postgres < backup.sql
 ```
 
 ## Checklist de Migracion

@@ -13,7 +13,7 @@ Script automatizado para crear un equipo completo en ProGest con datos realistas
 
 1. Backend corriendo en http://localhost:5000
 2. Frontend corriendo en http://localhost:3000
-3. MySQL activo con base de datos creada
+3. PostgreSQL activo con base de datos creada
 
 ## Como ejecutar
 

@@ -9,7 +9,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
 [![Flask](https://img.shields.io/badge/Flask-3.0-green)](https://flask.palletsprojects.com/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-orange)](https://www.mysql.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-blue)](https://www.postgresql.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.10+-yellow)](https://www.python.org/)
 
@@ -138,7 +138,7 @@
                      │ SQL
                      ▼
 ┌─────────────────────────────────────────────────────────┐
-│              DATABASE - MySQL 8.0 (Port 3306)           │
+│           DATABASE - PostgreSQL 14+ (Port 5432)         │
 │  • 8 Tablas principales                                 │
 │  • Relaciones con Foreign Keys                          │
 │  • Índices optimizados                                  │
@@ -160,7 +160,7 @@ Antes de comenzar, asegúrate de tener instalado:
 | **npm** | 9.x+ | Gestor de paquetes de Node.js |
 | **Python** | 3.10+ | Runtime para el backend |
 | **pip** | 23.x+ | Gestor de paquetes de Python |
-| **MySQL** | 8.0+ | Base de datos |
+| **PostgreSQL** | 14+ | Base de datos |
 | **Git** | 2.x+ | Control de versiones |
 
 ### Verificar Instalaciones
@@ -178,8 +178,8 @@ python --version  # Debe mostrar 3.10 o superior
 # Verificar pip
 pip --version
 
-# Verificar MySQL
-mysql --version  # Debe mostrar 8.0 o superior
+# Verificar PostgreSQL
+psql --version  # Debe mostrar 14 o superior
 
 # Verificar Git
 git --version
@@ -196,30 +196,16 @@ git clone https://github.com/Leonard-ssj/Sistema-Gestion-de-Proyectos.git
 cd Sistema-Gestion-de-Proyectos
 ```
 
-### Paso 2: Configurar Base de Datos MySQL
+### Paso 2: Configurar Base de Datos PostgreSQL
 
-1. **Iniciar MySQL** (si no está corriendo):
+1. Inicia PostgreSQL (servicio local o Docker).
+2. Crea la base de datos:
    ```bash
-   # Windows (como servicio)
-   net start MySQL80
-   
-   # O iniciar desde MySQL Workbench
+   createdb project_management_db_postgres
    ```
-
-2. **Crear la base de datos**:
+3. Si `createdb` no está disponible, usa psql:
    ```bash
-   mysql -u root -p
-   ```
-   
-   Luego ejecuta en el prompt de MySQL:
-   ```sql
-   CREATE DATABASE project_management_db_mysql CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   EXIT;
-   ```
-
-3. **Verificar que la base de datos fue creada**:
-   ```bash
-   mysql -u root -p -e "SHOW DATABASES;"
+   psql -U postgres -c "CREATE DATABASE project_management_db_postgres;"
    ```
 
 ### Paso 3: Configurar Variables de Entorno
@@ -245,15 +231,8 @@ Edita `.env.local` con tus credenciales:
 SECRET_KEY=tu-secret-key-super-segura-cambiar-en-produccion
 JWT_SECRET_KEY=tu-jwt-secret-key-super-segura-cambiar-en-produccion
 
-# MySQL Database Configuration
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=TU_PASSWORD_MYSQL_AQUI
-DB_NAME=project_management_db_mysql
-
-# Database URL (construida automáticamente)
-DATABASE_URL=mysql+pymysql://root:TU_PASSWORD_MYSQL_AQUI@localhost:3306/project_management_db_mysql
+# PostgreSQL Database URL (LOCAL)
+DATABASE_URL=postgresql+psycopg2://postgres:TU_PASSWORD_POSTGRES_AQUI@localhost:5432/project_management_db_postgres?sslmode=disable
 
 # ============================================
 # FRONTEND CONFIGURATION
@@ -266,7 +245,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 FRONTEND_URL=http://localhost:3000
 ```
 
-**IMPORTANTE**: Reemplaza `TU_PASSWORD_MYSQL_AQUI` con tu contraseña real de MySQL.
+**IMPORTANTE**: Reemplaza `TU_PASSWORD_POSTGRES_AQUI` con tu contraseña real de PostgreSQL.
 
 ### Paso 4: Instalar Dependencias del Backend
 
@@ -645,27 +624,20 @@ npx playwright show-report
 
 ## Troubleshooting
 
-### Problema: Error de conexión a MySQL
+### Problema: Error de conexión a PostgreSQL
 
 **Síntoma:**
 ```
-sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server")
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not connect to server
 ```
 
 **Solución:**
-1. Verifica que MySQL esté corriendo:
-   ```bash
-   # Windows
-   net start MySQL80
-   
-   # Verificar estado
-   sc query MySQL80
-   ```
+1. Verifica que PostgreSQL esté corriendo.
 
 2. Verifica credenciales en `.env.local`
 3. Verifica que la base de datos existe:
    ```bash
-   mysql -u root -p -e "SHOW DATABASES;"
+   psql -U postgres -c "\l"
    ```
 
 ### Problema: Puerto 3000 o 5000 ya en uso
@@ -738,11 +710,27 @@ python manage_migrations.py upgrade
 
 ¡Las contribuciones son bienvenidas! Por favor:
 
+### Reglas de Ramas (Obligatorio)
+
+- No se permite hacer push directo a `main` (solo maintainers).
+- Todo cambio entra por Pull Request desde una rama que parte de `main`.
+- Cada merge a `main` dispara un deploy automático al ambiente **dev**.
+
+**Ambiente Dev**
+- Frontend: https://sistema-gestion-de-proyectos-dev.vercel.app/
+- Backend: https://sistema-gestion-de-proyectos-backend-dev.onrender.com
+- Health check: https://sistema-gestion-de-proyectos-backend-dev.onrender.com/api/health
+
+### Flujo de Contribución
+
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+2. Actualiza `main` local (`git checkout main && git pull origin main`)
+3. Crea una rama desde `main` (`git checkout -b feature/mi-cambio`)
+4. Commit tus cambios (Conventional Commits)
+5. Push a tu rama (`git push -u origin feature/mi-cambio`)
+6. Abre un Pull Request hacia `main`
+7. Espera review y aprobación
+8. Un maintainer hace merge a `main` (se despliega automáticamente a dev)
 
 ### Guías de Contribución
 

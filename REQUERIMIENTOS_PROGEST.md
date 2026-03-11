@@ -171,7 +171,7 @@ ProGest es un sistema independiente de gestión de proyectos que opera como una 
    - Lógica de negocio centralizada
    - Gestión de autenticación y autorización
 
-3. **Base de Datos (MySQL 8.0)**
+3. **Base de Datos (PostgreSQL)**
    - Almacenamiento persistente
    - 8 entidades principales
    - Soporte para transacciones ACID
@@ -195,7 +195,7 @@ ProGest es un sistema independiente de gestión de proyectos que opera como una 
        │ SQL
        ▼
 ┌─────────────┐
-│  Database   │ (MySQL - Puerto 3306)
+│  Database   │ (PostgreSQL - Puerto 5432)
 └─────────────┘
 ```
 
@@ -299,7 +299,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 
 - **RT-1:** El sistema debe ejecutarse en navegadores modernos (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
 - **RT-2:** El backend debe ser compatible con Python 3.10 o superior
-- **RT-3:** La base de datos debe ser MySQL 8.0 o superior
+- **RT-3:** La base de datos debe ser PostgreSQL 14 o superior
 - **RT-4:** El sistema debe soportar al menos 100 usuarios concurrentes
 - **RT-5:** Los tokens JWT deben expirar en 15 minutos (access) y 7 días (refresh)
 
@@ -330,7 +330,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 
 **Dependencias:**
 
-- **D-1:** Servidor MySQL 8.0+ para almacenamiento de datos
+- **D-1:** Servidor PostgreSQL 14+ para almacenamiento de datos
 - **D-2:** Servidor SMTP para envío de emails de invitación
 - **D-3:** Certificado SSL/TLS para conexiones HTTPS
 - **D-4:** Librerías de terceros (ver requirements.txt y package.json)
@@ -2209,7 +2209,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 **Criterios de aceptación:**
 - Backend compatible con Linux, Windows, macOS
 - Frontend compatible con navegadores modernos
-- Base de datos portable (MySQL, PostgreSQL)
+- Base de datos portable (PostgreSQL)
 - Usar Docker para consistencia de entornos
 - Documentar dependencias del sistema
 
@@ -2307,7 +2307,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 ---
 
 #### IH-002: Servidor de Base de Datos
-**Descripción:** Servidor MySQL para almacenamiento de datos.
+**Descripción:** Servidor PostgreSQL para almacenamiento de datos.
 
 **Requisitos mínimos:**
 - CPU: 2 cores
@@ -2349,14 +2349,13 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 
 ---
 
-#### IS-002: Base de Datos MySQL
+#### IS-002: Base de Datos PostgreSQL
 **Descripción:** Sistema de gestión de base de datos relacional.
 
 **Características:**
-- Versión: MySQL 8.0+
-- Charset: utf8mb4
-- Collation: utf8mb4_unicode_ci
-- Engine: InnoDB
+- Versión: PostgreSQL 14+
+- Encoding: UTF-8
+- Conexión: SSL para conexiones externas (según proveedor)
 - Transacciones: ACID
 
 **Tablas:**
@@ -2503,7 +2502,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 - Next.js: https://nextjs.org/
 - React: https://react.dev/
 - SQLAlchemy: https://www.sqlalchemy.org/
-- MySQL: https://dev.mysql.com/doc/
+- PostgreSQL: https://www.postgresql.org/docs/
 - JWT: https://jwt.io/
 - shadcn/ui: https://ui.shadcn.com/
 

@@ -429,18 +429,22 @@ En GitHub/GitLab:
 - Hacer cambios solicitados si es necesario
 - Hacer push de cambios adicionales al mismo branch
 
+**Regla: NO push directo a main**
+- Nadie debe hacer push directo a `main` (solo maintainers).
+- Todo cambio entra por Pull Request desde una rama que parte de `main`.
+- Cada merge a `main` dispara un deploy automático al ambiente dev.
+
+**Ambiente Dev**
+- Frontend: https://sistema-gestion-de-proyectos-dev.vercel.app/
+- Backend: https://sistema-gestion-de-proyectos-backend-dev.onrender.com
+- Health check: https://sistema-gestion-de-proyectos-backend-dev.onrender.com/api/health
+
 **5. Merge a Main**
 
 Una vez aprobado:
 ```bash
-# Opcion 1: Merge desde GitHub/GitLab (recomendado)
-# Click en "Merge Pull Request"
-
-# Opcion 2: Merge local
-git checkout main
-git pull origin main
-git merge feature/nombre-funcionalidad
-git push origin main
+# Merge desde GitHub/GitLab (recomendado y requerido)
+# Click en "Merge Pull Request" (solo maintainers)
 ```
 
 **6. Limpiar Branch**

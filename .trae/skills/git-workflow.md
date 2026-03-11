@@ -102,6 +102,17 @@ git checkout -b refactor/task-service-cleanup
 
 ## Workflow Completo
 
+## Reglas de Main (Obligatorio)
+
+- No se permite hacer push directo a `main` (solo maintainers).
+- Todo cambio entra por Pull Request desde una rama que parte de `main`.
+- `main` se usa como ambiente **dev desplegado**: cada merge a `main` dispara un deploy automático.
+
+**Ambiente Dev**
+- Frontend: https://sistema-gestion-de-proyectos-dev.vercel.app/
+- Backend: https://sistema-gestion-de-proyectos-backend-dev.onrender.com
+- Health check: https://sistema-gestion-de-proyectos-backend-dev.onrender.com/api/health
+
 ### 1. Crear Branch desde Main Actualizado
 
 ```bash
@@ -193,18 +204,10 @@ En GitHub/GitLab:
 
 Una vez aprobado:
 
-**Opcion A: Merge desde GitHub/GitLab (Recomendado)**
+**Merge desde GitHub/GitLab (Recomendado y requerido)**
 - Click en "Merge Pull Request"
-- Seleccionar tipo de merge (squash, merge, rebase)
-- Confirmar merge
-
-**Opcion B: Merge local**
-```bash
-git checkout main
-git pull origin main
-git merge feature/nueva-funcionalidad
-git push origin main
-```
+- Confirmar merge (solo maintainers)
+- Verificar el deploy en el ambiente dev (Frontend + `/api/health`)
 
 ### 7. Limpiar Branch
 

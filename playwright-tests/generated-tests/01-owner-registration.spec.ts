@@ -24,8 +24,10 @@ test.describe('Owner Registration Flow', () => {
     role: 'OWNER',
     project: {
       name: 'Mi Proyecto Test',
-      description: 'Proyecto de prueba para Playwright MCP',
-      category: 'software'
+      description: 'Proyecto de prueba para Playwright MCP con descripcion suficiente.',
+      category: 'Marketing',
+      timezone: 'America/Mexico_City',
+      state: 'Ciudad de Mexico'
     }
   };
 
@@ -38,7 +40,7 @@ test.describe('Owner Registration Flow', () => {
     
     // PASO 1: Navegar a página de registro
     console.log('Paso 1: Navegando a /auth/register');
-    await page.goto('http://localhost:3000/auth/register');
+    await page.goto('/auth/register');
     
     // Verificar que la página cargó
     await expect(page).toHaveURL(/\/auth\/register/);
@@ -62,6 +64,10 @@ test.describe('Owner Registration Flow', () => {
     await page.fill('input[name="password"]', testData.password);
     console.log(`   - Password: ${testData.password}`);
     
+    // Llenar confirmPassword
+    await page.fill('input[name="confirmPassword"]', testData.password);
+    console.log('   - Confirm Password: OK');
+
     // Llenar name
     await page.fill('input[name="name"]', testData.name);
     console.log(`   - Name: ${testData.name}`);
@@ -79,9 +85,6 @@ test.describe('Owner Registration Flow', () => {
     // PASO 3: Enviar formulario
     console.log('Paso 3: Enviando formulario');
     await page.click('button[type="submit"]');
-    
-    // Esperar respuesta del servidor (max 5 segundos)
-    await page.waitForLoadState('networkidle', { timeout: 5000 });
 
     // PASO 4: Verificar tokens en localStorage
     console.log('Paso 4: Verificando tokens en localStorage');
@@ -113,46 +116,72 @@ test.describe('Owner Registration Flow', () => {
     await expect(page.locator('form')).toBeVisible();
     console.log('   - Formulario de proyecto: Visible');
 
-    // PASO 7: Llenar formulario de proyecto
-    console.log('Paso 7: Llenando formulario de proyecto');
-    
-    await page.fill('input[name="name"]', testData.project.name);
+    // PASO 7: Onboarding Step 1 (Nombre + Descripción)
+    console.log('Paso 7: Onboarding - Step 1 (Nombre + Descripción)');
+
+    await page.fill('#project-name', testData.project.name);
     console.log(`   - Nombre: ${testData.project.name}`);
-    
-    await page.fill('textarea[name="description"]', testData.project.description);
+
+    await page.fill('#project-desc', testData.project.description);
     console.log(`   - Descripción: ${testData.project.description}`);
-    
-    // Seleccionar categoría (ajustar selector según implementación)
-    // await page.selectOption('select[name="category"]', testData.project.category);
-    
-    // Screenshot 4: Proyecto lleno
+
     await page.screenshot({ 
-      path: 'playwright-tests/screenshots/01-owner-registration/04-project-form-filled.png',
+      path: 'playwright-tests/screenshots/01-owner-registration/04-onboarding-step1-filled.png',
       fullPage: true 
     });
-    console.log('Screenshot: Formulario de proyecto lleno');
+    console.log('Screenshot: Onboarding step 1 lleno');
 
-    // PASO 8: Crear proyecto
-    console.log('Paso 8: Creando proyecto');
+    await page.click('button:has-text("Siguiente")');
+
+    // PASO 8: Onboarding Step 2 (Categoría + Zona horaria + Estado)
+    console.log('Paso 8: Onboarding - Step 2 (Categoría + Zona horaria + Estado)');
+
+    await page.click(`button:has-text("${testData.project.category}")`);
+
+    await page.click('#timezone');
+    await page.click(`[role="option"]:has-text("${testData.project.timezone}")`);
+
+    await page.click('#state');
+    await page.click(`[role="option"]:has-text("${testData.project.state}")`);
+
+    await page.screenshot({ 
+      path: 'playwright-tests/screenshots/01-owner-registration/05-onboarding-step2-filled.png',
+      fullPage: true 
+    });
+    console.log('Screenshot: Onboarding step 2 lleno');
+
+    await page.click('button:has-text("Siguiente")');
+
+    // PASO 9: Onboarding Step 3 (Avatar + Crear)
+    console.log('Paso 9: Onboarding - Step 3 (Avatar + Crear)');
+
+    await page.click('button[aria-label^="Seleccionar avatar"]');
+
+    // Screenshot 6: Proyecto listo
+    await page.screenshot({ 
+      path: 'playwright-tests/screenshots/01-owner-registration/06-onboarding-step3.png',
+      fullPage: true 
+    });
+    console.log('Screenshot: Onboarding step 3');
+
+    // PASO 10: Crear proyecto
+    console.log('Paso 10: Creando proyecto');
     await page.click('button[type="submit"]');
     
-    // Esperar redirección (max 3 segundos)
-    await page.waitForLoadState('networkidle', { timeout: 3000 });
-
-    // PASO 9: Verificar dashboard
-    console.log('Paso 9: Verificando dashboard');
+    // PASO 11: Verificar dashboard
+    console.log('Paso 11: Verificando dashboard');
     await expect(page).toHaveURL(/\/app\/dashboard/, { timeout: 10000 });
     console.log('   - Redirigido correctamente a /app/dashboard');
     
-    // Screenshot 5: Dashboard con proyecto
+    // Screenshot 7: Dashboard con proyecto
     await page.screenshot({ 
-      path: 'playwright-tests/screenshots/01-owner-registration/05-dashboard.png',
+      path: 'playwright-tests/screenshots/01-owner-registration/07-dashboard.png',
       fullPage: true 
     });
     console.log('Screenshot: Dashboard con proyecto');
 
-    // PASO 10: Verificar elementos del dashboard
-    console.log('Paso 10: Verificando elementos del dashboard');
+    // PASO 12: Verificar elementos del dashboard
+    console.log('Paso 12: Verificando elementos del dashboard');
     
     // Verificar que el nombre del proyecto está visible
     await expect(page.locator('text=' + testData.project.name)).toBeVisible();
@@ -162,17 +191,17 @@ test.describe('Owner Registration Flow', () => {
     // await expect(page.locator('nav')).toBeVisible();
     // console.log('   - Menú lateral: Visible');
 
-    // PASO 11: Probar logout
-    console.log('Paso 11: Probando logout');
-    
-    // Buscar y hacer click en botón de logout (ajustar selector según implementación)
-    await page.click('button:has-text("Cerrar Sesión"), button:has-text("Logout")');
+    // PASO 13: Probar logout
+    console.log('Paso 13: Probando logout');
+
+    await page.click(`button:has-text("${testData.name}")`);
+    await page.click('[role="menuitem"]:has-text("Cerrar sesion")');
     
     // Esperar redirección
     await page.waitForLoadState('networkidle', { timeout: 3000 });
 
-    // PASO 12: Verificar logout
-    console.log('Paso 12: Verificando logout');
+    // PASO 14: Verificar logout
+    console.log('Paso 14: Verificando logout');
     
     // Verificar que los tokens fueron eliminados
     const accessTokenAfterLogout = await page.evaluate(() => localStorage.getItem('access_token'));
@@ -200,11 +229,12 @@ test.describe('Owner Registration Flow', () => {
   test('Escenario 1.2: Email ya registrado', async ({ page }) => {
     console.log('Escenario 1.2: Probando email ya registrado');
     
-    await page.goto('http://localhost:3000/auth/register');
+    await page.goto('/auth/register');
     
     // Usar email que ya existe
     await page.fill('input[name="email"]', 'owner@example.com');
     await page.fill('input[name="password"]', 'Owner123456');
+    await page.fill('input[name="confirmPassword"]', 'Owner123456');
     await page.fill('input[name="name"]', 'Test Owner Duplicate');
     
     await page.click('button[type="submit"]');
@@ -225,10 +255,11 @@ test.describe('Owner Registration Flow', () => {
   test('Escenario 1.3: Password débil', async ({ page }) => {
     console.log('Escenario 1.3: Probando password débil');
     
-    await page.goto('http://localhost:3000/auth/register');
+    await page.goto('/auth/register');
     
     await page.fill('input[name="email"]', `test_weak_${Date.now()}@example.com`);
     await page.fill('input[name="password"]', 'weak');
+    await page.fill('input[name="confirmPassword"]', 'weak');
     await page.fill('input[name="name"]', 'Test Weak Password');
     
     await page.click('button[type="submit"]');
@@ -249,15 +280,14 @@ test.describe('Owner Registration Flow', () => {
   test('Escenario 1.4: Campos vacíos', async ({ page }) => {
     console.log('Escenario 1.4: Probando campos vacíos');
     
-    await page.goto('http://localhost:3000/auth/register');
+    await page.goto('/auth/register');
     
     // Intentar enviar sin llenar campos
     await page.click('button[type="submit"]');
     
     // Verificar mensajes de error de validación
-    const errorMessages = await page.locator('text=/requerido|required/i').count();
-    expect(errorMessages).toBeGreaterThan(0);
-    console.log(`   - Mensajes de error encontrados: ${errorMessages}`);
+    await expect(page.locator('text=Revisa los campos')).toBeVisible({ timeout: 5000 });
+    console.log('   - Mensajes de error visibles');
     
     // Screenshot del error
     await page.screenshot({ 

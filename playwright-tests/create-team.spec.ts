@@ -150,8 +150,8 @@ test.describe('Create Complete Team', () => {
       if (response.url().includes('/auth/register') && response.status() === 201) {
         try {
           const data = await response.json();
-          if (data.access_token) {
-            ownerToken = data.access_token;
+          if (data?.data?.access_token) {
+            ownerToken = data.data.access_token;
             console.log('  Token de owner capturado');
           }
         } catch (e) {}
@@ -186,8 +186,8 @@ test.describe('Create Complete Team', () => {
       if (response.url().includes('/projects') && response.status() === 201) {
         try {
           const data = await response.json();
-          if (data.project && data.project.id) {
-            projectId = data.project.id;
+          if (data?.data?.project?.id) {
+            projectId = data.data.project.id;
             console.log(`  Project ID capturado: ${projectId}`);
           }
         } catch (e) {}
@@ -196,22 +196,30 @@ test.describe('Create Complete Team', () => {
     
     console.log(`Creando proyecto: ${teamData.project.name}`);
     
-    // Paso 1: Nombre del proyecto
+    // Step 1: Nombre + Descripcion
     await ownerPage.fill('input[id="project-name"]', teamData.project.name);
-    await ownerPage.waitForTimeout(1000);
-    await ownerPage.click('button:has-text("Siguiente")');
-    await ownerPage.waitForTimeout(1000);
-    
-    // Paso 2: Descripcion
+    await ownerPage.waitForTimeout(600);
     await ownerPage.fill('textarea[id="project-desc"]', teamData.project.description);
-    await ownerPage.waitForTimeout(1000);
+    await ownerPage.waitForTimeout(600);
     await ownerPage.click('button:has-text("Siguiente")');
-    await ownerPage.waitForTimeout(1000);
-    
-    // Paso 3: Categoria - seleccionar "Consultoria"
+    await ownerPage.waitForTimeout(900);
+
+    // Step 2: Categoria + Zona horaria + Estado
     await ownerPage.click('button:has-text("Consultoria")');
-    await ownerPage.waitForTimeout(800);
-    await ownerPage.click('button:has-text("Crear Proyecto")');
+    await ownerPage.waitForTimeout(500);
+    await ownerPage.click('#timezone');
+    await ownerPage.click('[role="option"]:has-text("America/Mexico_City")');
+    await ownerPage.waitForTimeout(500);
+    await ownerPage.click('#state');
+    await ownerPage.click('[role="option"]:has-text("Ciudad de Mexico")');
+    await ownerPage.waitForTimeout(500);
+    await ownerPage.click('button:has-text("Siguiente")');
+    await ownerPage.waitForTimeout(900);
+
+    // Step 3: Avatar + Crear
+    await ownerPage.click('button[aria-label^="Seleccionar avatar"]');
+    await ownerPage.waitForTimeout(500);
+    await ownerPage.click('button[type="submit"]');
     await ownerPage.waitForLoadState('networkidle');
     
     await ownerPage.waitForTimeout(2000);

@@ -2,12 +2,14 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from sqlalchemy import text
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 from datetime import datetime
 
 # Cargar variables de entorno
-load_dotenv('../.env.local')
+_dotenv_path = find_dotenv('.env.local', usecwd=True)
+if _dotenv_path:
+    load_dotenv(_dotenv_path)
 
 # Importar db desde app
 from app import db, migrate
@@ -36,7 +38,10 @@ def log_request():
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(f'\n[{timestamp}] {request.method} {request.path}')
     if request.method in ['POST', 'PUT', 'PATCH']:
-        print(f'Body: {request.get_json()}')
+        body = request.get_json(silent=True)
+        if isinstance(body, dict) and 'password' in body:
+            body = {**body, 'password': '[REDACTED]'}
+        print(f'Body: {body}')
 
 # Importar modelos después de inicializar db
 from app.models import User, Project, Membership, Task, Invite, Notification, Comment, AuditLog
@@ -48,8 +53,8 @@ def ensure_project_schema():
     columns = db.session.execute(text("""
         SELECT column_name
         FROM information_schema.columns
-        WHERE table_schema = :schema AND table_name = 'projects'
-    """), {'schema': Config.DB_NAME}).fetchall()
+        WHERE table_name = 'projects'
+    """)).fetchall()
     existing = {row[0] for row in columns}
     
     alters = []
@@ -112,7 +117,7 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 
 @app.route('/')
 def index():
-    return {'message': 'ProGest API - Backend funcionando correctamente', 'database': 'MySQL'}
+    return {'message': 'ProGest API - Backend funcionando correctamente', 'database': 'PostgreSQL'}
 
 @app.route('/api/health')
 def health():
@@ -134,8 +139,7 @@ if __name__ == '__main__':
         try:
             # Verificar conexión a la base de datos
             db.session.execute(text('SELECT 1'))
-            print('✓ Conexión exitosa a MySQL')
-            print(f'✓ Base de datos: {Config.DB_NAME}')
+            print('✓ Conexión exitosa a PostgreSQL')
             
             # Crear todas las tablas
             print('\nCreando tablas en la base de datos...')

@@ -6,13 +6,13 @@
 
 ## VISION GENERAL
 
-Backend REST API construido con Flask 3.0, SQLAlchemy y MySQL. Implementa autenticacion JWT, sistema multitenant y arquitectura en capas.
+Backend REST API construido con Flask 3.0, SQLAlchemy y PostgreSQL. Implementa autenticacion JWT, sistema multitenant y arquitectura en capas.
 
 **Tecnologias:**
 - Flask 3.0.0
 - Flask-JWT-Extended 4.6.0
 - SQLAlchemy 3.1.1
-- MySQL + PyMySQL
+- PostgreSQL + psycopg2
 - Marshmallow 3.20.1
 - Bcrypt 4.1.2
 
@@ -99,13 +99,7 @@ project-management-backend/
 ```python
 class Config:
     # Database
-    DB_HOST = os.getenv('DB_HOST')
-    DB_PORT = os.getenv('DB_PORT')
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    DB_NAME = os.getenv('DB_NAME')
-    
-    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = True  # Development only
     
@@ -126,13 +120,21 @@ class Config:
 ```bash
 SECRET_KEY=your-secret-key
 JWT_SECRET_KEY=your-jwt-secret
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your-password
-DB_NAME=progest_db
+DATABASE_URL=postgresql+psycopg2://postgres:your-password@localhost:5432/project_management_db_postgres?sslmode=disable
 FRONTEND_URL=http://localhost:3000
 ```
+
+## Despliegue en Render
+
+**Root Directory:** `project-management-backend`  
+**Build Command:** `pip install -r requirements.txt`  
+**Start Command:** `gunicorn --bind 0.0.0.0:$PORT wsgi:app`
+
+**Variables en Render (Backend):**
+- SECRET_KEY
+- JWT_SECRET_KEY
+- FRONTEND_URL
+- DATABASE_URL
 
 ---
 

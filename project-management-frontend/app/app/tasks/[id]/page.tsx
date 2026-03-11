@@ -36,6 +36,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [isEditingChecklist, setIsEditingChecklist] = useState(false)
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [editingCommentText, setEditingCommentText] = useState("")
+  const CHECKLIST_TEXT_MAX = 500
+  const CHECKLIST_MAX_ITEMS = 50
 
   // Determinar si el usuario actual es Owner
   const isOwner = session?.user?.role === 'owner'
@@ -239,10 +241,20 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   async function addChecklistItem() {
     if (!newCheckItem.trim() || !task) return
     
+    const text = newCheckItem.trim()
+    if (text.length > CHECKLIST_TEXT_MAX) {
+      toast.error(`El checklist permite máximo ${CHECKLIST_TEXT_MAX} caracteres por item`)
+      return
+    }
+    if ((task.checklist || []).length >= CHECKLIST_MAX_ITEMS) {
+      toast.error(`El checklist permite máximo ${CHECKLIST_MAX_ITEMS} items`)
+      return
+    }
+
     // Generar UUID para el nuevo item
     const newItem: ChecklistItem = { 
       id: crypto.randomUUID(), 
-      text: newCheckItem.trim(), 
+      text, 
       completed: false 
     }
     

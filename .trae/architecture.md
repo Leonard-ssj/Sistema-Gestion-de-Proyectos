@@ -71,7 +71,7 @@ ProGest es un sistema SaaS multitenant de gestion de proyectos construido con ar
 │                        │                                   │
 │                        ▼                                   │
 │  ┌────────────────────────────────────────────────────┐    │
-│  │         MySQL Database (Port 3306)                 │    │
+│  │         PostgreSQL Database (Port 5432)            │    │
 │  │                                                     │    │
 │  │  - 8 tablas principales                            │    │
 │  │  - Relaciones con foreign keys                     │    │
@@ -164,7 +164,7 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 ```python
 class Config:
     # Database
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://user:pass@host:port/db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://user:pass@host:port/db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = True  # Development only
     
@@ -540,7 +540,7 @@ Todas las acciones importantes se registran:
 - Python 3.10+
 - Gunicorn (WSGI server)
 - Nginx (reverse proxy)
-- MySQL 8.0+
+- PostgreSQL 16+
 
 **Frontend**
 - Node.js 18+
@@ -553,10 +553,7 @@ Todas las acciones importantes se registran:
 # Backend
 SECRET_KEY=production-secret-key
 JWT_SECRET_KEY=production-jwt-secret
-DB_HOST=production-db-host
-DB_USER=production-db-user
-DB_PASSWORD=production-db-password
-DB_NAME=progest_production
+DATABASE_URL=postgresql+psycopg2://<user>:<password>@<host>:5432/<db>?sslmode=require
 
 # Frontend
 NEXT_PUBLIC_API_URL=https://api.progest.com
@@ -574,7 +571,7 @@ Load Balancer (AWS ALB / Nginx)
    │   └─► Static Files (CDN)
    │
    └─► Backend (Flask + Gunicorn) - Port 5000
-       └─► MySQL Database (RDS / Managed)
+       └─► PostgreSQL Database (RDS / Managed)
 ```
 
 ---

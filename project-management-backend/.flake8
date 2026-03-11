@@ -1,0 +1,15 @@
+[flake8]
+max-line-length = 120
+extend-ignore = W291,W293,E402,E302,E305,E501,F401,E303
+exclude =
+    backend-env,
+    .venv,
+    venv,
+    migrations,
+    migrations_manual_sql,
+    init_migrations.py,
+    list_endpoints.py,
+    manage_migrations.py,
+    run_migration_resend_count.py,
+    show_routes.py,
+    verify_fase_4.py

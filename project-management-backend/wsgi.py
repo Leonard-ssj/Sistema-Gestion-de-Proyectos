@@ -11,7 +11,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
 # Importar usando importlib para evitar conflictos
-spec = importlib.util.spec_from_file_location("app_module", os.path.join(current_dir, "app.py"))
+spec = importlib.util.spec_from_file_location(
+    "app_module",
+    os.path.join(current_dir, "app.py")
+)
 app_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(app_module)
 

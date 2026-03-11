@@ -30,6 +30,10 @@ import { TASK_STATUS_LABELS, TASK_PRIORITY_LABELS, TASK_STATUS_COLORS, TASK_PRIO
 export default function TasksPage() {
   const session = useAuthStore((s) => s.session)
   const projectId = session?.project?.id
+  const TITLE_MAX = 255
+  const DESC_MAX = 5000
+  const CHECKLIST_TEXT_MAX = 500
+  const CHECKLIST_MAX_ITEMS = 50
 
   // Estados para datos
   const [tasks, setTasks] = useState<Task[]>([])
@@ -131,6 +135,16 @@ export default function TasksPage() {
 
   // Funciones para manejar checklist
   const addChecklistItem = () => {
+    const text = checklistInput.trim()
+    if (!text) return
+    if (text.length > CHECKLIST_TEXT_MAX) {
+      toast.error(`El checklist permite máximo ${CHECKLIST_TEXT_MAX} caracteres por item`)
+      return
+    }
+    if (checklistItems.length >= CHECKLIST_MAX_ITEMS) {
+      toast.error(`El checklist permite máximo ${CHECKLIST_MAX_ITEMS} items`)
+      return
+    }
     if (checklistInput.trim()) {
       const newItem: ChecklistItem = {
         id: crypto.randomUUID(),
@@ -147,8 +161,18 @@ export default function TasksPage() {
   }
 
   async function handleCreate() {
-    if (!newTitle.trim()) {
+    const title = newTitle.trim()
+    const description = newDesc.trim()
+    if (!title) {
       toast.error("El título es requerido")
+      return
+    }
+    if (title.length > TITLE_MAX) {
+      toast.error(`El título permite máximo ${TITLE_MAX} caracteres`)
+      return
+    }
+    if (description.length > DESC_MAX) {
+      toast.error(`La descripción permite máximo ${DESC_MAX} caracteres`)
       return
     }
 
@@ -172,8 +196,8 @@ export default function TasksPage() {
     
     try {
       const newTask = await createTask({
-        title: newTitle.trim(),
-        description: newDesc.trim(),
+        title,
+        description,
         priority: newPriority,
         assigned_to: newAssignee && newAssignee !== "unassigned" ? newAssignee : undefined,
         due_date: newDueDate.toISOString(),
@@ -196,7 +220,8 @@ export default function TasksPage() {
       setDialogOpen(false)
     } catch (error: any) {
       console.error("Error creating task:", error)
-      toast.error(error.message || "Error al crear la tarea")
+      const errorMessage = error?.response?.data?.error?.message || error.message || "Error al crear la tarea"
+      toast.error(errorMessage)
     } finally {
       setCreating(false)
     }
@@ -238,6 +263,16 @@ export default function TasksPage() {
 
   // Funciones para manejar checklist en edición
   const addEditChecklistItem = () => {
+    const text = editChecklistInput.trim()
+    if (!text) return
+    if (text.length > CHECKLIST_TEXT_MAX) {
+      toast.error(`El checklist permite máximo ${CHECKLIST_TEXT_MAX} caracteres por item`)
+      return
+    }
+    if (editChecklistItems.length >= CHECKLIST_MAX_ITEMS) {
+      toast.error(`El checklist permite máximo ${CHECKLIST_MAX_ITEMS} items`)
+      return
+    }
     if (editChecklistInput.trim()) {
       const newItem: ChecklistItem = {
         id: crypto.randomUUID(),
@@ -255,41 +290,69 @@ export default function TasksPage() {
 
   async function handleUpdate() {
     if (!editingTask) return
-    
-    if (!editTitle.trim()) {
+
+    const title = editTitle.trim()
+    const description = editDesc.trim()
+    const originalDueDate = editingTask.due_date ? new Date(editingTask.due_date) : undefined
+    const normalizedOriginal = originalDueDate
+      ? new Date(originalDueDate.getFullYear(), originalDueDate.getMonth(), originalDueDate.getDate()).getTime()
+      : null
+    const normalizedSelected = editDueDate
+      ? new Date(editDueDate.getFullYear(), editDueDate.getMonth(), editDueDate.getDate()).getTime()
+      : null
+    const dueDateChanged = normalizedOriginal !== normalizedSelected
+    const checklistChanged = JSON.stringify(editingTask.checklist || []) !== JSON.stringify(editChecklistItems || [])
+
+    if (!title) {
       toast.error("El título es requerido")
       return
     }
+    if (title.length > TITLE_MAX) {
+      toast.error(`El título permite máximo ${TITLE_MAX} caracteres`)
+      return
+    }
+    if (description.length > DESC_MAX) {
+      toast.error(`La descripción permite máximo ${DESC_MAX} caracteres`)
+      return
+    }
 
-    if (!editDueDate) {
+    if (!editingTask.due_date && !editDueDate) {
       toast.error("La fecha de vencimiento es requerida")
       return
     }
 
-    // Validar que la fecha sea futura
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const selectedDate = new Date(editDueDate)
-    selectedDate.setHours(0, 0, 0, 0)
+    if (editDueDate && dueDateChanged) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectedDate = new Date(editDueDate)
+      selectedDate.setHours(0, 0, 0, 0)
 
-    if (selectedDate <= today) {
-      toast.error("La fecha de vencimiento debe ser posterior a hoy")
-      return
+      if (selectedDate <= today) {
+        toast.error("La fecha de vencimiento debe ser posterior a hoy")
+        return
+      }
     }
     
     setUpdatingId(editingTask.id)
     
     try {
-      const updatedTask = await updateTask(editingTask.id, {
-        title: editTitle.trim(),
-        description: editDesc.trim(),
+      const payload: Partial<Task> = {
+        title,
+        description,
         priority: editPriority,
         status: editStatus,
         assigned_to: editAssignee && editAssignee !== "unassigned" ? editAssignee : null,
-        due_date: editDueDate.toISOString(),
         tags: editTags ? editTags.split(",").map(t => t.trim()).filter(Boolean) : [],
-        checklist: editChecklistItems.length > 0 ? editChecklistItems : undefined
-      })
+      }
+
+      if (editDueDate && (dueDateChanged || !editingTask.due_date)) {
+        payload.due_date = editDueDate.toISOString()
+      }
+      if (checklistChanged) {
+        payload.checklist = editChecklistItems
+      }
+
+      const updatedTask = await updateTask(editingTask.id, payload)
       
       setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))
       toast.success("Tarea actualizada exitosamente")
@@ -297,7 +360,8 @@ export default function TasksPage() {
       setEditingTask(null)
     } catch (error: any) {
       console.error("Error updating task:", error)
-      toast.error(error.message || "Error al actualizar la tarea")
+      const errorMessage = error?.response?.data?.error?.message || error.message || "Error al actualizar la tarea"
+      toast.error(errorMessage)
     } finally {
       setUpdatingId(null)
     }
@@ -360,6 +424,9 @@ export default function TasksPage() {
                   disabled={creating}
                   className="text-base"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {newTitle.length}/{TITLE_MAX}
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="new-desc">Descripción</Label>
@@ -372,6 +439,9 @@ export default function TasksPage() {
                   rows={4}
                   className="text-base resize-none"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {newDesc.length}/{DESC_MAX}
+                </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -461,7 +531,7 @@ export default function TasksPage() {
                     placeholder="Agregar item al checklist..." 
                     disabled={creating}
                     className="text-base"
-                    onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
                         addChecklistItem()
@@ -496,13 +566,25 @@ export default function TasksPage() {
                     ))}
                   </ul>
                 )}
+                <p className="text-xs text-muted-foreground">
+                  {checklistItems.length}/{CHECKLIST_MAX_ITEMS} items
+                </p>
               </div>
             </div>
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={creating}>
                 Cancelar
               </Button>
-              <Button onClick={handleCreate} disabled={!newTitle.trim() || !newDueDate || creating}>
+              <Button
+                onClick={handleCreate}
+                disabled={
+                  !newTitle.trim() ||
+                  newTitle.trim().length > TITLE_MAX ||
+                  newDesc.trim().length > DESC_MAX ||
+                  !newDueDate ||
+                  creating
+                }
+              >
                 {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Crear Tarea
               </Button>
@@ -733,6 +815,9 @@ export default function TasksPage() {
                 disabled={!!updatingId}
                 className="text-base"
               />
+              <p className="text-xs text-muted-foreground">
+                {editTitle.length}/{TITLE_MAX}
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-desc">Descripción</Label>
@@ -745,6 +830,9 @@ export default function TasksPage() {
                 rows={4}
                 className="text-base resize-none"
               />
+              <p className="text-xs text-muted-foreground">
+                {editDesc.length}/{DESC_MAX}
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -886,7 +974,7 @@ export default function TasksPage() {
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Agrega items al checklist para dividir la tarea en pasos
+                {editChecklistItems.length}/{CHECKLIST_MAX_ITEMS} items
               </p>
             </div>
           </div>
@@ -894,7 +982,16 @@ export default function TasksPage() {
             <Button variant="outline" onClick={() => setEditDialogOpen(false)} disabled={!!updatingId}>
               Cancelar
             </Button>
-            <Button onClick={handleUpdate} disabled={!editTitle.trim() || !editDueDate || !!updatingId}>
+            <Button
+              onClick={handleUpdate}
+              disabled={
+                !editTitle.trim() ||
+                editTitle.trim().length > TITLE_MAX ||
+                editDesc.trim().length > DESC_MAX ||
+                (!editingTask?.due_date && !editDueDate) ||
+                !!updatingId
+              }
+            >
               {updatingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar Cambios
             </Button>

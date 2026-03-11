@@ -119,7 +119,7 @@
 ### Estado Actual
 - Backend Flask: 41 endpoints implementados
 - Frontend Next.js: Completamente integrado
-- Base de datos MySQL: Configurada y funcionando
+- Base de datos PostgreSQL: Configurada y funcionando
 - Autenticacion JWT: Implementada con refresh tokens
 - Sistema multitenancy: Funcionando
 - Panel de administracion: Completo
@@ -128,7 +128,7 @@
 ### Tecnologias
 **Backend:**
 - Python 3.x + Flask
-- MySQL + SQLAlchemy
+- PostgreSQL + SQLAlchemy
 - JWT para autenticacion
 - Flask-CORS
 

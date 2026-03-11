@@ -6,12 +6,12 @@
 
 ## RESUMEN EJECUTIVO
 
-ProGest es un sistema SaaS de gestion de proyectos multitenant que permite a empresas gestionar proyectos, tareas, equipos e invitaciones. El sistema esta completamente funcional con backend Flask, frontend Next.js y base de datos MySQL.
+ProGest es un sistema SaaS de gestion de proyectos multitenant que permite a empresas gestionar proyectos, tareas, equipos e invitaciones. El sistema esta completamente funcional con backend Flask, frontend Next.js y base de datos PostgreSQL.
 
 ### Metricas del Sistema
 - **Backend:** 41 endpoints REST implementados
 - **Frontend:** Aplicacion completa con Next.js 14
-- **Base de datos:** MySQL con 8 tablas principales
+- **Base de datos:** PostgreSQL con 8 tablas principales
 - **Autenticacion:** JWT con access y refresh tokens
 - **Roles:** OWNER, EMPLOYEE, SUPERADMIN
 - **Estado:** Produccion-ready
@@ -27,7 +27,7 @@ ProGest es un sistema SaaS de gestion de proyectos multitenant que permite a emp
 - Flask 3.0.0
 - Flask-JWT-Extended 4.6.0
 - SQLAlchemy 3.1.1
-- MySQL + PyMySQL
+- PostgreSQL + psycopg2
 - Marshmallow (validacion)
 - Bcrypt (seguridad)
 
@@ -41,7 +41,7 @@ ProGest es un sistema SaaS de gestion de proyectos multitenant que permite a emp
 - React Hook Form + Zod (formularios)
 
 **Base de Datos:**
-- MySQL 8.x
+- PostgreSQL 16.x
 - SQLAlchemy ORM
 - Flask-Migrate (migraciones)
 
@@ -354,18 +354,14 @@ ProGest es un sistema SaaS de gestion de proyectos multitenant que permite a emp
 ### Requisitos
 - Python 3.x
 - Node.js 18+
-- MySQL 8.x
+- PostgreSQL 16.x
 
 ### Variables de Entorno (.env.local)
 ```
 # Backend
 SECRET_KEY=your-secret-key
 JWT_SECRET_KEY=your-jwt-secret
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your-password
-DB_NAME=progest_db
+DATABASE_URL=postgresql+psycopg2://postgres:your-password@localhost:5432/project_management_db_postgres?sslmode=disable
 
 # Frontend
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
@@ -379,6 +375,7 @@ cd project-management-backend
 python -m venv backend-env
 backend-env\Scripts\activate
 pip install -r requirements.txt
+python -m flask --app wsgi:app db upgrade
 python app.py
 ```
 

@@ -30,11 +30,7 @@ Crear archivo `.env.local` en la raiz del proyecto:
 
 ```env
 # Database
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=tu_password
-DB_NAME=project_management_db_mysql
+DATABASE_URL=postgresql+psycopg2://postgres:tu_password_postgres@localhost:5432/project_management_db_postgres?sslmode=disable
 
 # Security
 SECRET_KEY=tu_secret_key_aqui
@@ -61,12 +57,12 @@ source backend-env/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 
 # Crear base de datos
-mysql -u root -p
-CREATE DATABASE project_management_db_mysql;
-exit;
+psql -h localhost -p 5432 -U postgres -d postgres
+CREATE DATABASE project_management_db_postgres;
+\q
 
 # Aplicar migraciones
-python manage_migrations.py upgrade
+python -m flask --app wsgi:app db upgrade
 
 # Iniciar servidor
 python app.py
@@ -502,15 +498,15 @@ git push -f origin feature/nombre-funcionalidad
 
 ```bash
 # Aplicar migracion
-python manage_migrations.py upgrade
+python -m flask --app wsgi:app db upgrade
 
 # Verificar en base de datos
-mysql -u root -p project_management_db_mysql
-DESCRIBE tasks;  # Ver estructura de tabla
-exit;
+psql -h localhost -p 5432 -U postgres -d project_management_db_postgres
+# \d tasks
+\q
 
 # Si hay problemas, revertir
-python manage_migrations.py downgrade
+python -m flask --app wsgi:app db downgrade
 ```
 
 **3. Testing de Permisos**

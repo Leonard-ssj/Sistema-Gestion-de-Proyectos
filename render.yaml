@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: sistema-gestion-de-proyectos-backend-dev
+    env: python
+    rootDir: project-management-backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT wsgi:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://sistema-gestion-de-proyectos-dev.vercel.app
+      - key: DATABASE_URL
+        sync: false

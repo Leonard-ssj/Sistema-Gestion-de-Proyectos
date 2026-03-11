@@ -30,7 +30,7 @@ class User(db.Model):
 
 ```bash
 cd project-management-backend
-python manage_migrations.py migrate "Add email_verified to User"
+python -m flask --app wsgi:app db migrate -m "Add email_verified to User"
 ```
 
 Esto genera un archivo en `migrations/versions/xxxx_add_email_verified_to_user.py`
@@ -60,15 +60,15 @@ def downgrade():
 ### 4. Aplicar la Migracion
 
 ```bash
-python manage_migrations.py upgrade
+python -m flask --app wsgi:app db upgrade
 ```
 
 ### 5. Verificar en Base de Datos
 
 ```bash
-mysql -u root -p project_management_db_mysql
-DESCRIBE users;
-exit;
+psql -h localhost -p 5432 -U postgres -d project_management_db_postgres
+# \d users
+\q
 ```
 
 ## Tipos de Migraciones
@@ -203,19 +203,19 @@ def downgrade():
 
 ```bash
 # Ver version actual
-python manage_migrations.py current
+python -m flask --app wsgi:app db current
 
 # Ver historial
-python manage_migrations.py history
+python -m flask --app wsgi:app db history
 
 # Revertir ultima migracion
-python manage_migrations.py downgrade
+python -m flask --app wsgi:app db downgrade
 
 # Aplicar migraciones pendientes
-python manage_migrations.py upgrade
+python -m flask --app wsgi:app db upgrade
 
 # Marcar BD con version actual (sin ejecutar migraciones)
-python manage_migrations.py stamp head
+python -m flask --app wsgi:app db stamp head
 ```
 
 ## Buenas Practicas

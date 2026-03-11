@@ -6,7 +6,7 @@
 
 ## VISION GENERAL
 
-El sistema ProGest utiliza MySQL como base de datos relacional con SQLAlchemy como ORM. El modelo de datos esta diseñado para soportar multitenant, con aislamiento de datos por proyecto.
+El sistema ProGest utiliza PostgreSQL como base de datos relacional con SQLAlchemy como ORM. El modelo de datos esta diseñado para soportar multitenant, con aislamiento de datos por proyecto.
 
 ### Caracteristicas del Modelo
 
@@ -470,10 +470,7 @@ created_at      DateTime        NOT NULL
 ```bash
 cd project-management-backend
 
-# Opcion 1: Ejecutar SQL directamente
-mysql -u root -p progest_db < migrations/nombre_migracion.sql
-
-# Opcion 2: Usar Flask-Migrate (futuro)
+# Opcion 1: Usar Flask-Migrate (recomendado)
 flask db migrate -m "Descripcion"
 flask db upgrade
 ```

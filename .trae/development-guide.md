@@ -11,7 +11,7 @@
 **Backend:**
 - Python 3.10 o superior
 - pip (gestor de paquetes Python)
-- MySQL 8.0 o superior
+- PostgreSQL 16 o superior
 
 **Frontend:**
 - Node.js 18 o superior
@@ -20,7 +20,7 @@
 **Herramientas Opcionales:**
 - Git
 - Postman (para testing de API)
-- MySQL Workbench (para gestion de BD)
+- pgAdmin o DBeaver (para gestion de BD)
 - VS Code (editor recomendado)
 
 ---
@@ -36,19 +36,17 @@ cd Monorepo_gestion_proyectos_saas
 
 ### 2. Configurar Base de Datos
 
-**Crear base de datos en MySQL:**
+**Crear base de datos en PostgreSQL:**
 
 ```sql
-CREATE DATABASE progest_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE project_management_db_postgres;
 ```
 
 **Verificar conexion:**
 
 ```bash
-mysql -u root -p
-# Ingresar password
-USE progest_db;
-SHOW TABLES;
+psql -h localhost -p 5432 -U postgres -d project_management_db_postgres
+# \dt
 ```
 
 ### 3. Configurar Variables de Entorno
@@ -60,12 +58,8 @@ Crear archivo `.env.local` en la raiz del proyecto:
 SECRET_KEY=tu-secret-key-cambiar-en-produccion
 JWT_SECRET_KEY=tu-jwt-secret-key-cambiar-en-produccion
 
-# MySQL Database
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=tu_password_mysql
-DB_NAME=progest_db
+# PostgreSQL Database
+DATABASE_URL=postgresql+psycopg2://postgres:tu_password_postgres@localhost:5432/project_management_db_postgres?sslmode=disable
 
 # Frontend
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
@@ -99,11 +93,34 @@ source backend-env/bin/activate
 # Instalar dependencias
 pip install -r requirements.txt
 
-# Iniciar servidor (crea tablas automaticamente)
+# Aplicar migraciones
+python -m flask --app wsgi:app db upgrade
+
+# Iniciar servidor
 python app.py
 ```
 
 El servidor estara disponible en: http://localhost:5000
+
+## Deploy en Render (Backend)
+
+1. Crear un **PostgreSQL** en Render.
+2. Copiar el `Internal Database URL` (recomendado) o `External Database URL`.
+3. Crear un **Web Service (Python)** apuntando al repo.
+
+Configuracion recomendada (monorepo):
+
+**Build Command:** `pip install -r requirements.txt`  
+**Start Command:** `gunicorn --chdir project-management-backend --bind 0.0.0.0:$PORT wsgi:app`
+
+Variables en Render:
+
+```bash
+SECRET_KEY=(Generar en Render)
+JWT_SECRET_KEY=(Generar en Render)
+FRONTEND_URL=https://sistema-gestion-de-proyectos-dev.vercel.app
+DATABASE_URL=(Database URL de Render Postgres)
+```
 
 ### 5. Setup Frontend
 
@@ -552,7 +569,7 @@ npm run lint -- --fix
 **General:**
 - GitLens
 - Thunder Client (alternativa a Postman)
-- MySQL (para ver BD)
+- PostgreSQL / pgAdmin (para ver BD)
 
 ### Scripts Utiles
 
@@ -588,7 +605,7 @@ npm run start
 ### Problemas Comunes
 
 **Backend no inicia:**
-- Verificar que MySQL este corriendo
+- Verificar que PostgreSQL este corriendo
 - Verificar credenciales en .env.local
 - Verificar que el puerto 5000 este libre
 
@@ -635,10 +652,7 @@ npm run start
 # Backend
 SECRET_KEY=<strong-random-key>
 JWT_SECRET_KEY=<strong-random-key>
-DB_HOST=<production-db-host>
-DB_USER=<production-db-user>
-DB_PASSWORD=<strong-password>
-DB_NAME=progest_production
+DATABASE_URL=postgresql+psycopg2://<user>:<password>@<host>:5432/<db>?sslmode=require
 
 # Frontend
 NEXT_PUBLIC_API_URL=https://api.progest.com

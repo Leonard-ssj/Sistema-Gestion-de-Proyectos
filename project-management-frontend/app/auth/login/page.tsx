@@ -64,7 +64,7 @@ export default function LoginPage() {
         variant="ghost"
         size="sm"
         className="absolute top-4 left-4 z-10"
-        onClick={() => router.back()}
+        onClick={() => router.push("/")}
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Regresar

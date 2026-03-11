@@ -128,7 +128,7 @@ FRONTEND_URL=http://localhost:3000
 
 **Root Directory:** `project-management-backend`  
 **Build Command:** `pip install -r requirements.txt`  
-**Start Command:** `gunicorn --bind 0.0.0.0:$PORT wsgi:app`
+**Start Command:** `bash ./render-start.sh`
 
 **Variables en Render (Backend):**
 - SECRET_KEY

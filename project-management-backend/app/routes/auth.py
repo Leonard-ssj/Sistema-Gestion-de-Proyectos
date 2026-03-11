@@ -7,6 +7,7 @@ from flask_jwt_extended import (
 )
 from marshmallow import ValidationError
 from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.models import User, Project, Membership, Invite, Notification, AuditLog
 from app.services import AuthService
@@ -27,6 +28,10 @@ user_login_schema = UserLoginSchema()
 user_schema = UserSchema()
 accept_invite_schema = AcceptInviteSchema()
 user_update_schema = UserUpdateSchema()
+
+def _is_missing_table_error(error):
+    message = str(error).lower()
+    return 'undefinedtable' in message or 'does not exist' in message and 'relation' in message
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -108,13 +113,30 @@ def register():
             }
         }), 201
         
-    except Exception as e:
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        if _is_missing_table_error(e):
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'DATABASE_NOT_READY',
+                    'message': 'Base de datos no inicializada. Ejecuta migraciones y reintenta.'
+                }
+            }), 503
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'SERVER_ERROR',
+                'message': 'Error interno del servidor'
+            }
+        }), 500
+    except Exception:
         db.session.rollback()
         return jsonify({
             'success': False,
             'error': {
                 'code': 'SERVER_ERROR',
-                'message': str(e)
+                'message': 'Error interno del servidor'
             }
         }), 500
 
@@ -242,13 +264,30 @@ def login():
             'data': response_data
         }), 200
         
-    except Exception as e:
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        if _is_missing_table_error(e):
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'DATABASE_NOT_READY',
+                    'message': 'Base de datos no inicializada. Ejecuta migraciones y reintenta.'
+                }
+            }), 503
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'SERVER_ERROR',
+                'message': 'Error interno del servidor'
+            }
+        }), 500
+    except Exception:
         db.session.rollback()
         return jsonify({
             'success': False,
             'error': {
                 'code': 'SERVER_ERROR',
-                'message': str(e)
+                'message': 'Error interno del servidor'
             }
         }), 500
 

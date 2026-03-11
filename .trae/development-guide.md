@@ -111,7 +111,7 @@ El servidor estara disponible en: http://localhost:5000
 Configuracion recomendada (monorepo):
 
 **Build Command:** `pip install -r requirements.txt`  
-**Start Command:** `gunicorn --chdir project-management-backend --bind 0.0.0.0:$PORT wsgi:app`
+**Start Command:** `bash ./render-start.sh`
 
 Variables en Render:
 

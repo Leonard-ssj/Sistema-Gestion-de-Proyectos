@@ -22,6 +22,7 @@ spec.loader.exec_module(app_module)
 app = app_module.app
 db = app_module.db
 migrate = app_module.migrate
+ensure_project_schema = getattr(app_module, "ensure_project_schema", None)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -19,6 +19,7 @@ from app.schemas import (
     AcceptInviteSchema,
     UserUpdateSchema
 )
+from urllib.parse import urlparse, parse_qs
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -28,6 +29,40 @@ user_login_schema = UserLoginSchema()
 user_schema = UserSchema()
 accept_invite_schema = AcceptInviteSchema()
 user_update_schema = UserUpdateSchema()
+
+_BOTTTs_NEUTRAL_SEEDS = {
+    'Astra',
+    'Bolt',
+    'Cobalt',
+    'Delta',
+    'Echo',
+    'Flux',
+    'Glitch',
+    'Hex',
+}
+
+
+def _is_valid_avatar(value):
+    if value is None:
+        return True
+    if not isinstance(value, str):
+        return False
+    value = value.strip()
+    if value == "":
+        return False
+    try:
+        parsed = urlparse(value)
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+    if parsed.netloc != "api.dicebear.com":
+        return False
+    if parsed.path != "/9.x/bottts-neutral/svg":
+        return False
+    qs = parse_qs(parsed.query or "")
+    seed = (qs.get("seed") or [None])[0]
+    return seed in _BOTTTs_NEUTRAL_SEEDS
 
 def _is_missing_table_error(error):
     message = str(error).lower()
@@ -488,6 +523,8 @@ def accept_invite():
             department=invite.department,
             phone=invite.phone
         )
+        if validated_data.get('avatar'):
+            new_user.avatar = validated_data.get('avatar')
         db.session.add(new_user)
         db.session.flush()  # Para obtener el ID
         
@@ -642,15 +679,8 @@ def update_me():
                 }
             }), 400
         
-        if 'avatar' in validated_data and validated_data['avatar'] is not None:
-            allowed = {
-                '/avatars/owners/owner-01.svg',
-                '/avatars/owners/owner-02.svg',
-                '/avatars/owners/owner-03.svg',
-                '/avatars/owners/owner-04.svg',
-                '/avatars/owners/owner-05.svg'
-            }
-            if validated_data['avatar'] not in allowed:
+        if 'avatar' in validated_data:
+            if not _is_valid_avatar(validated_data.get('avatar')):
                 return jsonify({
                     'success': False,
                     'error': {

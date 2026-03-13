@@ -16,6 +16,7 @@ export const BACKEND_ROLES = {
 export const TASK_STATUSES = {
   PENDING: "pending" as const,
   IN_PROGRESS: "in_progress" as const,
+  IN_REVIEW: "in_review" as const,
   BLOCKED: "blocked" as const,
   DONE: "done" as const,
 }
@@ -31,6 +32,7 @@ export const BACKEND_TASK_STATUSES = {
 export const TASK_STATUS_LABELS: Record<string, string> = {
   pending: "Pendiente",
   in_progress: "En Progreso",
+  in_review: "En Revisión",
   blocked: "Bloqueada",
   done: "Hecha",
 }
@@ -38,6 +40,7 @@ export const TASK_STATUS_LABELS: Record<string, string> = {
 export const TASK_STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   in_progress: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  in_review: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
   blocked: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   done: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
 }

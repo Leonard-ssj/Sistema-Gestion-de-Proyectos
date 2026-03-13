@@ -22,6 +22,7 @@ import { getProjectSettingsService } from "@/services/projectService"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -579,7 +580,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   {comments.map((c) => (
                     <div key={c.id} className="rounded-lg border p-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">{c.user_name?.charAt(0) || '?'}</div>
+                        <img
+                          alt=""
+                          src={normalizeAvatarUrl(users.find((u) => u.id === c.user_id)?.avatar)}
+                          className="h-6 w-6 rounded-full border border-border bg-muted/20"
+                        />
                         <span className="text-sm font-medium">{c.user_name || 'Usuario desconocido'}</span>
                         <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleString("es-ES")}</span>
                         {session?.user?.id === c.user_id && (
@@ -692,8 +697,20 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 ) : null}
               <Separator />
-              <div className="flex justify-between"><span className="text-muted-foreground">Asignado a</span><span className="font-medium">{assignee?.name || "Sin asignar"}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Creado por</span><span className="font-medium">{creator?.name || "-"}</span></div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Asignado a</span>
+                <span className="flex items-center gap-2 font-medium">
+                  <img alt="" src={normalizeAvatarUrl(assignee?.avatar)} className="h-5 w-5 rounded-full border border-border bg-muted/20" />
+                  <span>{assignee?.name || "Sin asignar"}</span>
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Creado por</span>
+                <span className="flex items-center gap-2 font-medium">
+                  <img alt="" src={normalizeAvatarUrl(creator?.avatar)} className="h-5 w-5 rounded-full border border-border bg-muted/20" />
+                  <span>{creator?.name || "-"}</span>
+                </span>
+              </div>
               {task.due_date && <div className="flex justify-between"><span className="text-muted-foreground">Vence</span><span className="font-medium">{new Date(task.due_date).toLocaleDateString("es-ES")}</span></div>}
               {task.start_date && <div className="flex justify-between"><span className="text-muted-foreground">Inicio</span><span className="font-medium">{new Date(task.start_date).toLocaleDateString("es-ES")}</span></div>}
               <Separator />

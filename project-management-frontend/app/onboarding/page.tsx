@@ -19,6 +19,7 @@ import { updateMeService } from "@/services/authService"
 import { CircleCheck, Sparkles, Loader2, ArrowRight, AlertCircle, Wand2 } from "lucide-react"
 import { createProjectService } from "@/services/projectService"
 import { toast } from "sonner"
+import { BOTTTs_NEUTRAL_AVATARS } from "@/lib/avatars"
 
 const categories = [
   "Marketing",
@@ -29,14 +30,6 @@ const categories = [
   "Operaciones",
   "Consultoria",
   "Otro",
-]
-
-const avatars = [
-  { id: "owner-01", src: "/avatars/owners/owner-01.svg" },
-  { id: "owner-02", src: "/avatars/owners/owner-02.svg" },
-  { id: "owner-03", src: "/avatars/owners/owner-03.svg" },
-  { id: "owner-04", src: "/avatars/owners/owner-04.svg" },
-  { id: "owner-05", src: "/avatars/owners/owner-05.svg" },
 ]
 
 const mexicoTimezones = [
@@ -650,8 +643,8 @@ export default function OnboardingPage() {
                   <>
                     <div className="flex flex-col gap-2">
                       <Label>Elige tu avatar</Label>
-                      <div className="grid grid-cols-5 gap-2">
-                        {avatars.map((a) => (
+                      <div className="grid grid-cols-4 gap-2">
+                        {BOTTTs_NEUTRAL_AVATARS.map((a) => (
                           <button
                             type="button"
                             key={a.id}
@@ -659,7 +652,7 @@ export default function OnboardingPage() {
                             className={`rounded-xl border p-2 transition-all ${
                               selectedAvatar === a.src ? "border-primary bg-primary/10 shadow-sm" : "border-border bg-card hover:border-primary/40"
                             }`}
-                            aria-label={`Seleccionar avatar ${a.id}`}
+                            aria-label={`Seleccionar avatar ${a.seed}`}
                           >
                             <img src={a.src} alt="" className="h-10 w-10 rounded-full" />
                           </button>
@@ -678,7 +671,7 @@ export default function OnboardingPage() {
                           <div className="rounded-full bg-gradient-to-br from-primary/40 via-primary/15 to-transparent p-[2px]">
                             <div className="rounded-full bg-background p-[6px]">
                               <img
-                                src={selectedAvatar || "/avatars/owners/owner-01.svg"}
+                                src={selectedAvatar || BOTTTs_NEUTRAL_AVATARS[0].src}
                                 alt=""
                                 className="h-20 w-20 rounded-full border border-border bg-card"
                               />

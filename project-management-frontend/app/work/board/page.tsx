@@ -8,7 +8,7 @@ import { TASK_STATUS_LABELS, TASK_PRIORITY_COLORS, TASK_PRIORITY_LABELS } from "
 import type { TaskStatus } from "@/mock/types"
 import Link from "next/link"
 
-const COLUMNS: TaskStatus[] = ["pending", "in_progress", "blocked", "done"]
+const COLUMNS: TaskStatus[] = ["pending", "in_progress", "in_review", "blocked", "done"]
 
 export default function WorkBoardPage() {
   const session = useAuthStore((s) => s.session)

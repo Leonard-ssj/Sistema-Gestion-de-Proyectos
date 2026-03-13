@@ -1,6 +1,6 @@
 // Frontend types (lowercase para UI)
 export type Role = "owner" | "employee" | "superadmin"
-export type TaskStatus = "pending" | "in_progress" | "blocked" | "done"
+export type TaskStatus = "pending" | "in_progress" | "in_review" | "blocked" | "done"
 export type TaskPriority = "low" | "medium" | "high" | "urgent"
 export type InviteStatus = "pending" | "accepted" | "expired" | "cancelled"
 export type MembershipStatus = "active" | "inactive"

@@ -17,9 +17,9 @@ class Task(db.Model):
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     
-    # Status: pending, in_progress, blocked, done (RF-013)
+    # Status: pending, in_progress, in_review, blocked, done (RF-013)
     status = db.Column(
-        db.Enum('pending', 'in_progress', 'blocked', 'done', name='task_status'),
+        db.Enum('pending', 'in_progress', 'in_review', 'blocked', 'done', name='task_status'),
         default='pending',
         nullable=False
     )

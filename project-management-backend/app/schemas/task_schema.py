@@ -25,7 +25,7 @@ class TaskCreateSchema(Schema):
         'invalid': 'El título debe tener entre 1 y 255 caracteres'
     })
     description = fields.Str(required=False, allow_none=True, validate=validate.Length(max=5000))
-    status = fields.Str(required=False, validate=validate.OneOf(['pending', 'in_progress', 'blocked', 'done']), missing='pending')
+    status = fields.Str(required=False, validate=validate.OneOf(['pending', 'in_progress', 'in_review', 'blocked', 'done']), missing='pending')
     priority = fields.Str(required=False, validate=validate.OneOf(['low', 'medium', 'high', 'urgent']), missing='medium')
     assigned_to = fields.Str(required=False, allow_none=True)
     sprint_id = fields.Str(required=False, allow_none=True, validate=validate.Length(equal=36))
@@ -68,7 +68,7 @@ class TaskUpdateSchema(Schema):
     """Schema para actualizar tarea"""
     title = fields.Str(required=False, validate=validate.Length(min=1, max=255))
     description = fields.Str(required=False, allow_none=True, validate=validate.Length(max=5000))
-    status = fields.Str(required=False, validate=validate.OneOf(['pending', 'in_progress', 'blocked', 'done']))
+    status = fields.Str(required=False, validate=validate.OneOf(['pending', 'in_progress', 'in_review', 'blocked', 'done']))
     priority = fields.Str(required=False, validate=validate.OneOf(['low', 'medium', 'high', 'urgent']))
     assigned_to = fields.Str(required=False, allow_none=True)
     sprint_id = fields.Str(required=False, allow_none=True, validate=validate.Length(equal=36))

@@ -13,10 +13,14 @@ import { acceptInviteService } from "@/services/authService"
 import { useAuthStore } from "@/stores/authStore"
 import { toast } from "sonner"
 import { Loader2, FolderKanban, CheckCircle2, Eye, EyeOff } from "lucide-react"
+import { AuthAnimatedBackground } from "@/components/marketing/auth-animated-background"
+import { BOTTTs_NEUTRAL_AVATARS } from "@/lib/avatars"
+import { cn } from "@/lib/utils"
 
 const schema = z.object({
   name: z.string().min(2, "Minimo 2 caracteres"),
-  password: z.string().min(6, "Minimo 6 caracteres"),
+  avatar: z.string().min(1, "Selecciona un avatar"),
+  password: z.string().min(8, "Minimo 8 caracteres"),
   confirmPassword: z.string(),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Las contrasenas no coinciden",
@@ -28,7 +32,6 @@ function AcceptContent() {
   const router = useRouter()
   const token = searchParams.get("token") || ""
   const login = useAuthStore((s) => s.login)
-  const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -36,9 +39,11 @@ function AcceptContent() {
   const [inviteEmail, setInviteEmail] = useState("")
   const [projectName, setProjectName] = useState("")
 
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof schema>>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
+    defaultValues: { avatar: BOTTTs_NEUTRAL_AVATARS[0].src },
   })
+  const selectedAvatar = watch("avatar")
 
   useEffect(() => {
     // Validar que el token exista
@@ -74,7 +79,7 @@ function AcceptContent() {
     setSubmitting(true)
     
     try {
-      const result = await acceptInviteService(token, data.password, data.name)
+      const result = await acceptInviteService(token, data.password, data.name, data.avatar)
       
       if (!result.success) {
         toast.error(result.error || "Error al aceptar la invitación")
@@ -104,13 +109,7 @@ function AcceptContent() {
   if (done) {
     return (
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
-        {/* Fondo animado */}
-        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950" />
-        
-        {/* Círculos animados */}
-        <div className="blob blob-1" />
-        <div className="blob blob-2" />
-        <div className="blob blob-3" />
+        <AuthAnimatedBackground />
         
         <Card className="w-full max-w-md text-center backdrop-blur-sm bg-background/95 shadow-xl">
           <CardContent className="py-8">
@@ -128,13 +127,7 @@ function AcceptContent() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
-      {/* Fondo animado */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950" />
-      
-      {/* Círculos animados */}
-      <div className="blob blob-1" />
-      <div className="blob blob-2" />
-      <div className="blob blob-3" />
+      <AuthAnimatedBackground />
       
       <Card className="w-full max-w-md backdrop-blur-sm bg-background/95 shadow-xl">
         <CardHeader className="text-center">
@@ -165,12 +158,33 @@ function AcceptContent() {
               {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
             <div className="flex flex-col gap-2">
+              <Label>Avatar</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {BOTTTs_NEUTRAL_AVATARS.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setValue("avatar", a.src, { shouldValidate: true })}
+                    aria-label={`Seleccionar avatar ${a.seed}`}
+                    disabled={submitting}
+                    className={cn(
+                      "relative rounded-lg border bg-background p-1 transition-all hover:shadow-sm",
+                      selectedAvatar === a.src ? "ring-2 ring-primary" : "opacity-80 hover:opacity-100"
+                    )}
+                  >
+                    <img alt="" src={a.src} className="h-14 w-full rounded-md object-cover bg-muted/20" />
+                  </button>
+                ))}
+              </div>
+              {errors.avatar && <p className="text-sm text-destructive">{errors.avatar.message}</p>}
+            </div>
+            <div className="flex flex-col gap-2">
               <Label htmlFor="password">Contrasena</Label>
               <div className="relative">
                 <Input 
                   id="password" 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="Min. 6 caracteres" 
+                  placeholder="Min. 8 caracteres" 
                   {...register("password")} 
                   disabled={submitting}
                   className="pr-10"

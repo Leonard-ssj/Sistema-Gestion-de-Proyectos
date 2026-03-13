@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "e2e:team": "node playwright-tests/run-team-scenario.cjs"
+  },
   "devDependencies": {
     "@playwright/test": "^1.58.2"
   }

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, TASK_PRIORITY_LABELS, TASK_PRIORITY_COLORS } from "@/lib/constants"
 import type { TaskStatus, TaskPriority } from "@/mock/types"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export default function ReportsPage() {
   const session = useAuthStore((s) => s.session)
@@ -18,7 +19,7 @@ export default function ReportsPage() {
   const projectTasks = tasks.filter((t) => t.project_id === projectId)
   const total = projectTasks.length
 
-  const statusBreakdown: { status: TaskStatus; count: number }[] = (["pending", "in_progress", "blocked", "done"] as TaskStatus[]).map((status) => ({
+  const statusBreakdown: { status: TaskStatus; count: number }[] = (["pending", "in_progress", "in_review", "blocked", "done"] as TaskStatus[]).map((status) => ({
     status,
     count: projectTasks.filter((t) => t.status === status).length,
   }))
@@ -87,9 +88,7 @@ export default function ReportsPage() {
           <div className="flex flex-col gap-4">
             {teamMembers.map((m) => (
               <div key={m.user?.id} className="flex items-center gap-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shrink-0">
-                  {m.user?.name.charAt(0)}
-                </div>
+                <img alt="" src={normalizeAvatarUrl(m.user?.avatar)} className="h-8 w-8 rounded-full border border-border bg-muted/20 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{m.user?.name}</span>

@@ -14,6 +14,7 @@ import { useEffect, useState } from "react"
 import type { Sprint } from "@/mock/types"
 import { cn } from "@/lib/utils"
 import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export function Topbar() {
   const { theme, setTheme } = useTheme()
@@ -127,9 +128,9 @@ export function Topbar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2">
-              {session?.user?.avatar ? (
+              {session?.user ? (
                 <img
-                  src={session.user.avatar}
+                  src={normalizeAvatarUrl(session.user.avatar)}
                   alt=""
                   className="h-7 w-7 rounded-full border border-border bg-card"
                 />

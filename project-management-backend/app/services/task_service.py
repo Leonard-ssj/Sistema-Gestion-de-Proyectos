@@ -329,6 +329,7 @@ class TaskService:
             'by_status': {
                 'pending': 0,
                 'in_progress': 0,
+                'in_review': 0,
                 'blocked': 0,
                 'done': 0
             },
@@ -379,6 +380,7 @@ class TaskService:
             'by_status': {
                 'pending': 0,
                 'in_progress': 0,
+                'in_review': 0,
                 'blocked': 0,
                 'done': 0
             },

@@ -16,8 +16,9 @@ import { getProjectSettingsService } from "@/services/projectService"
 import { listSprints } from "@/services/sprintService"
 import type { Sprint } from "@/mock/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
-const COLUMNS: TaskStatus[] = ["pending", "in_progress", "blocked", "done"]
+const COLUMNS: TaskStatus[] = ["pending", "in_progress", "in_review", "blocked", "done"]
 
 export default function BoardPage() {
   const session = useAuthStore((s) => s.session)
@@ -259,27 +260,29 @@ export default function BoardPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Board</h1>
         <p className="text-muted-foreground">Arrastra las tareas entre columnas para cambiar su estado</p>
-        {sprintEnabled ? (
-          <div className="mt-3 max-w-sm">
-            <Select value={sprintFilter} onValueChange={setSprintFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar por sprint" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="backlog">Backlog (sin sprint)</SelectItem>
-                {sprints.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.name} ({s.status})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : null}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {sprintEnabled ? (
+            <div className="max-w-sm">
+              <Select value={sprintFilter} onValueChange={setSprintFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filtrar por sprint" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="backlog">Backlog (sin sprint)</SelectItem>
+                  {sprints.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name} ({s.status})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
         {hasError ? (
           <EmptyStateWithRetry />
         ) : (
@@ -288,7 +291,7 @@ export default function BoardPage() {
             return (
               <div
                 key={status}
-                className="flex flex-col rounded-xl border bg-muted/30 p-3"
+                className="min-w-0 flex flex-col rounded-xl border bg-muted/30 p-2"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault()
@@ -296,13 +299,13 @@ export default function BoardPage() {
                   if (taskId) handleDrop(taskId, status)
                 }}
               >
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">{TASK_STATUS_LABELS[status]}</h3>
-                  <Badge variant="secondary" className="text-xs">
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-[11px] font-semibold">{TASK_STATUS_LABELS[status]}</h3>
+                  <Badge variant="secondary" className="text-[10px]">
                     {isLoading ? "-" : columnTasks.length}
                   </Badge>
                 </div>
-                
+
                 {isLoading ? (
                   <LoadingSkeleton />
                 ) : (
@@ -316,25 +319,23 @@ export default function BoardPage() {
                           onDragStart={(e) => e.dataTransfer.setData("taskId", t.id)}
                           className="cursor-grab active:cursor-grabbing"
                         >
-                          <CardContent className="p-3">
-                            <Link href={`/app/tasks/${t.id}`} className="text-sm font-medium hover:underline">
+                          <CardContent className="p-2">
+                            <Link href={`/app/tasks/${t.id}`} className="block truncate text-[11px] font-medium hover:underline">
                               {t.title}
                             </Link>
-                            <div className="mt-2 flex flex-wrap items-center gap-1">
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
                               <Badge variant="outline" className={`text-[10px] ${TASK_PRIORITY_COLORS[t.priority]}`}>
                                 {TASK_PRIORITY_LABELS[t.priority]}
                               </Badge>
                               {sprintEnabled && t.sprint_id ? (
-                                <Badge variant="secondary" className="text-[10px]">
+                                <Badge variant="secondary" className="max-w-[120px] truncate text-[10px]">
                                   {sprintNameById.get(t.sprint_id) || "Sprint"}
                                 </Badge>
                               ) : null}
                               {t.assigned_to && (
                                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground">
-                                    {assignee ? assignee.name.charAt(0) : '?'}
-                                  </span>
-                                  {assignee ? assignee.name.split(" ")[0] : 'Sin asignar'}
+                                  <img alt="" src={normalizeAvatarUrl(assignee?.avatar)} className="h-4 w-4 rounded-full border border-border bg-muted/20" />
+                                  <span className="truncate">{assignee ? assignee.name.split(" ")[0] : "Sin asignar"}</span>
                                 </span>
                               )}
                             </div>

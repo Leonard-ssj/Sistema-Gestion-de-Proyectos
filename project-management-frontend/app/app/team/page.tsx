@@ -16,6 +16,7 @@ import { toast } from "sonner"
 import { sendInvite, listInvites, resendInvite, cancelInvite } from "@/services/inviteService"
 import { listMembers, updateMemberProfile, type MemberProfileUpdateData } from "@/services/memberService"
 import type { Invite, Membership } from "@/mock/types"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export default function TeamPage() {
   const session = useAuthStore((s) => s.session)
@@ -62,10 +63,11 @@ export default function TeamPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Calcular total de miembros (activos + pendientes)
+  const teamLimit = 20
   const activeMembers = members.filter(m => m.status === "active").length
   const pendingInvites = invites.filter(i => i.status === "pending").length
   const totalMembers = activeMembers + pendingInvites
-  const canInviteMore = totalMembers < 10
+  const canInviteMore = totalMembers < teamLimit
 
   // Cargar miembros e invitaciones al montar
   useEffect(() => {
@@ -377,7 +379,7 @@ export default function TeamPage() {
           <DialogTrigger asChild>
             <Button className="gap-2" disabled={!canInviteMore}>
               <UserPlus className="h-4 w-4" /> 
-              {canInviteMore ? "Invitar Miembro" : "Límite Alcanzado (10/10)"}
+              {canInviteMore ? "Invitar Miembro" : `Límite Alcanzado (${teamLimit}/${teamLimit})`}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -657,9 +659,7 @@ export default function TeamPage() {
                   <TableRow key={m.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                          {m.user?.name?.charAt(0) || "?"}
-                        </div>
+                        <img alt="" src={normalizeAvatarUrl(m.user?.avatar)} className="h-7 w-7 rounded-full border border-border bg-muted/20" />
                         <span className="font-medium">{m.user?.name || "Desconocido"}</span>
                       </div>
                     </TableCell>

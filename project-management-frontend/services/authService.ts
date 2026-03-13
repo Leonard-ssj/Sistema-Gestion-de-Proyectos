@@ -240,13 +240,15 @@ export async function logoutService(): Promise<void> {
 export async function acceptInviteService(
   token: string,
   password: string,
-  name: string
+  name: string,
+  avatar?: string
 ): Promise<{ success: boolean; session?: AuthSession; error?: string }> {
   try {
     const response = await api.post<LoginResponse>('/auth/accept-invite', {
       token,
       password,
-      name
+      name,
+      avatar
     })
     
     // Guardar tokens en localStorage

@@ -105,6 +105,44 @@ def ensure_project_schema():
         db.session.execute(text(f"ALTER TABLE sprints {', '.join(sprint_alters)}"))
         db.session.commit()
 
+    db.session.execute(text("""
+        DO $$
+        BEGIN
+          IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_status') THEN
+            IF NOT EXISTS (
+              SELECT 1
+              FROM pg_enum e
+              JOIN pg_type t ON t.oid = e.enumtypid
+              WHERE t.typname = 'task_status' AND e.enumlabel = 'in_review'
+            ) THEN
+              ALTER TYPE task_status ADD VALUE 'in_review';
+            END IF;
+          END IF;
+        END $$;
+    """))
+    db.session.commit()
+
+    bottts = {
+        'Astra': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Astra&size=64&radius=12',
+        'Bolt': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Bolt&size=64&radius=12',
+        'Cobalt': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Cobalt&size=64&radius=12',
+        'Delta': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Delta&size=64&radius=12',
+        'Echo': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Echo&size=64&radius=12',
+        'Flux': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Flux&size=64&radius=12',
+        'Glitch': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Glitch&size=64&radius=12',
+        'Hex': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Hex&size=64&radius=12',
+    }
+    legacy_map = {
+        '/avatars/owners/owner-01.svg': bottts['Astra'],
+        '/avatars/owners/owner-02.svg': bottts['Bolt'],
+        '/avatars/owners/owner-03.svg': bottts['Cobalt'],
+        '/avatars/owners/owner-04.svg': bottts['Delta'],
+        '/avatars/owners/owner-05.svg': bottts['Echo'],
+    }
+    for old, new in legacy_map.items():
+        db.session.execute(text("UPDATE users SET avatar = :new WHERE avatar = :old"), {'new': new, 'old': old})
+    db.session.commit()
+
 # Registrar blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(projects_bp)

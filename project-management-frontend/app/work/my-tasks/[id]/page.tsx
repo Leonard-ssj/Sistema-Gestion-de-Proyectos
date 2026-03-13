@@ -14,6 +14,7 @@ import { ArrowLeft, Send, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, TASK_PRIORITY_LABELS, TASK_PRIORITY_COLORS } from "@/lib/constants"
 import type { TaskStatus, ChecklistItem, Comment } from "@/mock/types"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export default function WorkTaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -111,7 +112,11 @@ export default function WorkTaskDetailPage({ params }: { params: Promise<{ id: s
           {task.comments.map((c) => (
             <div key={c.id} className="rounded-lg border p-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">{c.user_name.charAt(0)}</div>
+                <img
+                  alt=""
+                  src={normalizeAvatarUrl(users.find((u) => u.id === c.user_id)?.avatar)}
+                  className="h-6 w-6 rounded-full border border-border bg-muted/20"
+                />
                 <span className="text-sm font-medium">{c.user_name}</span>
                 <span className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleString("es-ES")}</span>
               </div>

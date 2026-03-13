@@ -204,6 +204,7 @@ def get_my_project():
         total_tasks = Task.query.filter_by(project_id=project.id).count()
         pending_tasks = Task.query.filter_by(project_id=project.id, status='pending').count()
         in_progress_tasks = Task.query.filter_by(project_id=project.id, status='in_progress').count()
+        in_review_tasks = Task.query.filter_by(project_id=project.id, status='in_review').count()
         completed_tasks = Task.query.filter_by(project_id=project.id, status='done').count()
         
         # Preparar respuesta
@@ -226,6 +227,7 @@ def get_my_project():
                 'total_tasks': total_tasks,
                 'pending_tasks': pending_tasks,
                 'in_progress_tasks': in_progress_tasks,
+                'in_review_tasks': in_review_tasks,
                 'completed_tasks': completed_tasks
             }
         }

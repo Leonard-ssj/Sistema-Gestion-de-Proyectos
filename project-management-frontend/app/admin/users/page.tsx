@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { toast } from "sonner"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export default function AdminUsersPage() {
   const users = useDataStore((s) => s.users)
@@ -38,7 +39,7 @@ export default function AdminUsersPage() {
                 <TableRow key={u.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{u.name.charAt(0)}</div>
+                      <img alt="" src={normalizeAvatarUrl(u.avatar)} className="h-7 w-7 rounded-full border border-border bg-muted/20" />
                       <span className="font-medium">{u.name}</span>
                     </div>
                   </TableCell>

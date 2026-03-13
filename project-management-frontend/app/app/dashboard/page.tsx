@@ -6,10 +6,11 @@ import { useDataStore } from "@/stores/dataStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { ListTodo, CheckCircle2, Clock, AlertTriangle, Users, TrendingUp } from "lucide-react"
+import { ListTodo, CheckCircle2, Clock, Eye, AlertTriangle, Users, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { fetchTasks } from "@/services/taskService"
 import { listMembers } from "@/services/memberService"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export default function DashboardPage() {
   const session = useAuthStore((s) => s.session)
@@ -80,11 +81,12 @@ export default function DashboardPage() {
 
   const done = projectTasks.filter((t) => t.status === "done").length
   const inProgress = projectTasks.filter((t) => t.status === "in_progress").length
+  const inReview = projectTasks.filter((t) => t.status === "in_review").length
   const pending = projectTasks.filter((t) => t.status === "pending").length
   const blocked = projectTasks.filter((t) => t.status === "blocked").length
   const total = projectTasks.length
   const completionRate = total > 0 ? Math.round((done / total) * 100) : 0
-  const statusCounts = { pending, inProgress, blocked, done }
+  const statusCounts = { pending, inProgress, inReview, blocked, done }
 
   const urgentTasks = projectTasks.filter((t) => t.priority === "urgent" && t.status !== "done")
   const overdueTasks = projectTasks.filter((t) => {
@@ -96,6 +98,7 @@ export default function DashboardPage() {
     { label: "Total Tareas", value: total, icon: ListTodo, color: "text-primary" },
     { label: "Completadas", value: done, icon: CheckCircle2, color: "text-emerald-600" },
     { label: "En Progreso", value: inProgress, icon: Clock, color: "text-amber-600" },
+    { label: "En Revisión", value: inReview, icon: Eye, color: "text-purple-600" },
     { label: "Bloqueadas", value: blocked, icon: AlertTriangle, color: "text-red-600" },
     { label: "Miembros", value: members.length, icon: Users, color: "text-primary" },
     { label: "Completado", value: `${completionRate}%`, icon: TrendingUp, color: "text-emerald-600" },
@@ -110,17 +113,28 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-balance">Dashboard</h1>
-        <p className="text-muted-foreground">{session?.project?.name || "Proyecto"}</p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-balance">Dashboard</h1>
+          <p className="text-muted-foreground">{session?.project?.name || "Proyecto"}</p>
+        </div>
+        {session?.user ? (
+          <div className="flex items-center gap-2">
+            <img alt="" src={normalizeAvatarUrl(session.user.avatar)} className="h-9 w-9 rounded-full border border-border bg-muted/20" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium leading-tight truncate">{session.user.name}</p>
+              <p className="text-xs text-muted-foreground leading-tight truncate">{session.user.email}</p>
+            </div>
+          </div>
+        ) : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-7">
         {stats.map((s) => (
           <Card key={s.label}>
-            <CardContent className="flex flex-col items-center gap-1 p-4">
+            <CardContent className="flex flex-col items-center gap-1 p-3">
               <s.icon className={`h-5 w-5 ${s.color}`} />
-              <span className="text-2xl font-bold">{isLoading ? "—" : s.value}</span>
+              <span className="text-xl font-bold">{isLoading ? "—" : s.value}</span>
               <span className="text-xs text-muted-foreground">{s.label}</span>
             </CardContent>
           </Card>
@@ -152,6 +166,7 @@ export default function DashboardPage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge variant="outline" className="text-xs">Pendiente: {statusCounts.pending}</Badge>
                 <Badge variant="outline" className="text-xs">En Progreso: {statusCounts.inProgress}</Badge>
+                <Badge variant="outline" className="text-xs">En Revisión: {statusCounts.inReview}</Badge>
                 <Badge variant="outline" className="text-xs">Bloqueada: {statusCounts.blocked}</Badge>
                 <Badge variant="outline" className="text-xs">Hecha: {statusCounts.done}</Badge>
               </div>
@@ -160,6 +175,7 @@ export default function DashboardPage() {
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted/40 flex">
             <div className="h-full bg-yellow-400/70" style={{ width: total ? `${(statusCounts.pending / total) * 100}%` : "0%" }} />
             <div className="h-full bg-blue-400/70" style={{ width: total ? `${(statusCounts.inProgress / total) * 100}%` : "0%" }} />
+            <div className="h-full bg-purple-400/70" style={{ width: total ? `${(statusCounts.inReview / total) * 100}%` : "0%" }} />
             <div className="h-full bg-red-400/70" style={{ width: total ? `${(statusCounts.blocked / total) * 100}%` : "0%" }} />
             <div className="h-full bg-green-400/70" style={{ width: total ? `${(statusCounts.done / total) * 100}%` : "0%" }} />
           </div>

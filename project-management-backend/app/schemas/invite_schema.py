@@ -66,3 +66,4 @@ class AcceptInviteSchema(Schema):
         'required': 'El nombre es requerido',
         'invalid': 'El nombre debe tener entre 2 y 255 caracteres'
     })
+    avatar = fields.Str(required=False, allow_none=True, validate=validate.Length(max=500))

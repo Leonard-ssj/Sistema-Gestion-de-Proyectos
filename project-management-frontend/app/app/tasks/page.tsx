@@ -40,6 +40,7 @@ import type { Task, TaskStatus, TaskPriority, Membership, ChecklistItem, Sprint 
 import { TASK_STATUS_LABELS, TASK_PRIORITY_LABELS, TASK_STATUS_COLORS, TASK_PRIORITY_COLORS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
+import { normalizeAvatarUrl } from "@/lib/avatars"
 
 export default function TasksPage() {
   const session = useAuthStore((s) => s.session)
@@ -795,9 +796,7 @@ export default function TasksPage() {
                       {teamMembers.map((u) => u && (
                         <SelectItem key={u.id} value={u.id}>
                           <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
-                              {u.name.charAt(0).toUpperCase()}
-                            </div>
+                            <img alt="" src={normalizeAvatarUrl(u.avatar)} className="h-6 w-6 rounded-full border border-border bg-muted/20" />
                             <span>{u.name}</span>
                           </div>
                         </SelectItem>
@@ -1123,17 +1122,7 @@ export default function TasksPage() {
                       
                       {assignee && (
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          {assignee.avatar ? (
-                            <img
-                              alt=""
-                              className="h-5 w-5 rounded-full border border-border bg-card object-cover"
-                              src={assignee.avatar}
-                            />
-                          ) : (
-                            <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-medium">
-                              {assignee.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
+                          <img alt="" className="h-5 w-5 rounded-full border border-border bg-muted/20 object-cover" src={normalizeAvatarUrl(assignee.avatar)} />
                           <span>{assignee.name}</span>
                         </div>
                       )}
@@ -1324,9 +1313,7 @@ export default function TasksPage() {
                   {teamMembers.map((u) => u && (
                     <SelectItem key={u.id} value={u.id}>
                       <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
-                          {u.name.charAt(0).toUpperCase()}
-                        </div>
+                        <img alt="" src={normalizeAvatarUrl(u.avatar)} className="h-6 w-6 rounded-full border border-border bg-muted/20" />
                         <span>{u.name}</span>
                       </div>
                     </SelectItem>

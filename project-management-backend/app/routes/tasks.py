@@ -627,7 +627,7 @@ def change_task_status(task_id):
             }), 400
         
         # Validar status
-        valid_statuses = ['pending', 'in_progress', 'blocked', 'done']
+        valid_statuses = ['pending', 'in_progress', 'in_review', 'blocked', 'done']
         if new_status not in valid_statuses:
             return jsonify({
                 'success': False,

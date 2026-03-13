@@ -11,6 +11,7 @@ class Task(db.Model):
     
     # Foreign Keys
     project_id = db.Column(db.String(36), db.ForeignKey('projects.id'), nullable=False, index=True)
+    sprint_id = db.Column(db.String(36), db.ForeignKey('sprints.id'), nullable=True, index=True)
     
     # Basic Info
     title = db.Column(db.String(255), nullable=False)
@@ -51,6 +52,7 @@ class Task(db.Model):
     
     # Relationships
     project = db.relationship('Project', back_populates='tasks')
+    sprint = db.relationship('Sprint', back_populates='tasks')
     assignee = db.relationship('User', back_populates='assigned_tasks', foreign_keys=[assigned_to])
     creator = db.relationship('User', back_populates='created_tasks', foreign_keys=[created_by])
     
@@ -64,6 +66,7 @@ class Task(db.Model):
         return {
             'id': self.id,
             'project_id': self.project_id,
+            'sprint_id': self.sprint_id,
             'title': self.title,
             'description': self.description,
             'status': self.status,

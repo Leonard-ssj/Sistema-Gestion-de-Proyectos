@@ -2,7 +2,6 @@
 
 import { AppSidebar } from "./app-sidebar"
 import { Topbar } from "./topbar"
-import { DevPanel } from "./dev-panel"
 import { RoleGate } from "./role-gate"
 import type { Role } from "@/mock/types"
 
@@ -23,7 +22,6 @@ export function PrivateLayout({ children, role, currentPath }: PrivateLayoutProp
             {children}
           </main>
         </div>
-        <DevPanel />
       </RoleGate>
     )
   }
@@ -39,7 +37,6 @@ export function PrivateLayout({ children, role, currentPath }: PrivateLayoutProp
           </main>
         </div>
       </div>
-      <DevPanel />
     </RoleGate>
   )
 }

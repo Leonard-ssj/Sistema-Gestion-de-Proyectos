@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { use, useMemo, useState, useEffect } from "react"
 import { useDataStore } from "@/stores/dataStore"
 import { useAuthStore } from "@/stores/authStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,10 +14,14 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Send, Plus, Trash2, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, TASK_PRIORITY_LABELS, TASK_PRIORITY_COLORS } from "@/lib/constants"
-import type { TaskStatus, TaskPriority, ChecklistItem, Comment, Task } from "@/mock/types"
+import type { TaskStatus, TaskPriority, ChecklistItem, Comment, Task, Sprint } from "@/mock/types"
 import { getTask, updateTask as updateTaskService } from "@/services/taskService"
 import { listComments, createComment, updateComment, deleteComment } from "@/services/commentService"
+import { listSprints } from "@/services/sprintService"
+import { getProjectSettingsService } from "@/services/projectService"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -30,6 +34,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [isLoadingTask, setIsLoadingTask] = useState(true)
   const [isLoadingComments, setIsLoadingComments] = useState(true)
   const [taskNotFound, setTaskNotFound] = useState(false)
+  const [sprints, setSprints] = useState<Sprint[]>([])
+  const [sprintEnabled, setSprintEnabled] = useState<boolean>(!!session?.project?.sprint_enabled)
   
   const [commentText, setCommentText] = useState("")
   const [newCheckItem, setNewCheckItem] = useState("")
@@ -59,6 +65,16 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         setTask(taskData)
         setIsLoadingTask(false)
 
+        const settingsResult = await getProjectSettingsService()
+        const enabled = settingsResult.success && settingsResult.project ? !!settingsResult.project.sprint_enabled : !!session?.project?.sprint_enabled
+        setSprintEnabled(enabled)
+        if (enabled) {
+          const sprintsResult = await listSprints()
+          if (sprintsResult.success && sprintsResult.sprints) setSprints(sprintsResult.sprints)
+        } else {
+          setSprints([])
+        }
+
         // Cargar comentarios (15.2)
         setIsLoadingComments(true)
         const commentsData = await listComments(id)
@@ -82,6 +98,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
     loadData()
   }, [id])
+
+  const assignableSprints = useMemo(() => sprints.filter((s) => s.status !== "closed"), [sprints])
+  const sprintById = useMemo(() => {
+    const map = new Map<string, Sprint>()
+    for (const s of sprints) map.set(s.id, s)
+    return map
+  }, [sprints])
+  const currentSprint = task?.sprint_id ? sprintById.get(task.sprint_id) : null
 
   // Mostrar mensaje de tarea no encontrada (15.3)
   if (taskNotFound) {
@@ -168,6 +192,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       
       // Mostrar notificación de éxito
       toast.success("Estado actualizado correctamente")
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("tasks:changed"))
     } catch (error: any) {
       // Rollback: restaurar estado anterior
       setTask({ ...task, status: previousStatus })
@@ -196,6 +221,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       
       // Mostrar notificación de éxito
       toast.success("Prioridad actualizada correctamente")
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("tasks:changed"))
     } catch (error: any) {
       // Rollback: restaurar estado anterior
       setTask({ ...task, priority: previousPriority })
@@ -205,6 +231,24 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       toast.error(errorMessage)
       
       console.error('Error updating priority:', error)
+    }
+  }
+
+  async function handleSprintChange(newSprintId: string) {
+    if (!task) return
+    const previous = task.sprint_id ?? null
+    const next = newSprintId === "backlog" ? null : newSprintId
+
+    setTask({ ...task, sprint_id: next })
+    try {
+      await updateTaskService(task.id, { sprint_id: next })
+      toast.success("Sprint actualizado correctamente")
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("sprint:changed"))
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("tasks:changed"))
+    } catch (error: any) {
+      setTask({ ...task, sprint_id: previous })
+      const errorMessage = error?.response?.data?.error?.message || "Error al actualizar sprint"
+      toast.error(errorMessage)
     }
   }
 
@@ -617,6 +661,36 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <SelectContent>{Object.entries(TASK_PRIORITY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+                {sprintEnabled ? (
+                  <div>
+                    <span className="text-muted-foreground">Sprint</span>
+                    <Select
+                      value={task.sprint_id ? task.sprint_id : "backlog"}
+                      onValueChange={handleSprintChange}
+                      disabled={!isOwner || (!!currentSprint && currentSprint.status === "closed")}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Backlog" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="backlog">Backlog (sin sprint)</SelectItem>
+                        {assignableSprints.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                          <div className="flex items-center gap-2">
+                            <span className={cn("h-2 w-2 rounded-full", SPRINT_COLOR_CLASS[s.color].dot)} />
+                            <span className="truncate">{s.name}</span>
+                            <span className="text-muted-foreground">({s.status})</span>
+                          </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {!isOwner ? <p className="mt-1 text-xs text-muted-foreground">Solo Owners pueden cambiar el sprint</p> : null}
+                    {!!currentSprint && currentSprint.status === "closed" ? (
+                      <p className="mt-1 text-xs text-muted-foreground">Este sprint está cerrado</p>
+                    ) : null}
+                  </div>
+                ) : null}
               <Separator />
               <div className="flex justify-between"><span className="text-muted-foreground">Asignado a</span><span className="font-medium">{assignee?.name || "Sin asignar"}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Creado por</span><span className="font-medium">{creator?.name || "-"}</span></div>

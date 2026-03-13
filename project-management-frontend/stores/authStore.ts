@@ -12,6 +12,7 @@ interface AuthState {
   logout: () => void
   setLoading: (v: boolean) => void
   switchUser: (session: AuthSession) => void
+  setProject: (project: Project | undefined) => void
   getRole: () => Role | null
   getUser: () => User | null
   getProject: () => Project | null
@@ -142,6 +143,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     
     set({ session, hydrated: true })
+  },
+
+  setProject: (project) => {
+    const current = get().session
+    if (!current) return
+
+    const nextSession = { ...current, project }
+    if (typeof window !== 'undefined') {
+      const sessionData = {
+        project,
+        membership: nextSession.membership,
+      }
+      localStorage.setItem('session_data', JSON.stringify(sessionData))
+    }
+    set({ session: nextSession })
   },
   
   // ============================================

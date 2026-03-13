@@ -44,10 +44,10 @@ def log_request():
         print(f'Body: {body}')
 
 # Importar modelos después de inicializar db
-from app.models import User, Project, Membership, Task, Invite, Notification, Comment, AuditLog
+from app.models import User, Project, Membership, Task, Sprint, Invite, Notification, Comment, AuditLog
 
 # Importar rutas
-from app.routes import auth_bp, projects_bp, invites_bp, members_bp, tasks_bp, notifications_bp, comments_bp, admin_bp
+from app.routes import auth_bp, projects_bp, invites_bp, members_bp, tasks_bp, sprints_bp, notifications_bp, comments_bp, admin_bp
 
 def ensure_project_schema():
     columns = db.session.execute(text("""
@@ -64,9 +64,45 @@ def ensure_project_schema():
         alters.append("ADD COLUMN date_format VARCHAR(32) NOT NULL DEFAULT 'dd/MM/yyyy'")
     if 'state' not in existing:
         alters.append("ADD COLUMN state VARCHAR(64) NULL")
+    if 'tasks_retention_days' not in existing:
+        alters.append("ADD COLUMN tasks_retention_days INTEGER NOT NULL DEFAULT 30")
+    if 'sprint_enabled' not in existing:
+        alters.append("ADD COLUMN sprint_enabled BOOLEAN NOT NULL DEFAULT TRUE")
+    if 'sprint_length_days' not in existing:
+        alters.append("ADD COLUMN sprint_length_days INTEGER NOT NULL DEFAULT 14")
     
     if alters:
         db.session.execute(text(f"ALTER TABLE projects {', '.join(alters)}"))
+        db.session.commit()
+
+    task_columns = db.session.execute(text("""
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'tasks'
+    """)).fetchall()
+    task_existing = {row[0] for row in task_columns}
+
+    task_alters = []
+    if 'sprint_id' not in task_existing:
+        task_alters.append("ADD COLUMN sprint_id VARCHAR(36) NULL")
+
+    if task_alters:
+        db.session.execute(text(f"ALTER TABLE tasks {', '.join(task_alters)}"))
+        db.session.commit()
+
+    sprint_columns = db.session.execute(text("""
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'sprints'
+    """)).fetchall()
+    sprint_existing = {row[0] for row in sprint_columns}
+
+    sprint_alters = []
+    if 'color' not in sprint_existing:
+        sprint_alters.append("ADD COLUMN color VARCHAR(32) NOT NULL DEFAULT 'blue'")
+
+    if sprint_alters:
+        db.session.execute(text(f"ALTER TABLE sprints {', '.join(sprint_alters)}"))
         db.session.commit()
 
 # Registrar blueprints
@@ -75,6 +111,7 @@ app.register_blueprint(projects_bp)
 app.register_blueprint(invites_bp)
 app.register_blueprint(members_bp)
 app.register_blueprint(tasks_bp)
+app.register_blueprint(sprints_bp)
 app.register_blueprint(notifications_bp)
 app.register_blueprint(comments_bp)
 app.register_blueprint(admin_bp)
@@ -153,6 +190,7 @@ if __name__ == '__main__':
             print('  - projects')
             print('  - memberships')
             print('  - tasks')
+            print('  - sprints')
             print('  - invites')
             print('  - notifications')
             print('  - comments')

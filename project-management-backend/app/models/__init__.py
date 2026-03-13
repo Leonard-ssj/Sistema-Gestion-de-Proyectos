@@ -4,6 +4,7 @@ from app.models.user import User
 from app.models.project import Project
 from app.models.membership import Membership
 from app.models.task import Task
+from app.models.sprint import Sprint
 from app.models.invite import Invite
 from app.models.notification import Notification
 from app.models.comment import Comment
@@ -14,6 +15,7 @@ __all__ = [
     'Project',
     'Membership',
     'Task',
+    'Sprint',
     'Invite',
     'Notification',
     'Comment',

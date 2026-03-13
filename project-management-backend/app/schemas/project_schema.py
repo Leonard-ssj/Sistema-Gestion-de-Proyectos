@@ -97,6 +97,9 @@ class ProjectCreateSchema(Schema):
         'required': 'El estado del proyecto es requerido',
         'invalid': 'Estado inválido'
     })
+    tasks_retention_days = fields.Int(required=False, allow_none=True, load_default=30, validate=validate.Range(min=0, max=365))
+    sprint_enabled = fields.Bool(required=False, load_default=True)
+    sprint_length_days = fields.Int(required=False, allow_none=True, load_default=14, validate=validate.Range(min=7, max=30))
 
     @validates_schema
     def validate_timezone_state(self, data, **kwargs):
@@ -115,6 +118,9 @@ class ProjectUpdateSchema(Schema):
     timezone = fields.Str(required=False, allow_none=True, validate=validate.OneOf(MEXICO_TIMEZONES))
     date_format = fields.Str(required=False, allow_none=True, validate=validate.Length(max=32))
     state = fields.Str(required=False, allow_none=True, validate=validate.OneOf(MEXICO_STATES))
+    tasks_retention_days = fields.Int(required=False, allow_none=True, validate=validate.Range(min=0, max=365))
+    sprint_enabled = fields.Bool(required=False, allow_none=True)
+    sprint_length_days = fields.Int(required=False, allow_none=True, validate=validate.Range(min=7, max=30))
     status = fields.Str(required=False, validate=validate.OneOf(['active', 'disabled']))
 
     @validates_schema
@@ -137,6 +143,9 @@ class ProjectSchema(Schema):
     timezone = fields.Str(dump_only=True)
     date_format = fields.Str(dump_only=True)
     state = fields.Str(dump_only=True, allow_none=True)
+    tasks_retention_days = fields.Int(dump_only=True)
+    sprint_enabled = fields.Bool(dump_only=True)
+    sprint_length_days = fields.Int(dump_only=True)
     owner_id = fields.Str(dump_only=True)
     status = fields.Str(dump_only=True)
     created_at = fields.DateTime(dump_only=True)

@@ -85,7 +85,7 @@ def register():
         )
         
         db.session.add(new_user)
-        db.session.commit()
+        db.session.flush()
         
         # Generar tokens
         tokens = AuthService.generate_tokens(new_user)

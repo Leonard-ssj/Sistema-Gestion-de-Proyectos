@@ -20,10 +20,20 @@ import type { Invite, Membership } from "@/mock/types"
 export default function TeamPage() {
   const session = useAuthStore((s) => s.session)
   const projectId = session?.project?.id
+  const EMAIL_MAX = 254
+  const NAME_MAX = 255
+  const JOB_TITLE_MAX = 100
+  const DEPARTMENT_MAX = 100
+  const DESCRIPTION_MAX = 500
+  const RESPONSIBILITIES_MAX = 1000
+  const SKILLS_MAX = 500
+  const PHONE_MAX = 20
 
   const [members, setMembers] = useState<Membership[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
   const [inviteEmail, setInviteEmail] = useState("")
+  const inviteEmailNormalized = inviteEmail.trim().toLowerCase()
+  const inviteEmailValid = !!inviteEmailNormalized && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmailNormalized) && inviteEmailNormalized.length <= EMAIL_MAX
   const [inviteData, setInviteData] = useState({
     job_title: "",
     description: "",
@@ -86,21 +96,61 @@ export default function TeamPage() {
   }
 
   async function handleInvite() {
-    if (!inviteEmail.trim() || !projectId) return
+    if (!inviteEmailNormalized || !projectId) return
+
+    if (!inviteEmailValid) {
+      toast.error("Ingresa un email válido")
+      return
+    }
+
+    if (!inviteData.job_title.trim()) {
+      toast.error("El puesto es requerido")
+      return
+    }
+
+    if (!inviteData.department.trim()) {
+      toast.error("El departamento es requerido")
+      return
+    }
+
+    if (!inviteData.shift) {
+      toast.error("El turno es requerido")
+      return
+    }
     
     // Validaciones
     if (inviteData.phone && !/^[\d+\-() ]+$/.test(inviteData.phone)) {
       toast.error("El teléfono solo puede contener números y símbolos +, -, (, )")
       return
     }
-    
-    if (inviteData.job_title && inviteData.job_title.length > 100) {
-      toast.error("El puesto no puede exceder 100 caracteres")
+
+    if (inviteData.phone && inviteData.phone.length > PHONE_MAX) {
+      toast.error(`El teléfono no puede exceder ${PHONE_MAX} caracteres`)
       return
     }
     
-    if (inviteData.department && inviteData.department.length > 100) {
-      toast.error("El departamento no puede exceder 100 caracteres")
+    if (inviteData.job_title && inviteData.job_title.length > JOB_TITLE_MAX) {
+      toast.error(`El puesto no puede exceder ${JOB_TITLE_MAX} caracteres`)
+      return
+    }
+    
+    if (inviteData.department && inviteData.department.length > DEPARTMENT_MAX) {
+      toast.error(`El departamento no puede exceder ${DEPARTMENT_MAX} caracteres`)
+      return
+    }
+
+    if (inviteData.description && inviteData.description.length > DESCRIPTION_MAX) {
+      toast.error(`La descripción no puede exceder ${DESCRIPTION_MAX} caracteres`)
+      return
+    }
+
+    if (inviteData.responsibilities && inviteData.responsibilities.length > RESPONSIBILITIES_MAX) {
+      toast.error(`Las responsabilidades no pueden exceder ${RESPONSIBILITIES_MAX} caracteres`)
+      return
+    }
+
+    if (inviteData.skills && inviteData.skills.length > SKILLS_MAX) {
+      toast.error(`Las habilidades no pueden exceder ${SKILLS_MAX} caracteres`)
       return
     }
     
@@ -109,15 +159,15 @@ export default function TeamPage() {
     try {
       // Preparar datos de enriquecimiento (solo enviar si tienen valor)
       const enrichmentData: any = {}
-      if (inviteData.job_title) enrichmentData.job_title = inviteData.job_title
+      if (inviteData.job_title) enrichmentData.job_title = inviteData.job_title.trim()
       if (inviteData.description) enrichmentData.description = inviteData.description
       if (inviteData.responsibilities) enrichmentData.responsibilities = inviteData.responsibilities
       if (inviteData.skills) enrichmentData.skills = inviteData.skills
       if (inviteData.shift) enrichmentData.shift = inviteData.shift
-      if (inviteData.department) enrichmentData.department = inviteData.department
+      if (inviteData.department) enrichmentData.department = inviteData.department.trim()
       if (inviteData.phone) enrichmentData.phone = inviteData.phone
       
-      const result = await sendInvite(inviteEmail.trim(), Object.keys(enrichmentData).length > 0 ? enrichmentData : undefined)
+      const result = await sendInvite(inviteEmailNormalized, Object.keys(enrichmentData).length > 0 ? enrichmentData : undefined)
       
       if (!result.success) {
         toast.error(result.error || "Error al enviar la invitación")
@@ -125,7 +175,7 @@ export default function TeamPage() {
         return
       }
       
-      toast.success(result.message || `Invitación enviada a ${inviteEmail}`)
+      toast.success(result.message || `Invitación enviada a ${inviteEmailNormalized}`)
       setInviteEmail("")
       setInviteData({
         job_title: "",
@@ -233,6 +283,41 @@ export default function TeamPage() {
       toast.error("El nombre debe tener al menos 2 caracteres")
       return
     }
+
+    if (editData.name && editData.name.length > NAME_MAX) {
+      toast.error(`El nombre no puede exceder ${NAME_MAX} caracteres`)
+      return
+    }
+
+    if (editData.job_title && editData.job_title.length > JOB_TITLE_MAX) {
+      toast.error(`El puesto no puede exceder ${JOB_TITLE_MAX} caracteres`)
+      return
+    }
+
+    if (editData.department && editData.department.length > DEPARTMENT_MAX) {
+      toast.error(`El departamento no puede exceder ${DEPARTMENT_MAX} caracteres`)
+      return
+    }
+
+    if (editData.description && editData.description.length > DESCRIPTION_MAX) {
+      toast.error(`La descripción no puede exceder ${DESCRIPTION_MAX} caracteres`)
+      return
+    }
+
+    if (editData.responsibilities && editData.responsibilities.length > RESPONSIBILITIES_MAX) {
+      toast.error(`Las responsabilidades no pueden exceder ${RESPONSIBILITIES_MAX} caracteres`)
+      return
+    }
+
+    if (editData.skills && editData.skills.length > SKILLS_MAX) {
+      toast.error(`Las habilidades no pueden exceder ${SKILLS_MAX} caracteres`)
+      return
+    }
+
+    if (editData.phone && editData.phone.length > PHONE_MAX) {
+      toast.error(`El teléfono no puede exceder ${PHONE_MAX} caracteres`)
+      return
+    }
     
     setLoading(true)
     
@@ -306,15 +391,16 @@ export default function TeamPage() {
                   placeholder="correo@ejemplo.com" 
                   type="email"
                   disabled={loading}
+                  maxLength={254}
                 />
               </div>
               
               <div className="border-t pt-4">
-                <h3 className="text-sm font-medium mb-3">Información del Empleado (Opcional)</h3>
+                <h3 className="text-sm font-medium mb-3">Información del Empleado</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Puesto</Label>
+                    <Label>Puesto *</Label>
                     <Input 
                       value={inviteData.job_title} 
                       onChange={(e) => setInviteData({...inviteData, job_title: e.target.value})} 
@@ -325,7 +411,7 @@ export default function TeamPage() {
                   </div>
                   
                   <div>
-                    <Label>Departamento</Label>
+                    <Label>Departamento *</Label>
                     <Input 
                       value={inviteData.department} 
                       onChange={(e) => setInviteData({...inviteData, department: e.target.value})} 
@@ -373,7 +459,7 @@ export default function TeamPage() {
                   </div>
                   
                   <div>
-                    <Label>Turno</Label>
+                    <Label>Turno *</Label>
                     <Select 
                       value={inviteData.shift} 
                       onValueChange={(value: any) => setInviteData({...inviteData, shift: value})}
@@ -410,7 +496,11 @@ export default function TeamPage() {
                 </div>
               </div>
               
-              <Button onClick={handleInvite} disabled={!inviteEmail.trim() || loading} className="mt-2">
+              <Button
+                onClick={handleInvite}
+                disabled={!inviteEmailValid || !inviteData.job_title.trim() || !inviteData.department.trim() || !inviteData.shift || loading}
+                className="mt-2"
+              >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Enviar Invitacion
               </Button>

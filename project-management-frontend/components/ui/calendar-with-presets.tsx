@@ -16,9 +16,39 @@ interface CalendarWithPresetsProps {
   date: Date | undefined
   onDateChange: (date: Date | undefined) => void
   disabled?: boolean
+  minDate?: Date
+  maxDate?: Date
 }
 
-export function CalendarWithPresets({ date, onDateChange, disabled }: CalendarWithPresetsProps) {
+function normalizeDateOnly(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+}
+
+function clampDate(d: Date, minDate?: Date, maxDate?: Date) {
+  const x = normalizeDateOnly(d).getTime()
+  const min = minDate ? normalizeDateOnly(minDate).getTime() : null
+  const max = maxDate ? normalizeDateOnly(maxDate).getTime() : null
+  if (min !== null && x < min) return new Date(min)
+  if (max !== null && x > max) return new Date(max)
+  return d
+}
+
+export function CalendarWithPresets({ date, onDateChange, disabled, minDate, maxDate }: CalendarWithPresetsProps) {
+  const isDateDisabled = (d: Date) => {
+    if (disabled) return true
+    const x = normalizeDateOnly(d).getTime()
+    const min = minDate ? normalizeDateOnly(minDate).getTime() : null
+    const max = maxDate ? normalizeDateOnly(maxDate).getTime() : null
+    if (min !== null && x < min) return true
+    if (max !== null && x > max) return true
+    return false
+  }
+
+  const setClamped = (d: Date | undefined) => {
+    if (!d) return onDateChange(undefined)
+    onDateChange(clampDate(d, minDate, maxDate))
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -42,8 +72,8 @@ export function CalendarWithPresets({ date, onDateChange, disabled }: CalendarWi
           <Calendar
             mode="single"
             selected={date}
-            onSelect={onDateChange}
-            disabled={disabled}
+            onSelect={setClamped}
+            disabled={isDateDisabled}
           />
         </div>
         <div className="flex gap-2">
@@ -52,7 +82,7 @@ export function CalendarWithPresets({ date, onDateChange, disabled }: CalendarWi
             className="flex-1"
             size="sm"
             disabled={disabled}
-            onClick={() => onDateChange(new Date())}
+            onClick={() => setClamped(new Date())}
           >
             Today
           </Button>
@@ -61,7 +91,7 @@ export function CalendarWithPresets({ date, onDateChange, disabled }: CalendarWi
             className="flex-1"
             size="sm"
             disabled={disabled}
-            onClick={() => onDateChange(addDays(new Date(), 1))}
+            onClick={() => setClamped(addDays(new Date(), 1))}
           >
             Tomorrow
           </Button>
@@ -72,7 +102,7 @@ export function CalendarWithPresets({ date, onDateChange, disabled }: CalendarWi
             className="flex-1"
             size="sm"
             disabled={disabled}
-            onClick={() => onDateChange(addDays(new Date(), 3))}
+            onClick={() => setClamped(addDays(new Date(), 3))}
           >
             In 3 days
           </Button>
@@ -81,7 +111,7 @@ export function CalendarWithPresets({ date, onDateChange, disabled }: CalendarWi
             className="flex-1"
             size="sm"
             disabled={disabled}
-            onClick={() => onDateChange(addDays(new Date(), 7))}
+            onClick={() => setClamped(addDays(new Date(), 7))}
           >
             In a week
           </Button>
@@ -91,7 +121,7 @@ export function CalendarWithPresets({ date, onDateChange, disabled }: CalendarWi
           className="w-full"
           size="sm"
           disabled={disabled}
-          onClick={() => onDateChange(addDays(new Date(), 14))}
+          onClick={() => setClamped(addDays(new Date(), 14))}
         >
           In 2 weeks
         </Button>

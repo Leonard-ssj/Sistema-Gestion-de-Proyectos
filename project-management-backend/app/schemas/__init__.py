@@ -27,6 +27,11 @@ from .task_schema import (
     TaskSchema,
     TaskWithDetailsSchema
 )
+from .sprint_schema import (
+    SprintCreateSchema,
+    SprintUpdateSchema,
+    SprintSchema
+)
 from .comment_schema import (
     CommentCreateSchema,
     CommentUpdateSchema,
@@ -67,6 +72,10 @@ __all__ = [
     'TaskUpdateSchema',
     'TaskSchema',
     'TaskWithDetailsSchema',
+    # Sprint schemas
+    'SprintCreateSchema',
+    'SprintUpdateSchema',
+    'SprintSchema',
     # Comment schemas
     'CommentCreateSchema',
     'CommentUpdateSchema',

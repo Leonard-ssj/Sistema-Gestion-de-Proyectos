@@ -91,7 +91,13 @@ def create_task():
                 }), 400
         
         # Crear tarea
-        new_task = TaskService.create_task(project_id, validated_data, user_id)
+        try:
+            new_task = TaskService.create_task(project_id, validated_data, user_id)
+        except ValueError as e:
+            return jsonify({
+                'success': False,
+                'error': {'code': 'VALIDATION_ERROR', 'message': str(e)}
+            }), 400
         
         # Crear notificación si está asignada
         if assigned_to:
@@ -196,6 +202,8 @@ def list_tasks():
             'priority': request.args.get('priority'),
             'assigned_to': request.args.get('assigned_to'),
             'search': request.args.get('search'),
+            'sprint_id': request.args.get('sprint_id'),
+            'include_old_done': (request.args.get('include_old_done') or '').lower() in ['1', 'true', 'yes'],
             'sort_by': request.args.get('sort_by', 'created_at'),
             'sort_order': request.args.get('sort_order', 'desc')
         }
@@ -303,7 +311,18 @@ def update_task(task_id):
             }), 400
         
         # Actualizar tarea con validación de permisos
-        task = TaskService.update_task(task_id, validated_data, user_id, user_role)
+        try:
+            task = TaskService.update_task(task_id, validated_data, user_id, user_role)
+        except PermissionError as e:
+            return jsonify({
+                'success': False,
+                'error': {'code': 'FORBIDDEN', 'message': str(e)}
+            }), 403
+        except ValueError as e:
+            return jsonify({
+                'success': False,
+                'error': {'code': 'VALIDATION_ERROR', 'message': str(e)}
+            }), 400
         
         if not task:
             return jsonify({

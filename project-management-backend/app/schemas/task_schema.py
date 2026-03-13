@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate, validates, ValidationError
+from marshmallow import Schema, fields, validate, validates, validates_schema, ValidationError
 from datetime import datetime, timezone
 import uuid
 
@@ -28,9 +28,11 @@ class TaskCreateSchema(Schema):
     status = fields.Str(required=False, validate=validate.OneOf(['pending', 'in_progress', 'blocked', 'done']), missing='pending')
     priority = fields.Str(required=False, validate=validate.OneOf(['low', 'medium', 'high', 'urgent']), missing='medium')
     assigned_to = fields.Str(required=False, allow_none=True)
+    sprint_id = fields.Str(required=False, allow_none=True, validate=validate.Length(equal=36))
     due_date = fields.DateTime(required=True, error_messages={
         'required': 'La fecha de vencimiento es requerida'
     })
+    start_date = fields.DateTime(required=False, allow_none=True)
     tags = fields.List(fields.Str(), required=False, allow_none=True)
     checklist = fields.List(
         fields.Nested(ChecklistItemSchema),
@@ -50,6 +52,16 @@ class TaskCreateSchema(Schema):
             
             if due_date <= now:
                 raise ValidationError('La fecha de vencimiento debe ser posterior a hoy')
+
+    @validates_schema
+    def validate_dates(self, data, **kwargs):
+        start_date = data.get('start_date')
+        due_date = data.get('due_date')
+        if start_date and due_date:
+            start = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            due = due_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            if start > due:
+                raise ValidationError({'start_date': ['La fecha de inicio no puede ser posterior a la fecha de vencimiento']})
 
 
 class TaskUpdateSchema(Schema):
@@ -59,7 +71,9 @@ class TaskUpdateSchema(Schema):
     status = fields.Str(required=False, validate=validate.OneOf(['pending', 'in_progress', 'blocked', 'done']))
     priority = fields.Str(required=False, validate=validate.OneOf(['low', 'medium', 'high', 'urgent']))
     assigned_to = fields.Str(required=False, allow_none=True)
+    sprint_id = fields.Str(required=False, allow_none=True, validate=validate.Length(equal=36))
     due_date = fields.DateTime(required=False, allow_none=True)
+    start_date = fields.DateTime(required=False, allow_none=True)
     tags = fields.List(fields.Str(), required=False, allow_none=True)
     checklist = fields.List(
         fields.Nested(ChecklistItemSchema),
@@ -80,11 +94,22 @@ class TaskUpdateSchema(Schema):
             if due_date <= now:
                 raise ValidationError('La fecha de vencimiento debe ser posterior a hoy')
 
+    @validates_schema
+    def validate_dates(self, data, **kwargs):
+        start_date = data.get('start_date')
+        due_date = data.get('due_date')
+        if start_date and due_date:
+            start = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            due = due_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            if start > due:
+                raise ValidationError({'start_date': ['La fecha de inicio no puede ser posterior a la fecha de vencimiento']})
+
 
 class TaskSchema(Schema):
     """Schema para serializar tarea (respuesta)"""
     id = fields.Str(dump_only=True)
     project_id = fields.Str(dump_only=True)
+    sprint_id = fields.Str(dump_only=True, allow_none=True)
     title = fields.Str(dump_only=True)
     description = fields.Str(dump_only=True, allow_none=True)
     status = fields.Str(dump_only=True)
@@ -92,6 +117,7 @@ class TaskSchema(Schema):
     created_by = fields.Str(dump_only=True)
     assigned_to = fields.Str(dump_only=True, allow_none=True)
     due_date = fields.DateTime(dump_only=True, allow_none=True)
+    start_date = fields.DateTime(dump_only=True, allow_none=True)
     completed_at = fields.DateTime(dump_only=True, allow_none=True)
     tags = fields.List(fields.Str(), dump_only=True, allow_none=True)
     checklist = fields.List(fields.Nested(ChecklistItemSchema), dump_only=True)

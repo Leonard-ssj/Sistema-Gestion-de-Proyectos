@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { useAuthStore } from "@/stores/authStore"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,16 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { CalendarWithPresets } from "@/components/ui/calendar-with-presets"
@@ -24,12 +34,18 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { fetchTasks, createTask, deleteTaskService, updateTask, updateTaskStatus } from "@/services/taskService"
 import { listMembers } from "@/services/memberService"
-import type { Task, TaskStatus, TaskPriority, Membership, ChecklistItem } from "@/mock/types"
+import { listSprints } from "@/services/sprintService"
+import { getProjectSettingsService } from "@/services/projectService"
+import type { Task, TaskStatus, TaskPriority, Membership, ChecklistItem, Sprint } from "@/mock/types"
 import { TASK_STATUS_LABELS, TASK_PRIORITY_LABELS, TASK_STATUS_COLORS, TASK_PRIORITY_COLORS } from "@/lib/constants"
+import { cn } from "@/lib/utils"
+import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
 
 export default function TasksPage() {
   const session = useAuthStore((s) => s.session)
+  const setProject = useAuthStore((s) => s.setProject)
   const projectId = session?.project?.id
+  const [sprintEnabled, setSprintEnabled] = useState<boolean>(!!session?.project?.sprint_enabled)
   const TITLE_MAX = 255
   const DESC_MAX = 5000
   const CHECKLIST_TEXT_MAX = 500
@@ -38,11 +54,14 @@ export default function TasksPage() {
   // Estados para datos
   const [tasks, setTasks] = useState<Task[]>([])
   const [members, setMembers] = useState<Membership[]>([])
+  const [sprints, setSprints] = useState<Sprint[]>([])
   
   // Estados de carga
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteCandidate, setDeleteCandidate] = useState<Task | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   // Estados de paginación
@@ -61,10 +80,13 @@ export default function TasksPage() {
   const [newDesc, setNewDesc] = useState("")
   const [newPriority, setNewPriority] = useState<TaskPriority>("medium")
   const [newAssignee, setNewAssignee] = useState<string>("unassigned")
+  const [newStartDate, setNewStartDate] = useState<Date | undefined>(undefined)
   const [newDueDate, setNewDueDate] = useState<Date | undefined>(undefined)
   const [newTags, setNewTags] = useState<string>("")
+  const [newSprintId, setNewSprintId] = useState<string>("backlog")
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
   const [checklistInput, setChecklistInput] = useState("")
+  const checklistInputRef = useRef<HTMLInputElement>(null)
 
   // Estados del formulario de editar
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -74,10 +96,26 @@ export default function TasksPage() {
   const [editPriority, setEditPriority] = useState<TaskPriority>("medium")
   const [editStatus, setEditStatus] = useState<TaskStatus>("pending")
   const [editAssignee, setEditAssignee] = useState<string>("unassigned")
+  const [editStartDate, setEditStartDate] = useState<Date | undefined>(undefined)
   const [editDueDate, setEditDueDate] = useState<Date | undefined>(undefined)
   const [editTags, setEditTags] = useState<string>("")
+  const [editSprintId, setEditSprintId] = useState<string>("backlog")
   const [editChecklistItems, setEditChecklistItems] = useState<ChecklistItem[]>([])
   const [editChecklistInput, setEditChecklistInput] = useState("")
+  const editChecklistInputRef = useRef<HTMLInputElement>(null)
+
+  const [createDueConfirmOpen, setCreateDueConfirmOpen] = useState(false)
+  const [createDueConfirmContext, setCreateDueConfirmContext] = useState<null | {
+    sprint: Sprint
+    suggestedDate: Date
+    message: string
+  }>(null)
+  const [editDueConfirmOpen, setEditDueConfirmOpen] = useState(false)
+  const [editDueConfirmContext, setEditDueConfirmContext] = useState<null | {
+    sprint: Sprint
+    suggestedDate: Date
+    message: string
+  }>(null)
 
   // Cargar datos al montar
   useEffect(() => {
@@ -86,15 +124,54 @@ export default function TasksPage() {
     }
   }, [projectId])
 
+  useEffect(() => {
+    if (!dialogOpen || !projectId) return
+    let cancelled = false
+    async function ensureSprints() {
+      const settingsResult = await getProjectSettingsService()
+      const enabled = settingsResult.success && settingsResult.project ? !!settingsResult.project.sprint_enabled : !!session?.project?.sprint_enabled
+      if (cancelled) return
+      setSprintEnabled(enabled)
+      if (settingsResult.success && settingsResult.project) setProject(settingsResult.project as any)
+      if (enabled && sprints.length === 0) {
+        const sprintsResult = await listSprints()
+        if (cancelled) return
+        if (sprintsResult.success && sprintsResult.sprints) setSprints(sprintsResult.sprints)
+      }
+    }
+    ensureSprints()
+    return () => {
+      cancelled = true
+    }
+  }, [dialogOpen, projectId])
+
   async function loadData() {
     setLoading(true)
     try {
+      const settingsResult = await getProjectSettingsService()
+      const enabled = settingsResult.success && settingsResult.project ? !!settingsResult.project.sprint_enabled : !!session?.project?.sprint_enabled
+      if (settingsResult.success && settingsResult.project) {
+        setProject(settingsResult.project as any)
+      }
+      setSprintEnabled(enabled)
+
       const tasksData = await fetchTasks()
       setTasks(tasksData)
       
       const membersResult = await listMembers()
       if (membersResult.success && membersResult.members) {
         setMembers(membersResult.members)
+      }
+
+      if (enabled) {
+        const sprintsResult = await listSprints()
+        if (sprintsResult.success && sprintsResult.sprints) {
+          setSprints(sprintsResult.sprints)
+        } else {
+          setSprints([])
+        }
+      } else {
+        setSprints([])
       }
     } catch (error) {
       console.error("Error loading data:", error)
@@ -133,9 +210,154 @@ export default function TasksPage() {
     .map((m) => m.user)
     .filter(Boolean)
 
+  const sprintNameById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const s of sprints) map.set(s.id, s.name)
+    return map
+  }, [sprints])
+
+  const assignableSprints = useMemo(() => sprints.filter((s) => s.status !== "closed"), [sprints])
+  const sprintById = useMemo(() => {
+    const map = new Map<string, Sprint>()
+    for (const s of sprints) map.set(s.id, s)
+    return map
+  }, [sprints])
+
+  function normalizeDateOnly(d: Date) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  }
+
+  function getSprintDueDateContext(sprintId: string, dueDate: Date | undefined) {
+    if (!sprintEnabled) return null
+    if (!dueDate) return null
+    if (sprintId === "backlog") return null
+    const sprint = sprintById.get(sprintId)
+    if (!sprint) return null
+
+    const due = normalizeDateOnly(dueDate).getTime()
+    const start = normalizeDateOnly(new Date(sprint.start_date)).getTime()
+    const end = normalizeDateOnly(new Date(sprint.end_date)).getTime()
+    if (due >= start && due <= end) return null
+
+    const suggested = due < start ? new Date(start) : new Date(end)
+    const fmt = (ts: number) => new Date(ts).toLocaleDateString("es-ES")
+    const message = `El sprint "${sprint.name}" va del ${fmt(start)} al ${fmt(end)}. La fecha de vencimiento seleccionada (${fmt(due)}) queda fuera del sprint.`
+    return { sprint, suggestedDate: suggested, message }
+  }
+
+  const newDueSprintContext = useMemo(
+    () => getSprintDueDateContext(newSprintId, newDueDate),
+    [newSprintId, newDueDate, sprintEnabled, sprintById]
+  )
+
+  const editDueSprintContext = useMemo(
+    () => getSprintDueDateContext(editSprintId, editDueDate ?? (editingTask?.due_date ? new Date(editingTask.due_date) : undefined)),
+    [editSprintId, editDueDate, editingTask?.due_date, sprintEnabled, sprintById]
+  )
+
+  const newDueMinDate = useMemo(() => {
+    const tomorrow = new Date()
+    tomorrow.setHours(0, 0, 0, 0)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    if (!sprintEnabled || newSprintId === "backlog") return tomorrow
+    const sprint = sprintById.get(newSprintId)
+    if (!sprint) return tomorrow
+    const start = new Date(sprint.start_date)
+    start.setHours(0, 0, 0, 0)
+    return start > tomorrow ? start : tomorrow
+  }, [newSprintId, sprintEnabled, sprintById])
+
+  const editDueMinDate = useMemo(() => {
+    const tomorrow = new Date()
+    tomorrow.setHours(0, 0, 0, 0)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    if (!sprintEnabled || editSprintId === "backlog") return tomorrow
+    const sprint = sprintById.get(editSprintId)
+    if (!sprint) return tomorrow
+    const start = new Date(sprint.start_date)
+    start.setHours(0, 0, 0, 0)
+    return start > tomorrow ? start : tomorrow
+  }, [editSprintId, sprintEnabled, sprintById])
+
+  const newStartMinDate = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (!sprintEnabled || newSprintId === "backlog") return today
+    const sprint = sprintById.get(newSprintId)
+    if (!sprint) return today
+    const start = new Date(sprint.start_date)
+    start.setHours(0, 0, 0, 0)
+    return start > today ? start : today
+  }, [newSprintId, sprintEnabled, sprintById])
+
+  const editStartMinDate = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (!sprintEnabled || editSprintId === "backlog") return today
+    const sprint = sprintById.get(editSprintId)
+    if (!sprint) return today
+    const start = new Date(sprint.start_date)
+    start.setHours(0, 0, 0, 0)
+    return start > today ? start : today
+  }, [editSprintId, sprintEnabled, sprintById])
+
+  const newStartMaxDate = useMemo(() => {
+    if (!newDueDate) return undefined
+    const max = new Date(newDueDate)
+    max.setHours(0, 0, 0, 0)
+    max.setDate(max.getDate() - 1)
+    return max
+  }, [newDueDate])
+
+  const editStartMaxDate = useMemo(() => {
+    const due = editDueDate ?? (editingTask?.due_date ? new Date(editingTask.due_date) : undefined)
+    if (!due) return undefined
+    const max = new Date(due)
+    max.setHours(0, 0, 0, 0)
+    max.setDate(max.getDate() - 1)
+    return max
+  }, [editDueDate, editingTask?.due_date])
+
+  useEffect(() => {
+    if (!newDueDate) return
+    if (newDueDate.getTime() < newDueMinDate.getTime()) {
+      setNewDueDate(newDueMinDate)
+    }
+  }, [newDueMinDate])
+
+  useEffect(() => {
+    if (!editDueDate) return
+    if (editDueDate.getTime() < editDueMinDate.getTime()) {
+      setEditDueDate(editDueMinDate)
+    }
+  }, [editDueMinDate])
+
+  useEffect(() => {
+    if (!newStartDate) return
+    if (newStartDate.getTime() < newStartMinDate.getTime()) {
+      setNewStartDate(newStartMinDate)
+      return
+    }
+    if (newStartMaxDate && newStartDate.getTime() > newStartMaxDate.getTime()) {
+      setNewStartDate(newStartMaxDate)
+    }
+  }, [newStartMinDate, newStartMaxDate])
+
+  useEffect(() => {
+    if (!editStartDate) return
+    if (editStartDate.getTime() < editStartMinDate.getTime()) {
+      setEditStartDate(editStartMinDate)
+      return
+    }
+    if (editStartMaxDate && editStartDate.getTime() > editStartMaxDate.getTime()) {
+      setEditStartDate(editStartMaxDate)
+    }
+  }, [editStartMinDate, editStartMaxDate])
+
   // Funciones para manejar checklist
   const addChecklistItem = () => {
-    const text = checklistInput.trim()
+    const raw = checklistInputRef.current?.value ?? checklistInput
+    const text = raw.trim()
     if (!text) return
     if (text.length > CHECKLIST_TEXT_MAX) {
       toast.error(`El checklist permite máximo ${CHECKLIST_TEXT_MAX} caracteres por item`)
@@ -145,22 +367,21 @@ export default function TasksPage() {
       toast.error(`El checklist permite máximo ${CHECKLIST_MAX_ITEMS} items`)
       return
     }
-    if (checklistInput.trim()) {
-      const newItem: ChecklistItem = {
-        id: crypto.randomUUID(),
-        text: checklistInput.trim(),
-        completed: false
-      }
-      setChecklistItems([...checklistItems, newItem])
-      setChecklistInput("")
+    const newItem: ChecklistItem = {
+      id: crypto.randomUUID(),
+      text,
+      completed: false
     }
+    setChecklistItems((prev) => [...prev, newItem])
+    if (checklistInputRef.current) checklistInputRef.current.value = ""
+    setChecklistInput("")
   }
 
   const removeChecklistItem = (id: string) => {
     setChecklistItems(checklistItems.filter(item => item.id !== id))
   }
 
-  async function handleCreate() {
+  async function createTaskNow(overrides?: { sprintId?: string; dueDate?: Date }) {
     const title = newTitle.trim()
     const description = newDesc.trim()
     if (!title) {
@@ -176,7 +397,10 @@ export default function TasksPage() {
       return
     }
 
-    if (!newDueDate) {
+    const effectiveDueDate = overrides?.dueDate ?? newDueDate
+    const effectiveSprintId = overrides?.sprintId ?? newSprintId
+
+    if (!effectiveDueDate) {
       toast.error("La fecha de vencimiento es requerida")
       return
     }
@@ -184,8 +408,21 @@ export default function TasksPage() {
     // Validar que la fecha sea futura
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const selectedDate = new Date(newDueDate)
+    const selectedDate = new Date(effectiveDueDate)
     selectedDate.setHours(0, 0, 0, 0)
+
+    if (newStartDate) {
+      const start = new Date(newStartDate)
+      start.setHours(0, 0, 0, 0)
+      if (start < today) {
+        toast.error("La fecha de inicio no puede ser anterior a hoy")
+        return
+      }
+      if (start >= selectedDate) {
+        toast.error("La fecha de inicio debe ser anterior a la fecha de vencimiento")
+        return
+      }
+    }
 
     if (selectedDate <= today) {
       toast.error("La fecha de vencimiento debe ser posterior a hoy")
@@ -200,23 +437,29 @@ export default function TasksPage() {
         description,
         priority: newPriority,
         assigned_to: newAssignee && newAssignee !== "unassigned" ? newAssignee : undefined,
-        due_date: newDueDate.toISOString(),
+        sprint_id: sprintEnabled ? (effectiveSprintId === "backlog" ? null : effectiveSprintId) : undefined,
+        start_date: newStartDate ? newStartDate.toISOString() : undefined,
+        due_date: effectiveDueDate.toISOString(),
         tags: newTags.trim() ? newTags.split(",").map(t => t.trim()).filter(Boolean) : undefined,
         checklist: checklistItems.length > 0 ? checklistItems : undefined
       })
       
       setTasks([newTask, ...tasks])
       toast.success("Tarea creada exitosamente")
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("tasks:changed"))
       
       // Limpiar formulario
       setNewTitle("")
       setNewDesc("")
       setNewPriority("medium")
       setNewAssignee("unassigned")
+      setNewStartDate(undefined)
       setNewDueDate(undefined)
       setNewTags("")
+      setNewSprintId("backlog")
       setChecklistItems([])
       setChecklistInput("")
+      if (checklistInputRef.current) checklistInputRef.current.value = ""
       setDialogOpen(false)
     } catch (error: any) {
       console.error("Error creating task:", error)
@@ -227,15 +470,34 @@ export default function TasksPage() {
     }
   }
 
+  async function handleCreate() {
+    const ctx = newDueSprintContext
+    if (ctx) {
+      setCreateDueConfirmContext(ctx)
+      setCreateDueConfirmOpen(true)
+      return
+    }
+    await createTaskNow()
+  }
+
   async function handleDelete(taskId: string) {
+    const task = tasks.find((t) => t.id === taskId) || null
+    setDeleteCandidate(task)
+    setDeleteConfirmOpen(true)
+  }
+
+  async function confirmDelete() {
+    if (!deleteCandidate) return
+    const taskId = deleteCandidate.id
     setDeletingId(taskId)
-    
     try {
       const success = await deleteTaskService(taskId)
-      
       if (success) {
         setTasks(tasks.filter(t => t.id !== taskId))
         toast.success("Tarea eliminada exitosamente")
+        if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("tasks:changed"))
+        setDeleteConfirmOpen(false)
+        setDeleteCandidate(null)
       } else {
         toast.error("Error al eliminar la tarea")
       }
@@ -254,16 +516,20 @@ export default function TasksPage() {
     setEditPriority(task.priority)
     setEditStatus(task.status)
     setEditAssignee(task.assigned_to || "unassigned")
+    setEditStartDate(task.start_date ? new Date(task.start_date) : undefined)
     setEditDueDate(task.due_date ? new Date(task.due_date) : undefined)
     setEditTags(task.tags?.join(", ") || "")
+    setEditSprintId(task.sprint_id ? task.sprint_id : "backlog")
     setEditChecklistItems(task.checklist || [])
     setEditChecklistInput("")
+    if (editChecklistInputRef.current) editChecklistInputRef.current.value = ""
     setEditDialogOpen(true)
   }
 
   // Funciones para manejar checklist en edición
   const addEditChecklistItem = () => {
-    const text = editChecklistInput.trim()
+    const raw = editChecklistInputRef.current?.value ?? editChecklistInput
+    const text = raw.trim()
     if (!text) return
     if (text.length > CHECKLIST_TEXT_MAX) {
       toast.error(`El checklist permite máximo ${CHECKLIST_TEXT_MAX} caracteres por item`)
@@ -273,34 +539,45 @@ export default function TasksPage() {
       toast.error(`El checklist permite máximo ${CHECKLIST_MAX_ITEMS} items`)
       return
     }
-    if (editChecklistInput.trim()) {
-      const newItem: ChecklistItem = {
-        id: crypto.randomUUID(),
-        text: editChecklistInput.trim(),
-        completed: false
-      }
-      setEditChecklistItems([...editChecklistItems, newItem])
-      setEditChecklistInput("")
+    const newItem: ChecklistItem = {
+      id: crypto.randomUUID(),
+      text,
+      completed: false
     }
+    setEditChecklistItems((prev) => [...prev, newItem])
+    if (editChecklistInputRef.current) editChecklistInputRef.current.value = ""
+    setEditChecklistInput("")
   }
 
   const removeEditChecklistItem = (id: string) => {
     setEditChecklistItems(editChecklistItems.filter(item => item.id !== id))
   }
 
-  async function handleUpdate() {
+  async function updateTaskNow(overrides?: { sprintId?: string; dueDate?: Date | null }) {
     if (!editingTask) return
 
     const title = editTitle.trim()
     const description = editDesc.trim()
+    const effectiveDueDate = typeof overrides?.dueDate !== "undefined" ? overrides.dueDate : editDueDate
+    const effectiveSprintId = typeof overrides?.sprintId !== "undefined" ? overrides.sprintId : editSprintId
+
     const originalDueDate = editingTask.due_date ? new Date(editingTask.due_date) : undefined
     const normalizedOriginal = originalDueDate
       ? new Date(originalDueDate.getFullYear(), originalDueDate.getMonth(), originalDueDate.getDate()).getTime()
       : null
-    const normalizedSelected = editDueDate
-      ? new Date(editDueDate.getFullYear(), editDueDate.getMonth(), editDueDate.getDate()).getTime()
+    const normalizedSelected = effectiveDueDate
+      ? new Date(effectiveDueDate.getFullYear(), effectiveDueDate.getMonth(), effectiveDueDate.getDate()).getTime()
       : null
     const dueDateChanged = normalizedOriginal !== normalizedSelected
+
+    const originalStartDate = editingTask.start_date ? new Date(editingTask.start_date) : undefined
+    const normalizedOriginalStart = originalStartDate
+      ? new Date(originalStartDate.getFullYear(), originalStartDate.getMonth(), originalStartDate.getDate()).getTime()
+      : null
+    const normalizedSelectedStart = editStartDate
+      ? new Date(editStartDate.getFullYear(), editStartDate.getMonth(), editStartDate.getDate()).getTime()
+      : null
+    const startDateChanged = normalizedOriginalStart !== normalizedSelectedStart
     const checklistChanged = JSON.stringify(editingTask.checklist || []) !== JSON.stringify(editChecklistItems || [])
 
     if (!title) {
@@ -316,15 +593,34 @@ export default function TasksPage() {
       return
     }
 
-    if (!editingTask.due_date && !editDueDate) {
+    if (!editingTask.due_date && !effectiveDueDate) {
       toast.error("La fecha de vencimiento es requerida")
       return
     }
 
-    if (editDueDate && dueDateChanged) {
+    if (editStartDate) {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      const selectedDate = new Date(editDueDate)
+      const start = new Date(editStartDate)
+      start.setHours(0, 0, 0, 0)
+      const dueRef = effectiveDueDate ? new Date(effectiveDueDate) : (editingTask.due_date ? new Date(editingTask.due_date) : null)
+      if (start < today) {
+        toast.error("La fecha de inicio no puede ser anterior a hoy")
+        return
+      }
+      if (dueRef) {
+        dueRef.setHours(0, 0, 0, 0)
+        if (start >= dueRef) {
+          toast.error("La fecha de inicio debe ser anterior a la fecha de vencimiento")
+          return
+        }
+      }
+    }
+
+    if (effectiveDueDate && dueDateChanged) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectedDate = new Date(effectiveDueDate)
       selectedDate.setHours(0, 0, 0, 0)
 
       if (selectedDate <= today) {
@@ -342,11 +638,15 @@ export default function TasksPage() {
         priority: editPriority,
         status: editStatus,
         assigned_to: editAssignee && editAssignee !== "unassigned" ? editAssignee : null,
+        sprint_id: sprintEnabled ? (effectiveSprintId === "backlog" ? null : effectiveSprintId) : undefined,
         tags: editTags ? editTags.split(",").map(t => t.trim()).filter(Boolean) : [],
       }
 
-      if (editDueDate && (dueDateChanged || !editingTask.due_date)) {
-        payload.due_date = editDueDate.toISOString()
+      if (effectiveDueDate && (dueDateChanged || !editingTask.due_date)) {
+        payload.due_date = effectiveDueDate.toISOString()
+      }
+      if (startDateChanged) {
+        payload.start_date = editStartDate ? editStartDate.toISOString() : null
       }
       if (checklistChanged) {
         payload.checklist = editChecklistItems
@@ -356,6 +656,7 @@ export default function TasksPage() {
       
       setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))
       toast.success("Tarea actualizada exitosamente")
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("tasks:changed"))
       setEditDialogOpen(false)
       setEditingTask(null)
     } catch (error: any) {
@@ -367,11 +668,26 @@ export default function TasksPage() {
     }
   }
 
+  async function handleUpdate() {
+    if (!editingTask) return
+    const originalSprintId = editingTask.sprint_id ? editingTask.sprint_id : "backlog"
+    const sprintChanged = originalSprintId !== editSprintId
+    const due = editDueDate ?? (editingTask.due_date ? new Date(editingTask.due_date) : undefined)
+    const ctx = sprintChanged ? getSprintDueDateContext(editSprintId, due) : (editDueDate ? editDueSprintContext : null)
+    if (ctx) {
+      setEditDueConfirmContext(ctx)
+      setEditDueConfirmOpen(true)
+      return
+    }
+    await updateTaskNow()
+  }
+
   async function handleQuickStatusChange(taskId: string, newStatus: TaskStatus) {
     try {
       const result = await updateTaskStatus(taskId, newStatus)
       setTasks(tasks.map(t => t.id === taskId ? { ...t, status: result.status } : t))
       toast.success("Estado actualizado")
+      if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("tasks:changed"))
     } catch (error: any) {
       console.error("Error updating status:", error)
       toast.error(error.message || "Error al actualizar el estado")
@@ -490,20 +806,108 @@ export default function TasksPage() {
                   </Select>
                 </div>
               </div>
+              {sprintEnabled ? (
+                <div className="grid gap-2">
+                  <Label htmlFor="new-sprint">Sprint</Label>
+                  <Select value={newSprintId} onValueChange={setNewSprintId} disabled={creating}>
+                    <SelectTrigger id="new-sprint"><SelectValue placeholder="Backlog" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="backlog">Backlog (sin sprint)</SelectItem>
+                      {assignableSprints.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                        <div className="flex items-center gap-2">
+                          <span className={cn("h-2 w-2 rounded-full", SPRINT_COLOR_CLASS[s.color].dot)} />
+                          <span className="truncate">{s.name}</span>
+                          <span className="text-muted-foreground">({s.status})</span>
+                        </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">No se permite asignar tareas a sprints cerrados.</p>
+                </div>
+              ) : null}
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="new-start-date">Fecha de inicio (opcional)</Label>
+                {(() => {
+                  if (!sprintEnabled || newSprintId === "backlog") return null
+                  const sp = sprintById.get(newSprintId)
+                  if (!sp) return null
+                  const cls = SPRINT_COLOR_CLASS[sp.color]
+                  const start = new Date(sp.start_date).toLocaleDateString("es-ES")
+                  const end = new Date(sp.end_date).toLocaleDateString("es-ES")
+                  return (
+                    <div className="flex items-center justify-center">
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium", cls.pill)} title={`${sp.name} · ${start} → ${end}`}>
+                        <span className={cn("h-2 w-2 rounded-full", cls.dot)} />
+                        <span className="truncate">{sp.name}</span>
+                        <span className="text-[10px] opacity-80">{start} → {end}</span>
+                      </span>
+                    </div>
+                  )
+                })()}
+                <div className="flex justify-center">
+                  <CalendarWithPresets
+                    date={newStartDate}
+                    onDateChange={setNewStartDate}
+                    minDate={newStartMinDate}
+                    maxDate={newStartMaxDate}
+                    disabled={creating}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Sirve para Timeline. Si no la defines ahora, puedes asignarla después en Timeline.
+                </p>
+                {newStartDate ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-fit self-center"
+                    onClick={() => setNewStartDate(undefined)}
+                    disabled={creating}
+                  >
+                    Quitar fecha de inicio
+                  </Button>
+                ) : null}
+              </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="new-due-date">
                   Fecha de vencimiento <span className="text-destructive">*</span>
                 </Label>
+                {(() => {
+                  if (!sprintEnabled || newSprintId === "backlog") return null
+                  const sp = sprintById.get(newSprintId)
+                  if (!sp) return null
+                  const cls = SPRINT_COLOR_CLASS[sp.color]
+                  const start = new Date(sp.start_date).toLocaleDateString("es-ES")
+                  const end = new Date(sp.end_date).toLocaleDateString("es-ES")
+                  return (
+                    <div className="flex items-center justify-center">
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium", cls.pill)} title={`${sp.name} · ${start} → ${end}`}>
+                        <span className={cn("h-2 w-2 rounded-full", cls.dot)} />
+                        <span className="truncate">{sp.name}</span>
+                        <span className="text-[10px] opacity-80">{start} → {end}</span>
+                      </span>
+                    </div>
+                  )
+                })()}
                 <div className="flex justify-center">
                   <CalendarWithPresets 
                     date={newDueDate} 
                     onDateChange={setNewDueDate}
+                    minDate={newDueMinDate}
                     disabled={creating}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
                   Selecciona una fecha o usa los botones de acceso rapido
                 </p>
+                {newDueSprintContext ? (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                    {newDueSprintContext.message} Sugerencia: ajustar a {newDueSprintContext.suggestedDate.toLocaleDateString("es-ES")}.
+                  </p>
+                ) : null}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="new-tags">Etiquetas</Label>
@@ -526,12 +930,13 @@ export default function TasksPage() {
                 <div className="flex gap-2">
                   <Input 
                     id="new-checklist"
-                    value={checklistInput} 
-                    onChange={(e) => setChecklistInput(e.target.value)} 
+                    ref={checklistInputRef}
+                    defaultValue=""
+                    onChange={(e) => setChecklistInput(e.target.value)}
                     placeholder="Agregar item al checklist..." 
                     disabled={creating}
                     className="text-base"
-                  onKeyDown={(e) => {
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
                         addChecklistItem()
@@ -541,7 +946,7 @@ export default function TasksPage() {
                   <Button 
                     type="button" 
                     onClick={addChecklistItem}
-                    disabled={creating || !checklistInput.trim()}
+                    disabled={creating || checklistItems.length >= CHECKLIST_MAX_ITEMS}
                     variant="outline"
                   >
                     Agregar
@@ -690,12 +1095,45 @@ export default function TasksPage() {
                       <Badge variant="outline" className={TASK_PRIORITY_COLORS[t.priority]}>
                         {TASK_PRIORITY_LABELS[t.priority]}
                       </Badge>
+
+                      {sprintEnabled ? (
+                        t.sprint_id ? (
+                          (() => {
+                            const sp = sprintById.get(t.sprint_id!)
+                            const cls = sp ? SPRINT_COLOR_CLASS[sp.color] : null
+                            return (
+                              <span
+                                className={cn(
+                                  "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium",
+                                  cls?.pill ?? "border-border bg-muted/40 text-foreground"
+                                )}
+                                title={sp?.name || "Sprint"}
+                              >
+                                <span className={cn("h-2 w-2 rounded-full", cls?.dot ?? "bg-muted-foreground")} />
+                                <span className="truncate">{sp?.name || sprintNameById.get(t.sprint_id) || "Sprint"}</span>
+                              </span>
+                            )
+                          })()
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">
+                            Backlog
+                          </Badge>
+                        )
+                      ) : null}
                       
                       {assignee && (
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-medium">
-                            {assignee.name.charAt(0).toUpperCase()}
-                          </div>
+                          {assignee.avatar ? (
+                            <img
+                              alt=""
+                              className="h-5 w-5 rounded-full border border-border bg-card object-cover"
+                              src={assignee.avatar}
+                            />
+                          ) : (
+                            <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-medium">
+                              {assignee.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <span>{assignee.name}</span>
                         </div>
                       )}
@@ -896,20 +1334,105 @@ export default function TasksPage() {
                 </SelectContent>
               </Select>
             </div>
+            {sprintEnabled ? (
+              <div className="grid gap-2">
+                <Label htmlFor="edit-sprint">Sprint</Label>
+                <Select value={editSprintId} onValueChange={setEditSprintId} disabled={!!updatingId}>
+                  <SelectTrigger id="edit-sprint"><SelectValue placeholder="Backlog" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="backlog">Backlog (sin sprint)</SelectItem>
+                    {assignableSprints.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        <div className="flex items-center gap-2">
+                          <span className={cn("h-2 w-2 rounded-full", SPRINT_COLOR_CLASS[s.color].dot)} />
+                          <span className="truncate">{s.name}</span>
+                          <span className="text-muted-foreground">({s.status})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="edit-start-date">Fecha de inicio (opcional)</Label>
+              {(() => {
+                if (!sprintEnabled || editSprintId === "backlog") return null
+                const sp = sprintById.get(editSprintId)
+                if (!sp) return null
+                const cls = SPRINT_COLOR_CLASS[sp.color]
+                const start = new Date(sp.start_date).toLocaleDateString("es-ES")
+                const end = new Date(sp.end_date).toLocaleDateString("es-ES")
+                return (
+                  <div className="flex items-center justify-center">
+                    <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium", cls.pill)} title={`${sp.name} · ${start} → ${end}`}>
+                      <span className={cn("h-2 w-2 rounded-full", cls.dot)} />
+                      <span className="truncate">{sp.name}</span>
+                      <span className="text-[10px] opacity-80">{start} → {end}</span>
+                    </span>
+                  </div>
+                )
+              })()}
+              <div className="flex justify-center">
+                <CalendarWithPresets
+                  date={editStartDate}
+                  onDateChange={setEditStartDate}
+                  minDate={editStartMinDate}
+                  maxDate={editStartMaxDate}
+                  disabled={!!updatingId}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">Sirve para Timeline.</p>
+              {editStartDate ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-fit self-center"
+                  onClick={() => setEditStartDate(undefined)}
+                  disabled={!!updatingId}
+                >
+                  Quitar fecha de inicio
+                </Button>
+              ) : null}
+            </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="edit-due-date">
                 Fecha de vencimiento <span className="text-destructive">*</span>
               </Label>
+              {(() => {
+                if (!sprintEnabled || editSprintId === "backlog") return null
+                const sp = sprintById.get(editSprintId)
+                if (!sp) return null
+                const cls = SPRINT_COLOR_CLASS[sp.color]
+                const start = new Date(sp.start_date).toLocaleDateString("es-ES")
+                const end = new Date(sp.end_date).toLocaleDateString("es-ES")
+                return (
+                  <div className="flex items-center justify-center">
+                    <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium", cls.pill)} title={`${sp.name} · ${start} → ${end}`}>
+                      <span className={cn("h-2 w-2 rounded-full", cls.dot)} />
+                      <span className="truncate">{sp.name}</span>
+                      <span className="text-[10px] opacity-80">{start} → {end}</span>
+                    </span>
+                  </div>
+                )
+              })()}
               <div className="flex justify-center">
                 <CalendarWithPresets 
                   date={editDueDate} 
                   onDateChange={setEditDueDate}
+                  minDate={editDueMinDate}
                   disabled={!!updatingId}
                 />
               </div>
               <p className="text-xs text-muted-foreground text-center">
                 Selecciona una fecha o usa los botones de acceso rapido
               </p>
+              {editDueSprintContext ? (
+                <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                  {editDueSprintContext.message} Sugerencia: ajustar a {editDueSprintContext.suggestedDate.toLocaleDateString("es-ES")}.
+                </p>
+              ) : null}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-tags">Etiquetas</Label>
@@ -931,8 +1454,9 @@ export default function TasksPage() {
               <Label>Checklist</Label>
               <div className="flex gap-2">
                 <Input 
-                  value={editChecklistInput} 
-                  onChange={(e) => setEditChecklistInput(e.target.value)} 
+                  ref={editChecklistInputRef}
+                  defaultValue=""
+                  onChange={(e) => setEditChecklistInput(e.target.value)}
                   placeholder="Agregar item al checklist" 
                   disabled={!!updatingId}
                   className="text-base"
@@ -947,7 +1471,7 @@ export default function TasksPage() {
                   type="button" 
                   onClick={addEditChecklistItem}
                   size="default"
-                  disabled={!!updatingId || !editChecklistInput.trim()}
+                  disabled={!!updatingId || editChecklistItems.length >= CHECKLIST_MAX_ITEMS}
                   variant="outline"
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -998,6 +1522,140 @@ export default function TasksPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={createDueConfirmOpen} onOpenChange={setCreateDueConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vencimiento fuera del sprint</AlertDialogTitle>
+            <AlertDialogDescription>
+              {createDueConfirmContext?.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              onClick={() => setCreateDueConfirmContext(null)}
+              disabled={creating}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={creating || !createDueConfirmContext}
+              onClick={() => {
+                const ctx = createDueConfirmContext
+                setCreateDueConfirmOpen(false)
+                setCreateDueConfirmContext(null)
+                if (!ctx) return
+                setNewDueDate(ctx.suggestedDate)
+                void createTaskNow({ dueDate: ctx.suggestedDate })
+              }}
+            >
+              Ajustar fecha
+            </AlertDialogAction>
+            <AlertDialogAction
+              disabled={creating}
+              onClick={() => {
+                setCreateDueConfirmOpen(false)
+                setCreateDueConfirmContext(null)
+                setNewSprintId("backlog")
+                void createTaskNow({ sprintId: "backlog" })
+              }}
+            >
+              Mover a Backlog
+            </AlertDialogAction>
+            <AlertDialogAction
+              disabled={creating}
+              onClick={() => {
+                setCreateDueConfirmOpen(false)
+                setCreateDueConfirmContext(null)
+                void createTaskNow()
+              }}
+            >
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={editDueConfirmOpen} onOpenChange={setEditDueConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vencimiento fuera del sprint</AlertDialogTitle>
+            <AlertDialogDescription>
+              {editDueConfirmContext?.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              onClick={() => setEditDueConfirmContext(null)}
+              disabled={!!updatingId}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!!updatingId || !editDueConfirmContext}
+              onClick={() => {
+                const ctx = editDueConfirmContext
+                setEditDueConfirmOpen(false)
+                setEditDueConfirmContext(null)
+                if (!ctx) return
+                setEditDueDate(ctx.suggestedDate)
+                void updateTaskNow({ dueDate: ctx.suggestedDate })
+              }}
+            >
+              Ajustar fecha
+            </AlertDialogAction>
+            <AlertDialogAction
+              disabled={!!updatingId}
+              onClick={() => {
+                setEditDueConfirmOpen(false)
+                setEditDueConfirmContext(null)
+                setEditSprintId("backlog")
+                void updateTaskNow({ sprintId: "backlog" })
+              }}
+            >
+              Mover a Backlog
+            </AlertDialogAction>
+            <AlertDialogAction
+              disabled={!!updatingId}
+              onClick={() => {
+                setEditDueConfirmOpen(false)
+                setEditDueConfirmContext(null)
+                void updateTaskNow()
+              }}
+            >
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar tarea</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteCandidate ? `Esta acción eliminará la tarea "${deleteCandidate.title}" y no se puede deshacer.` : "Esta acción no se puede deshacer."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              disabled={!!deletingId}
+              onClick={() => {
+                setDeleteConfirmOpen(false)
+                setDeleteCandidate(null)
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!!deletingId || !deleteCandidate}
+              onClick={confirmDelete}
+            >
+              {deletingId ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -69,6 +69,7 @@ export function mapTaskFromBackend(task: any): Task {
   return {
     id: task.id,
     project_id: task.project_id,
+    sprint_id: task.sprint_id ?? null,
     title: task.title,
     description: task.description || "",
     status: mapTaskStatusFromBackend(task.status),
@@ -77,6 +78,7 @@ export function mapTaskFromBackend(task: any): Task {
     created_by: task.created_by,
     due_date: task.due_date,
     start_date: task.start_date || null,
+    completed_at: task.completed_at ?? null,
     tags: task.tags || [],
     checklist: task.checklist || [],
     comments: [], // Se cargan por separado
@@ -94,6 +96,12 @@ export function mapProjectFromBackend(project: any): Project {
     name: project.name,
     description: project.description,
     category: project.category,
+    timezone: project.timezone,
+    date_format: project.date_format,
+    state: project.state ?? null,
+    tasks_retention_days: project.tasks_retention_days,
+    sprint_enabled: project.sprint_enabled,
+    sprint_length_days: project.sprint_length_days,
     owner_id: project.owner_id,
     status: project.status,
     created_at: project.created_at,
@@ -113,8 +121,10 @@ export function mapTaskToBackend(task: Partial<Task>): any {
   if (task.priority !== undefined) backendTask.priority = task.priority
   if (task.assigned_to !== undefined) backendTask.assigned_to = task.assigned_to
   if (task.due_date !== undefined) backendTask.due_date = task.due_date
+  if (task.start_date !== undefined) backendTask.start_date = task.start_date
   if (task.tags !== undefined) backendTask.tags = task.tags
   if (task.checklist !== undefined) backendTask.checklist = task.checklist || []
+  if (task.sprint_id !== undefined) backendTask.sprint_id = task.sprint_id
   
   return backendTask
 }

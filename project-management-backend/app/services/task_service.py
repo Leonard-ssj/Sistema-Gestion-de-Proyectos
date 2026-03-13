@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import db
-from app.models import Task, User, Project, Membership, Notification, AuditLog
-from sqlalchemy import or_
+from app.models import Task, User, Project, Sprint, Membership, Notification, AuditLog
+from sqlalchemy import or_, and_
 
 
 class TaskService:
@@ -46,11 +46,25 @@ class TaskService:
     @staticmethod
     def create_task(project_id, data, creator_id):
         """Crear una nueva tarea"""
+        sprint_id = data.get('sprint_id')
+        if sprint_id:
+            project = Project.query.get(project_id)
+            if not project or not project.sprint_enabled:
+                raise ValueError('Sprints no habilitados para este proyecto')
+            sprint = Sprint.query.get(sprint_id)
+            if not sprint or sprint.project_id != project_id:
+                raise ValueError('Sprint inválido para este proyecto')
+            if sprint.status == 'closed':
+                raise ValueError('No se pueden asignar tareas a un sprint cerrado')
+
         new_task = Task(
             project_id=project_id,
             created_by=creator_id,
             **data
         )
+
+        if new_task.status == 'done' and not new_task.completed_at:
+            new_task.completed_at = datetime.utcnow()
         
         db.session.add(new_task)
         db.session.flush()
@@ -114,9 +128,26 @@ class TaskService:
             return task
         
         # Owner puede cambiar todo
+        old_status = task.status
         for key, value in data.items():
             if hasattr(task, key):
                 setattr(task, key, value)
+
+        if 'sprint_id' in data:
+            sprint_id = data.get('sprint_id')
+            project = Project.query.get(task.project_id)
+            if sprint_id:
+                if not project or not project.sprint_enabled:
+                    raise ValueError('Sprints no habilitados para este proyecto')
+                sprint = Sprint.query.get(sprint_id)
+                if not sprint or sprint.project_id != task.project_id:
+                    raise ValueError('Sprint inválido para este proyecto')
+                if sprint.status == 'closed':
+                    raise ValueError('No se pueden asignar tareas a un sprint cerrado')
+
+        if 'status' in data:
+            if data['status'] == 'done' and old_status != 'done':
+                task.completed_at = datetime.utcnow()
         
         task.updated_at = datetime.utcnow()
         
@@ -156,6 +187,27 @@ class TaskService:
         
         if filters.get('assigned_to'):
             query = query.filter_by(assigned_to=filters['assigned_to'])
+
+        sprint_id = filters.get('sprint_id')
+        if sprint_id:
+            if sprint_id == 'none':
+                query = query.filter(Task.sprint_id.is_(None))
+            else:
+                query = query.filter_by(sprint_id=sprint_id)
+
+        include_old_done = filters.get('include_old_done')
+        if not include_old_done:
+            project = Project.query.get(project_id)
+            retention_days = project.tasks_retention_days if project else None
+            if retention_days is not None and retention_days > 0:
+                cutoff = datetime.utcnow() - timedelta(days=retention_days)
+                query = query.filter(
+                    ~and_(
+                        Task.status == 'done',
+                        Task.completed_at.isnot(None),
+                        Task.completed_at < cutoff
+                    )
+                )
         
         # Búsqueda por texto
         if filters.get('search'):

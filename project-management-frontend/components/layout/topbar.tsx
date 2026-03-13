@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/stores/authStore"
 import { useDataStore } from "@/stores/dataStore"
 import { useUIStore } from "@/stores/uiStore"
-import { Bell, Menu, Moon, Sun, LogOut, Bug, Search } from "lucide-react"
+import { Bell, Menu, Moon, Sun, LogOut } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
+import { listSprints } from "@/services/sprintService"
+import { useEffect, useState } from "react"
+import type { Sprint } from "@/mock/types"
+import { cn } from "@/lib/utils"
+import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
 
 export function Topbar() {
   const { theme, setTheme } = useTheme()
@@ -19,18 +22,62 @@ export function Topbar() {
   const logout = useAuthStore((s) => s.logout)
   const notifications = useDataStore((s) => s.notifications)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
-  const toggleDevPanel = useUIStore((s) => s.toggleDevPanel)
-  const [searchOpen, setSearchOpen] = useState(false)
+  const [activeSprint, setActiveSprint] = useState<Sprint | null>(null)
 
   const unreadCount = notifications.filter((n) => n.user_id === session?.user?.id && !n.read).length
   const role = session?.user?.role
+  const sprintEnabled = !!session?.project?.sprint_enabled
 
   const notifRoute = role === "owner" ? "/app/notifications" : role === "employee" ? "/work/notifications" : "/admin"
+
+  useEffect(() => {
+    if (!sprintEnabled) return
+    let cancelled = false
+    async function load() {
+      const result = await listSprints("active")
+      if (cancelled) return
+      if (result.success && result.sprints && result.sprints.length > 0) {
+        setActiveSprint(result.sprints[0])
+      } else {
+        setActiveSprint(null)
+      }
+    }
+    function onSprintChanged(e: Event) {
+      const ce = e as CustomEvent<{ activeSprint?: Sprint | null }>
+      if (ce.detail && "activeSprint" in ce.detail) {
+        setActiveSprint(ce.detail.activeSprint ?? null)
+        return
+      }
+      load()
+    }
+
+    const interval = window.setInterval(load, 15000)
+    window.addEventListener("sprint:changed", onSprintChanged as any)
+    load()
+    return () => {
+      cancelled = true
+      window.clearInterval(interval)
+      window.removeEventListener("sprint:changed", onSprintChanged as any)
+    }
+  }, [sprintEnabled, session?.project?.id])
 
   function handleLogout() {
     logout()
     router.push("/auth/login")
   }
+
+  const effectiveActiveSprint = sprintEnabled ? activeSprint : null
+  const sprintLabel = effectiveActiveSprint ? `${effectiveActiveSprint.name}` : "Sin sprint activo"
+  const sprintColor = effectiveActiveSprint?.color ? SPRINT_COLOR_CLASS[effectiveActiveSprint.color] : null
+  const sprintMeta = (() => {
+    if (!effectiveActiveSprint) return null
+    const start = new Date(effectiveActiveSprint.start_date)
+    const end = new Date(effectiveActiveSprint.end_date)
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null
+    const fmt = (d: Date) => d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })
+    const days = Math.max(1, Math.round((new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime() - new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()) / 86400000))
+    return { text: `${fmt(start)}→${fmt(end)} · ${days}d`, title: `${start.toLocaleDateString("es-ES")} → ${end.toLocaleDateString("es-ES")} · ${days} días` }
+  })()
 
   return (
     <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -40,29 +87,22 @@ export function Topbar() {
       </Button>
 
       <div className="flex flex-1 items-center gap-3">
-        {searchOpen ? (
-          <div className="relative max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              autoFocus
-              placeholder="Buscar..."
-              className="pl-9"
-              onBlur={() => setSearchOpen(false)}
-              onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
-            />
-          </div>
-        ) : (
-          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} className="hidden sm:flex">
-            <Search className="h-4 w-4" />
-          </Button>
-        )}
+        {sprintEnabled ? (
+          <span
+            className={cn(
+              "hidden md:inline-flex items-center gap-2 rounded-md border px-2 py-1 text-[11px] font-semibold shadow-sm max-w-[320px] truncate",
+              sprintColor?.pill ?? "border-border bg-muted/40 text-foreground"
+            )}
+            title={sprintMeta ? `${sprintLabel} · ${sprintMeta.title}` : sprintLabel}
+          >
+            <span className={cn("h-2 w-2 rounded-full", sprintColor?.dot ?? "bg-muted-foreground")} />
+            <span className="truncate">{sprintLabel}</span>
+            {sprintMeta ? <span className="hidden lg:inline text-[10px] font-medium opacity-80">{sprintMeta.text}</span> : null}
+          </span>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" onClick={toggleDevPanel} className="text-muted-foreground" title="Dev Panel">
-          <Bug className="h-4 w-4" />
-        </Button>
-
         <Button
           variant="ghost"
           size="icon"

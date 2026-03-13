@@ -7,13 +7,21 @@ class InviteCreateSchema(Schema):
         'required': 'El email es requerido',
         'invalid': 'Email inválido'
     })
-    # Employee enrichment fields (optional)
-    job_title = fields.Str(required=False, validate=validate.Length(max=100), allow_none=True)
+    job_title = fields.Str(required=True, validate=validate.Length(min=2, max=100), allow_none=False, error_messages={
+        'required': 'El puesto es requerido',
+        'invalid': 'El puesto debe tener entre 2 y 100 caracteres'
+    })
     description = fields.Str(required=False, validate=validate.Length(max=500), allow_none=True)
     responsibilities = fields.Str(required=False, validate=validate.Length(max=1000), allow_none=True)
     skills = fields.Str(required=False, validate=validate.Length(max=500), allow_none=True)
-    shift = fields.Str(required=False, validate=validate.OneOf(['morning', 'afternoon', 'night', 'flexible']), allow_none=True)
-    department = fields.Str(required=False, validate=validate.Length(max=100), allow_none=True)
+    shift = fields.Str(required=True, validate=validate.OneOf(['morning', 'afternoon', 'night', 'flexible']), allow_none=False, error_messages={
+        'required': 'El turno es requerido',
+        'invalid': 'Turno inválido'
+    })
+    department = fields.Str(required=True, validate=validate.Length(min=2, max=100), allow_none=False, error_messages={
+        'required': 'El departamento es requerido',
+        'invalid': 'El departamento debe tener entre 2 y 100 caracteres'
+    })
     phone = fields.Str(required=False, validate=validate.Length(max=20), allow_none=True)
 
 

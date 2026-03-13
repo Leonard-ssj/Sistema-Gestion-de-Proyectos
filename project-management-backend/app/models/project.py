@@ -18,6 +18,9 @@ class Project(db.Model):
     timezone = db.Column(db.String(64), nullable=False, default='America/Mexico_City')
     date_format = db.Column(db.String(32), nullable=False, default='dd/MM/yyyy')
     state = db.Column(db.String(64), nullable=True)
+    tasks_retention_days = db.Column(db.Integer, nullable=False, default=30)
+    sprint_enabled = db.Column(db.Boolean, nullable=False, default=True)
+    sprint_length_days = db.Column(db.Integer, nullable=False, default=14)
     
     # Owner (1 proyecto por owner - RF-007)
     owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True, index=True)
@@ -47,6 +50,8 @@ class Project(db.Model):
     
     # Logs de auditoría
     audit_logs = db.relationship('AuditLog', back_populates='project')
+
+    sprints = db.relationship('Sprint', back_populates='project', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Project {self.name}>'
@@ -60,6 +65,9 @@ class Project(db.Model):
             'timezone': self.timezone,
             'date_format': self.date_format,
             'state': self.state,
+            'tasks_retention_days': self.tasks_retention_days,
+            'sprint_enabled': self.sprint_enabled,
+            'sprint_length_days': self.sprint_length_days,
             'owner_id': self.owner_id,
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,

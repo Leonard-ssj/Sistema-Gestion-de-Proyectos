@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -118,8 +119,10 @@ const schema = z.object({
   category: z.string().min(1, "Selecciona una categoria"),
   otherCategory: z.string().trim().max(50, "La categoria no puede superar 50 caracteres").optional(),
   timezone: z.string().trim().min(1, "Selecciona una zona horaria de Mexico").max(64),
-  date_format: z.literal("dd/MM/yyyy"),
   state: z.string().trim().min(1, "Selecciona el estado de Mexico"),
+  tasks_retention_days: z.number().int().min(0, "Minimo 0 dias").max(365, "Maximo 365 dias"),
+  sprint_enabled: z.boolean(),
+  sprint_length_days: z.number().int().min(7, "Minimo 7 dias").max(30, "Maximo 30 dias"),
   avatar: z.string().min(1, "Selecciona un avatar"),
 }).superRefine((d, ctx) => {
   if (d.category === "Otro") {
@@ -138,6 +141,14 @@ const schema = z.object({
       code: z.ZodIssueCode.custom,
       path: ["state"],
       message: "El estado no corresponde a la zona horaria seleccionada",
+    })
+  }
+
+  if (d.sprint_enabled && !d.sprint_length_days) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["sprint_length_days"],
+      message: "Indica la duracion del sprint",
     })
   }
 })
@@ -171,8 +182,10 @@ export default function OnboardingPage() {
       category: "",
       otherCategory: "",
       timezone: "",
-      date_format: "dd/MM/yyyy",
       state: "",
+      tasks_retention_days: 30,
+      sprint_enabled: true,
+      sprint_length_days: 14,
       avatar: "",
     },
   })
@@ -180,8 +193,10 @@ export default function OnboardingPage() {
   const selectedCategory = watch("category")
   const selectedAvatar = watch("avatar")
   const timezoneValue = watch("timezone")
-  const dateFormatValue = watch("date_format")
   const stateValue = watch("state")
+  const tasksRetentionDaysValue = watch("tasks_retention_days")
+  const sprintEnabledValue = watch("sprint_enabled")
+  const sprintLengthDaysValue = watch("sprint_length_days")
   const nameValue = watch("name")
   const descriptionValue = watch("description")
   const otherCategoryValue = watch("otherCategory") || ""
@@ -237,9 +252,6 @@ export default function OnboardingPage() {
         setValue("timezone", "America/Mexico_City", { shouldValidate: true })
       }
     }
-    if (!dateFormatValue) {
-      setValue("date_format", "dd/MM/yyyy", { shouldValidate: true })
-    }
   }, [hydrated, timezoneValue, setValue])
 
   const availableStates = useMemo(() => {
@@ -275,8 +287,8 @@ export default function OnboardingPage() {
     clearErrors()
     const ok = await trigger(
       selectedCategory === "Otro"
-        ? ["category", "otherCategory", "timezone", "date_format", "state"]
-        : ["category", "timezone", "date_format", "state"]
+        ? ["category", "otherCategory", "timezone", "state", "tasks_retention_days", "sprint_enabled", "sprint_length_days"]
+        : ["category", "timezone", "state", "tasks_retention_days", "sprint_enabled", "sprint_length_days"]
     )
     if (!ok) return
     setStep(3)
@@ -303,6 +315,9 @@ export default function OnboardingPage() {
         timezone: data.timezone.trim(),
         date_format: "dd/MM/yyyy",
         state: data.state.trim(),
+        tasks_retention_days: data.tasks_retention_days,
+        sprint_enabled: data.sprint_enabled,
+        sprint_length_days: data.sprint_length_days,
       })
 
       if (!projectResult.success || !projectResult.project) {
@@ -528,14 +543,6 @@ export default function OnboardingPage() {
                           </p>
                         )}
                       </div>
-
-                      <div className="flex flex-col gap-2">
-                        <Label>Formato de fecha</Label>
-                        <p className="w-full whitespace-normal rounded-md border bg-muted/40 px-3 py-2 text-xs leading-snug text-muted-foreground">
-                          <span className="block">Usaremos siempre:</span>
-                          <span className="block font-medium text-foreground">DD/MM/YYYY (25/03/2026)</span>
-                        </p>
-                      </div>
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -562,6 +569,71 @@ export default function OnboardingPage() {
                       </Select>
                       {errors.state && <p id="state-error" className="text-sm text-destructive">{errors.state.message}</p>}
                     </div>
+
+                    <div className="grid gap-4 rounded-xl border bg-muted/40 p-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="tasks-retention-days">Retencion de tareas completadas (dias)</Label>
+                        <Input
+                          id="tasks-retention-days"
+                          type="number"
+                          min={0}
+                          max={365}
+                          aria-invalid={!!errors.tasks_retention_days}
+                          disabled={loading}
+                          {...register("tasks_retention_days", { valueAsNumber: true })}
+                        />
+                        {errors.tasks_retention_days && (
+                          <p className="text-sm text-destructive">{errors.tasks_retention_days.message as any}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Oculta tareas en Done con mas de X dias desde su completado. Usa 0 para no ocultar.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">Habilitar sprints</p>
+                          <p className="text-xs text-muted-foreground">Organiza el trabajo en periodos (planned/active/closed)</p>
+                        </div>
+                        <Switch
+                          checked={!!sprintEnabledValue}
+                          onCheckedChange={(v) => setValue("sprint_enabled", v, { shouldValidate: true })}
+                          disabled={loading}
+                        />
+                      </div>
+
+                      <div className="grid gap-2">
+                        <Label htmlFor="sprint-length-days">Duracion del sprint (dias)</Label>
+                        <Input
+                          id="sprint-length-days"
+                          type="number"
+                          min={7}
+                          max={30}
+                          aria-invalid={!!errors.sprint_length_days}
+                          disabled={loading || !sprintEnabledValue}
+                          {...register("sprint_length_days", {
+                            valueAsNumber: true,
+                            onBlur: () => {
+                              const v = typeof sprintLengthDaysValue === "number" ? sprintLengthDaysValue : 14
+                              const clamped = Math.min(30, Math.max(7, v))
+                              if (clamped !== sprintLengthDaysValue) {
+                                setValue("sprint_length_days", clamped, { shouldValidate: true })
+                              }
+                            },
+                          })}
+                        />
+                        {errors.sprint_length_days && (
+                          <p className="text-sm text-destructive">{errors.sprint_length_days.message as any}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          La duracion y fechas de un sprint creado no se pueden modificar.
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      Formato de fecha fijo en todo el sistema: DD/MM/YYYY.
+                    </p>
 
                     <div className="flex gap-3">
                       <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1" disabled={loading}>
@@ -638,13 +710,19 @@ export default function OnboardingPage() {
                               <p className="text-xs text-muted-foreground">Zona horaria</p>
                               <p className="text-foreground">{timezoneValue || "-"}</p>
                             </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Formato fecha</p>
-                              <p className="text-foreground">DD/MM/YYYY</p>
-                            </div>
                             <div className="md:col-span-2">
                               <p className="text-xs text-muted-foreground">Estado</p>
                               <p className="text-foreground">{stateValue || "-"}</p>
+                            </div>
+                            <div className="md:col-span-2">
+                              <p className="text-xs text-muted-foreground">Retencion Done</p>
+                              <p className="text-foreground">{typeof tasksRetentionDaysValue === "number" ? `${tasksRetentionDaysValue} dias` : "-"}</p>
+                            </div>
+                            <div className="md:col-span-2">
+                              <p className="text-xs text-muted-foreground">Sprints</p>
+                              <p className="text-foreground">
+                                {sprintEnabledValue ? `Habilitados (${sprintLengthDaysValue} dias)` : "Deshabilitados"}
+                              </p>
                             </div>
                           </div>
                         </div>

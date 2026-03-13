@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useAuthStore } from "@/stores/authStore"
 import { useDataStore } from "@/stores/dataStore"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,11 +12,16 @@ import Link from "next/link"
 import { fetchTasks, updateTaskStatus } from "@/services/taskService"
 import { listMembers } from "@/services/memberService"
 import { toast } from "@/hooks/use-toast"
+import { getProjectSettingsService } from "@/services/projectService"
+import { listSprints } from "@/services/sprintService"
+import type { Sprint } from "@/mock/types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const COLUMNS: TaskStatus[] = ["pending", "in_progress", "blocked", "done"]
 
 export default function BoardPage() {
   const session = useAuthStore((s) => s.session)
+  const setProject = useAuthStore((s) => s.setProject)
   const tasks = useDataStore((s) => s.tasks)
   const setTasks = useDataStore((s) => s.setTasks)
   const users = useDataStore((s) => s.users)
@@ -27,6 +32,8 @@ export default function BoardPage() {
   const [members, setMembers] = useState<Membership[]>([])
   const [hasError, setHasError] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>("")
+  const [sprints, setSprints] = useState<Sprint[]>([])
+  const [sprintFilter, setSprintFilter] = useState<string>("all")
 
   const projectId = session?.project?.id
 
@@ -70,6 +77,27 @@ export default function BoardPage() {
     setErrorMessage("")
 
     try {
+      const settingsResult = await getProjectSettingsService()
+      if (settingsResult.success && settingsResult.project) {
+        setProject(settingsResult.project as any)
+      }
+
+      const sprintEnabled = !!(settingsResult.success ? settingsResult.project?.sprint_enabled : session?.project?.sprint_enabled)
+
+      if (sprintEnabled) {
+        const sprintsResult = await listSprints()
+        if (sprintsResult.success && sprintsResult.sprints) {
+          setSprints(sprintsResult.sprints)
+          if (sprintFilter === "all") {
+            const active = sprintsResult.sprints.find((s) => s.status === "active")
+            if (active) setSprintFilter(active.id)
+          }
+        }
+      } else {
+        setSprints([])
+        setSprintFilter("all")
+      }
+
       // Fetch tasks and members in parallel
       const [tasksData, membersResponse] = await Promise.all([
         fetchTasks(projectId),
@@ -115,7 +143,21 @@ export default function BoardPage() {
     loadData()
   }, [projectId, setTasks, setUsers])
 
-  const projectTasks = tasks.filter((t) => t.project_id === projectId)
+  const sprintEnabled = !!session?.project?.sprint_enabled
+  const projectTasks = tasks
+    .filter((t) => t.project_id === projectId)
+    .filter((t) => {
+      if (!sprintEnabled) return true
+      if (sprintFilter === "all") return true
+      if (sprintFilter === "backlog") return !t.sprint_id
+      return t.sprint_id === sprintFilter
+    })
+
+  const sprintNameById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const s of sprints) map.set(s.id, s.name)
+    return map
+  }, [sprints])
 
   // Handle drag and drop with optimistic updates and rollback
   async function handleDrop(taskId: string, newStatus: TaskStatus) {
@@ -217,6 +259,24 @@ export default function BoardPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Board</h1>
         <p className="text-muted-foreground">Arrastra las tareas entre columnas para cambiar su estado</p>
+        {sprintEnabled ? (
+          <div className="mt-3 max-w-sm">
+            <Select value={sprintFilter} onValueChange={setSprintFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar por sprint" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="backlog">Backlog (sin sprint)</SelectItem>
+                {sprints.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name} ({s.status})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -264,6 +324,11 @@ export default function BoardPage() {
                               <Badge variant="outline" className={`text-[10px] ${TASK_PRIORITY_COLORS[t.priority]}`}>
                                 {TASK_PRIORITY_LABELS[t.priority]}
                               </Badge>
+                              {sprintEnabled && t.sprint_id ? (
+                                <Badge variant="secondary" className="text-[10px]">
+                                  {sprintNameById.get(t.sprint_id) || "Sprint"}
+                                </Badge>
+                              ) : null}
                               {t.assigned_to && (
                                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground">

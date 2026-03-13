@@ -59,6 +59,7 @@ Confidencial - Uso Interno
    - 3.5 Sistema de Notificaciones (RF-061 a RF-070)
    - 3.6 Sistema de Comentarios (RF-071 a RF-075)
    - 3.7 Panel de Administración (RF-076 a RF-085)
+   - 3.8 Gestión de Sprints (RF-086 a RF-095)
 
 4. [Requerimientos No Funcionales](#4-requerimientos-no-funcionales)
    - 4.1 Rendimiento (RNF-001 a RNF-010)
@@ -1714,6 +1715,128 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 - Programar reportes automáticos
 
 **Estado:** Pendiente de implementación
+
+---
+
+### 3.8 Gestión de Sprints
+
+#### RF-086: Habilitar/Deshabilitar Sprints por Proyecto
+**Prioridad:** Alta  
+**Descripción:** El sistema debe permitir habilitar o deshabilitar la funcionalidad de sprints a nivel proyecto.
+
+**Criterios de aceptación:**
+- Solo OWNER puede modificar esta configuración
+- Cuando está deshabilitado:
+  - No se permite crear/activar/cerrar/eliminar sprints
+  - No se permite asignar tareas a sprints (solo Backlog)
+- Cuando está habilitado:
+  - Se habilitan acciones y vistas relacionadas a sprints en UI
+
+---
+
+#### RF-087: Configuración de Duración del Sprint
+**Prioridad:** Alta  
+**Descripción:** El sistema debe permitir configurar la duración estándar de los sprints por proyecto.
+
+**Criterios de aceptación:**
+- Solo OWNER puede modificar esta configuración
+- Rango válido: 7 a 30 días
+- La duración se utiliza para calcular la fecha fin al crear un sprint (start_date + duración)
+
+---
+
+#### RF-088: Crear Sprint
+**Prioridad:** Alta  
+**Descripción:** El sistema debe permitir crear sprints dentro de un proyecto.
+
+**Campos:**
+- name (1 a 120 caracteres, único por proyecto)
+- color (1 de 12 colores predefinidos)
+- start_date (fecha inicio)
+- end_date (fecha fin calculada o enviada por backend)
+- status (planned | active | closed)
+
+**Criterios de aceptación:**
+- Solo OWNER puede crear sprints
+- No permitir nombres duplicados en el mismo proyecto (retornar 409)
+- El sistema debe permitir múltiples sprints con mismas fechas pero nombres distintos
+
+---
+
+#### RF-089: Activar/Cerrar Sprint
+**Prioridad:** Alta  
+**Descripción:** El sistema debe permitir activar o cerrar sprints.
+
+**Criterios de aceptación:**
+- Solo OWNER puede activar/cerrar sprints
+- Regla: solo puede existir 1 sprint activo por proyecto
+- Si ya existe un sprint activo, activar otro debe retornar error de validación
+- Al cerrar un sprint:
+  - Las tareas asignadas a ese sprint deben regresar a Backlog (sprint_id = null)
+
+---
+
+#### RF-090: Auto-cierre de Sprint por Vencimiento
+**Prioridad:** Media  
+**Descripción:** El sistema debe cerrar automáticamente sprints activos cuyo end_date ya pasó.
+
+**Criterios de aceptación:**
+- Si un sprint está active y end_date < ahora, debe pasar a closed automáticamente
+- Las tareas asignadas a un sprint auto-cerrado deben regresar a Backlog (sprint_id = null)
+
+---
+
+#### RF-091: Editar Sprint (solo color)
+**Prioridad:** Media  
+**Descripción:** El sistema debe permitir editar únicamente el color del sprint para mantener trazabilidad de fechas.
+
+**Criterios de aceptación:**
+- Solo OWNER puede editar el color
+- No permitir editar start_date/end_date desde UI
+
+---
+
+#### RF-092: Asignar Tareas a Sprint (Backlog/Planned/Active)
+**Prioridad:** Alta  
+**Descripción:** El sistema debe permitir asignar tareas a un sprint o dejarlas en Backlog.
+
+**Criterios de aceptación:**
+- Cuando sprints está habilitado:
+  - UI debe permitir seleccionar Backlog o un sprint planificado/activo
+- No permitir asignación a sprint cerrado (validación en backend y UI)
+- Si el sprint seleccionado se cierra, la tarea debe regresar a Backlog
+
+---
+
+#### RF-093: Visualización y Filtros por Sprint
+**Prioridad:** Alta  
+**Descripción:** El sistema debe mostrar el sprint actual y permitir filtrar tareas por sprint.
+
+**Criterios de aceptación:**
+- Mostrar el sprint activo en el header/topbar
+- En Board/Tasks/Timeline/Calendar:
+  - Mostrar etiqueta del sprint o Backlog en tareas
+  - Permitir filtro por sprint (Todos/Backlog/Sprint específico)
+
+---
+
+#### RF-094: Permisos de Sprints
+**Prioridad:** Alta  
+**Descripción:** El sistema debe restringir gestión de sprints a OWNER.
+
+**Criterios de aceptación:**
+- OWNER: crear, activar, cerrar, eliminar, editar color
+- EMPLOYEE: solo lectura (listar/ver), no puede gestionar ni cambiar sprint de tareas
+
+---
+
+#### RF-095: Auditoría de Eventos de Sprint
+**Prioridad:** Media  
+**Descripción:** El sistema debe registrar auditoría de cambios relacionados a sprints.
+
+**Criterios de aceptación:**
+- Registrar eventos: sprint_created, sprint_updated, sprint_deleted, project_settings_updated (cuando afecte sprints)
+- Incluir detalles mínimos: sprint_id, nombre, status, color, fechas (si aplica)
 
 ---
 

@@ -54,7 +54,9 @@ export async function createTask(data: {
   description: string
   priority: string
   due_date?: string
+  start_date?: string
   assigned_to?: string
+  sprint_id?: string | null
   tags?: string[]
   checklist?: ChecklistItem[]
 }): Promise<Task> {

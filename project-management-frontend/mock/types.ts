@@ -37,10 +37,41 @@ export interface Project {
   category: string | null
   timezone?: string
   date_format?: string
+  state?: string | null
+  tasks_retention_days?: number
+  sprint_enabled?: boolean
+  sprint_length_days?: number
   owner_id: string
   status: TenantStatus
   created_at: string
   updated_at: string
+}
+
+export type SprintStatus = "planned" | "active" | "closed"
+export type SprintColor =
+  | "slate"
+  | "gray"
+  | "zinc"
+  | "stone"
+  | "red"
+  | "orange"
+  | "amber"
+  | "lime"
+  | "green"
+  | "emerald"
+  | "teal"
+  | "blue"
+
+export interface Sprint {
+  id: string
+  project_id: string
+  name: string
+  color: SprintColor
+  start_date: string
+  end_date: string
+  status: SprintStatus
+  created_at: string
+  updated_at: string | null
 }
 
 export interface Membership {
@@ -56,6 +87,7 @@ export interface Membership {
 export interface Task {
   id: string
   project_id: string
+  sprint_id?: string | null
   title: string
   description: string
   status: TaskStatus
@@ -64,6 +96,7 @@ export interface Task {
   created_by: string
   due_date: string | null
   start_date: string | null
+  completed_at?: string | null
   tags: string[]
   checklist?: ChecklistItem[]
   comments: Comment[]

@@ -17,12 +17,19 @@ if (!scenario || !scenarios.includes(scenario)) {
 }
 
 let baseUrl = null
+let noArtifacts = false
 if (extraArgs[0] && /^https?:\/\//i.test(extraArgs[0])) {
   baseUrl = extraArgs[0]
   extraArgs = extraArgs.slice(1)
 }
 for (let i = 0; i < extraArgs.length; i++) {
   const arg = extraArgs[i]
+  if (arg === "--no-artifacts") {
+    noArtifacts = true
+    extraArgs.splice(i, 1)
+    i -= 1
+    continue
+  }
   if (arg === "--base-url" && extraArgs[i + 1]) {
     baseUrl = extraArgs[i + 1]
     extraArgs.splice(i, 2)
@@ -53,7 +60,8 @@ if (!fs.existsSync(playwrightBin)) {
 
 const env = { ...process.env, TEAM_SCENARIO: scenario, TEAM_DELAY_MS: String(delayMs) }
 if (baseUrl) env.TEAM_BASE_URL = baseUrl
-const baseArgs = ["test", "playwright-tests/create-team.spec.ts", "--project=chromium", "--workers=1", "--reporter=line", ...extraArgs]
+const artifactArgs = noArtifacts ? ["--screenshot=off", "--video=off", "--trace=off"] : []
+const baseArgs = ["test", "playwright-tests/create-team.spec.ts", "--project=chromium", "--workers=1", "--reporter=line", ...artifactArgs, ...extraArgs]
 const command = process.platform === "win32" ? "cmd.exe" : playwrightBin
 const args = process.platform === "win32" ? ["/c", playwrightBin, ...baseArgs] : baseArgs
 const result = spawnSync(command, args, { stdio: "inherit", env, cwd: repoRoot })

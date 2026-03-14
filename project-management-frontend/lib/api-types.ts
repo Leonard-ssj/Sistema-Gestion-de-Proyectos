@@ -169,12 +169,12 @@ export interface BackendNotification {
   id: string
   user_id: string
   project_id: string
-  type: "task_assigned" | "comment" | "invite" | "status_change" | "mention"
-  title: string
+  type: string
   message: string
-  is_read: boolean
+  read: boolean
+  entity_type?: string | null
+  entity_id?: string | null
   created_at: string
-  link?: string
 }
 
 export interface UnreadCountResponse {

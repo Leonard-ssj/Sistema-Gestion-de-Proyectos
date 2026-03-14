@@ -21,6 +21,9 @@
 10. **[frontend.md](frontend.md)** - Documentacion del frontend
 11. **[backend.md](backend.md)** - Documentacion del backend
 
+### Docs adicionales (operativas)
+12. **[NOTIFICACIONES.md](NOTIFICACIONES.md)** - Funcionamiento e implementación de notificaciones in-app
+
 ---
 
 ## DESCRIPCION DE CADA DOCUMENTO

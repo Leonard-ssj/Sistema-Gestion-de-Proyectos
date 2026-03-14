@@ -142,7 +142,7 @@ export interface Notification {
   id: string
   user_id: string
   project_id: string
-  type: "task_assigned" | "comment" | "invite" | "status_change" | "mention"
+  type: "task_assigned" | "comment" | "invite" | "invite_accepted" | "status_change" | "task_updated" | "mention" | "member_deactivated" | "member_reactivated"
   title: string
   message: string
   read: boolean

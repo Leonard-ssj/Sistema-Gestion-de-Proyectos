@@ -1,6 +1,7 @@
 from datetime import datetime
 from app import db
 from app.models import Comment, Task, User, Notification, Membership, Project
+from app.realtime.notifications_hub import notifications_hub
 
 
 class CommentService:
@@ -86,11 +87,13 @@ class CommentService:
                 user_id=task.assigned_to,
                 project_id=task.project_id,
                 type='comment',
-                message=f'{user.name} comentó en la tarea "{task.title}"',
+                message=f'{user.name} comentó en “{task.title}”.',
                 entity_type='task',
                 entity_id=task.id
             )
             db.session.add(notification)
+            db.session.flush()
+            notifications_hub.publish(task.assigned_to, {'notification': notification.to_dict()})
         
         # Si el que comenta es el asignado, notificar al creador
         elif task.created_by and task.created_by != user_id:
@@ -99,11 +102,13 @@ class CommentService:
                 user_id=task.created_by,
                 project_id=task.project_id,
                 type='comment',
-                message=f'{user.name} comentó en la tarea "{task.title}"',
+                message=f'{user.name} comentó en “{task.title}”.',
                 entity_type='task',
                 entity_id=task.id
             )
             db.session.add(notification)
+            db.session.flush()
+            notifications_hub.publish(task.created_by, {'notification': notification.to_dict()})
         
         return new_comment, None
     

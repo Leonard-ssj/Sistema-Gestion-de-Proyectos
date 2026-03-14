@@ -12,8 +12,8 @@ La UI puede ya existir; el foco es la **lógica y conexión**.
 
 ## Nota sobre el estado actual del frontend
 
-Actualmente estas pantallas se apoyan en `useAuthStore` + datos locales y deben validar persistencia (hydrate + `GET /api/auth/me`).
-No tomar como “completo” el comportamiento actual hasta agregar pruebas y casos límite.
+Actualmente esta pantalla se muestra, pero el guardado está marcado como pendiente: falta conectar `PATCH /api/auth/me` y refrescar `useAuthStore`.
+No tomar como “completo” el comportamiento actual hasta agregar conexión y pruebas.
 
 ## Objetivo
 

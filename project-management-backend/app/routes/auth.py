@@ -10,6 +10,7 @@ from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.models import User, Project, Membership, Invite, Notification, AuditLog
+from app.realtime.notifications_hub import notifications_hub
 from app.services import AuthService
 from app.utils import get_current_user_id
 from app.schemas import (
@@ -273,7 +274,15 @@ def login():
                 user_id=user.id,
                 status='active'
             ).first()
-            if membership and membership.project:
+            if not membership:
+                return jsonify({
+                    'success': False,
+                    'error': {
+                        'code': 'MEMBERSHIP_INACTIVE',
+                        'message': 'Tu acceso al proyecto fue desactivado por el Owner.'
+                    }
+                }), 403
+            if membership.project:
                 project_data = {
                     'id': membership.project.id,
                     'name': membership.project.name,
@@ -281,6 +290,7 @@ def login():
                     'category': membership.project.category,
                     'owner_id': membership.project.owner_id,
                     'status': membership.project.status,
+                    'sprint_enabled': membership.project.sprint_enabled,
                     'created_at': membership.project.created_at.isoformat() if membership.project.created_at else None,
                     'updated_at': membership.project.updated_at.isoformat() if membership.project.updated_at else None
                 }
@@ -552,6 +562,8 @@ def accept_invite():
             entity_id=invite.id
         )
         db.session.add(notification)
+        db.session.flush()
+        notifications_hub.publish(project.owner_id, {'notification': notification.to_dict()})
         
         # Crear audit log
         audit_log = AuditLog(
@@ -583,6 +595,7 @@ def accept_invite():
             'category': project.category,
             'owner_id': project.owner_id,
             'status': project.status,
+            'sprint_enabled': project.sprint_enabled,
             'created_at': project.created_at.isoformat() if project.created_at else None,
             'updated_at': project.updated_at.isoformat() if project.updated_at else None
         }
@@ -616,6 +629,17 @@ def get_me():
     """
     try:
         user_id = get_current_user_id()
+        claims = get_jwt()
+        if claims.get('role') == 'EMPLOYEE':
+            membership = Membership.query.filter_by(user_id=user_id, status='active').first()
+            if not membership:
+                return jsonify({
+                    'success': False,
+                    'error': {
+                        'code': 'MEMBERSHIP_INACTIVE',
+                        'message': 'Tu acceso al proyecto fue desactivado por el Owner.'
+                    }
+                }), 403
         
         # Buscar usuario
         user = User.query.get(user_id)
@@ -654,6 +678,17 @@ def get_me():
 def update_me():
     try:
         user_id = get_current_user_id()
+        claims = get_jwt()
+        if claims.get('role') == 'EMPLOYEE':
+            membership = Membership.query.filter_by(user_id=user_id, status='active').first()
+            if not membership:
+                return jsonify({
+                    'success': False,
+                    'error': {
+                        'code': 'MEMBERSHIP_INACTIVE',
+                        'message': 'Tu acceso al proyecto fue desactivado por el Owner.'
+                    }
+                }), 403
         user = User.query.get(user_id)
         
         if not user:

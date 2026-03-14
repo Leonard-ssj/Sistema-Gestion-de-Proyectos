@@ -30,6 +30,7 @@ export default function LoginPage() {
   const login = useAuthStore((s) => s.login)
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -39,9 +40,14 @@ export default function LoginPage() {
 
   async function onSubmit(data: FormData) {
     setLoading(true)
+    setServerError(null)
     const result = await loginService(data.email, data.password)
     setLoading(false)
     if (!result.success || !result.session) {
+      if (result.errorCode === "MEMBERSHIP_INACTIVE") {
+        setServerError(result.error || "Tu acceso al proyecto fue desactivado por el Owner.")
+        return
+      }
       toast.error(result.error || "Error al iniciar sesion")
       return
     }
@@ -80,6 +86,13 @@ export default function LoginPage() {
           <CardDescription>Ingresa tus credenciales para acceder a tu cuenta</CardDescription>
         </CardHeader>
         <CardContent>
+          {serverError ? (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle />
+              <AlertTitle>Acceso desactivado</AlertTitle>
+              <AlertDescription>{serverError}</AlertDescription>
+            </Alert>
+          ) : null}
           {(errors.email || errors.password) && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle />

@@ -10,7 +10,7 @@ import type { User, AuthSession } from '@/mock/types'
 export async function loginService(
   email: string, 
   password: string
-): Promise<{ success: boolean; session?: AuthSession; error?: string }> {
+): Promise<{ success: boolean; session?: AuthSession; error?: string; errorCode?: string }> {
   try {
     const response = await api.post<LoginResponse>('/auth/login', {
       email,
@@ -81,9 +81,11 @@ export async function loginService(
       session
     }
   } catch (error: any) {
+    const code = error?.response?.data?.error?.code
     return {
       success: false,
-      error: error.message || 'Error al iniciar sesión'
+      error: error.message || 'Error al iniciar sesión',
+      errorCode: code
     }
   }
 }

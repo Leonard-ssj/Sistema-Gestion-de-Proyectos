@@ -2,7 +2,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from datetime import datetime
 from app import db
-from app.models import Membership, User, Project, AuditLog
+from app.models import Membership, User, Project, AuditLog, Notification
+from app.realtime.notifications_hub import notifications_hub
 from app.utils import get_current_user_id
 from app.schemas import MemberWithUserSchema
 
@@ -195,20 +196,31 @@ def deactivate_member(membership_id):
                 }
             }), 400
         
-        # Verificar que no esté ya inactivo
-        if membership.status == 'inactive':
+        # Verificar que no esté ya desactivado
+        if membership.status == 'disabled':
             return jsonify({
                 'success': False,
                 'error': {
-                    'code': 'ALREADY_INACTIVE',
+                    'code': 'ALREADY_DISABLED',
                     'message': 'Este miembro ya está desactivado'
                 }
             }), 400
         
         # Desactivar membresía
-        membership.status = 'inactive'
+        membership.status = 'disabled'
         membership.updated_at = datetime.utcnow()
         
+        notification = Notification(
+            user_id=membership.user_id,
+            project_id=project_id,
+            type='member_deactivated',
+            message='Tu acceso al proyecto fue desactivado por el Owner.',
+            entity_type='membership',
+            entity_id=membership.id
+        )
+        db.session.add(notification)
+        db.session.flush()
+        notifications_hub.publish(membership.user_id, {'notification': notification.to_dict()})
         db.session.commit()
         
         # Crear audit log
@@ -231,6 +243,125 @@ def deactivate_member(membership_id):
         return jsonify({
             'success': True,
             'message': 'Miembro desactivado exitosamente'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': {
+                'code': 'SERVER_ERROR',
+                'message': str(e)
+            }
+        }), 500
+
+
+@members_bp.route('/<membership_id>/activate', methods=['PATCH'])
+@jwt_required()
+def activate_member(membership_id):
+    """
+    Activar miembro del proyecto (Owner)
+    """
+    try:
+        user_id = get_current_user_id()
+        claims = get_jwt()
+        user_role = claims.get('role')
+        
+        if user_role != 'OWNER':
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'FORBIDDEN',
+                    'message': 'Solo los Owners pueden activar miembros'
+                }
+            }), 403
+        
+        user = User.query.get(user_id)
+        
+        if not user or not user.owned_project:
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'NO_PROJECT',
+                    'message': 'No tienes un proyecto'
+                }
+            }), 400
+        
+        project_id = user.owned_project.id
+        
+        membership = Membership.query.get(membership_id)
+        
+        if not membership:
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'MEMBERSHIP_NOT_FOUND',
+                    'message': 'Membresía no encontrada'
+                }
+            }), 404
+        
+        if membership.project_id != project_id:
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'FORBIDDEN',
+                    'message': 'No tienes acceso a esta membresía'
+                }
+            }), 403
+        
+        member_user = User.query.get(membership.user_id)
+        if member_user and member_user.role == 'OWNER':
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'CANNOT_ACTIVATE_OWNER',
+                    'message': 'No aplica para Owner'
+                }
+            }), 400
+        
+        if membership.status == 'active':
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'ALREADY_ACTIVE',
+                    'message': 'Este miembro ya está activo'
+                }
+            }), 400
+        
+        membership.status = 'active'
+        membership.updated_at = datetime.utcnow()
+        
+        notification = Notification(
+            user_id=membership.user_id,
+            project_id=project_id,
+            type='member_reactivated',
+            message='Tu acceso al proyecto fue reactivado por el Owner.',
+            entity_type='membership',
+            entity_id=membership.id
+        )
+        db.session.add(notification)
+        db.session.flush()
+        notifications_hub.publish(membership.user_id, {'notification': notification.to_dict()})
+        
+        audit_log = AuditLog(
+            user_id=user_id,
+            project_id=project_id,
+            action='member_reactivated',
+            entity_type='membership',
+            entity_id=membership.id,
+            details={
+                'member_id': membership.user_id,
+                'member_email': member_user.email if member_user else None
+            },
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent')
+        )
+        db.session.add(audit_log)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Miembro activado exitosamente'
         }), 200
         
     except Exception as e:

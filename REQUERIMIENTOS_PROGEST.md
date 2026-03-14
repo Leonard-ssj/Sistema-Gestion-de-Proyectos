@@ -1415,7 +1415,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 #### RF-061: Creación de Notificaciones
 
 **Prioridad:** Alta\
-**Descripción:** El sistema debe crear notificaciones automáticamente para eventos importantes.
+**Descripción:** El sistema debe crear notificaciones in-app automáticamente para eventos importantes (sin email/SMS en MVP).
 
 **Criterios de aceptación:**
 
@@ -1423,10 +1423,10 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
   - Tarea asignada (task\_assigned)
   - Nuevo comentario en tarea (comment)
   - Estado de tarea cambiado (status\_change)
-  - Invitación aceptada (invite)
+  - Invitación aceptada (invite\_accepted)
   - Miembro agregado/desactivado (member)
-- Incluir: tipo, mensaje descriptivo, link al recurso
-- Asociar con usuario destinatario y proyecto
+- Incluir: tipo, mensaje descriptivo, referencia al recurso (entity\_type/entity\_id)
+- Asociar con usuario destinatario y proyecto (project\_id)
 - Estado inicial: unread (no leída)
 - Registrar fecha de creación
 
@@ -1442,8 +1442,8 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 - Cada usuario ve solo sus propias notificaciones
 - Ordenar por fecha (más recientes primero)
 - Incluir: tipo, mensaje, fecha, estado (leída/no leída)
-- Incluir link al recurso relacionado
-- Soportar paginación (20 notificaciones por página)
+- Incluir navegación al recurso relacionado (por entity\_type/entity\_id o link derivado)
+- Soportar paginación (limit/offset)
 - Indicar visualmente notificaciones no leídas
 
 **Endpoint:** `GET /api/notifications`
@@ -1458,11 +1458,31 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 **Criterios de aceptación:**
 
 - Retornar número de notificaciones con read = false
-- Actualizar en tiempo real (polling cada 30 segundos)
+- Actualizar por polling cada 30–60 segundos (MVP)
 - Mostrar badge en icono de notificaciones
 - Máximo mostrado: 99+ si hay más de 99
 
 **Endpoint:** `GET /api/notifications/unread-count`
+
+***
+
+#### RF-063B: Preview de Notificaciones en Campana (Header)
+
+**Prioridad:** Alta\
+**Descripción:** El sistema debe mostrar un preview de notificaciones desde el icono de campana.
+
+**Criterios de aceptación:**
+
+- Al hacer click en la campana se abre un dropdown (preview) sin salir de la página.
+- Mostrar: últimas 5 notificaciones (más recientes primero).
+- Acciones rápidas:
+  - Marcar todas como leídas
+  - Ver todas (navega a /app/notifications o /work/notifications según rol)
+- Al hacer click en una notificación:
+  - Marca como leída
+  - Navega al recurso relacionado
+
+**Endpoints:** `GET /api/notifications?limit=5`, `GET /api/notifications/unread-count`
 
 ***
 
@@ -1585,7 +1605,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 - Usar plantillas HTML profesionales
 - Incluir opción de desuscribirse
 
-**Estado:** Pendiente de implementación
+**Estado:** Fuera de alcance (MVP). Implementación futura.
 
 ***
 

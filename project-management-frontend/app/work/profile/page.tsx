@@ -9,12 +9,16 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { BOTTTs_NEUTRAL_AVATARS, normalizeAvatarUrl } from "@/lib/avatars"
-import { updateMeService } from "@/services/authService"
 import { cn } from "@/lib/utils"
+import { updateMeService } from "@/services/authService"
+import { Switch } from "@/components/ui/switch"
+import { useNotificationStore } from "@/stores/notificationStore"
 
 export default function WorkProfilePage() {
   const session = useAuthStore((s) => s.session)
   const login = useAuthStore((s) => s.login)
+  const soundEnabled = useNotificationStore((s) => s.soundEnabled)
+  const setSoundEnabled = useNotificationStore((s) => s.setSoundEnabled)
 
   const user = session?.user
   const [name, setName] = useState(user?.name || "")
@@ -25,11 +29,16 @@ export default function WorkProfilePage() {
 
   async function handleSave() {
     if (!session) return
+    const trimmed = name.trim()
+    if (!trimmed) {
+      toast.error("El nombre es requerido")
+      return
+    }
     setSaving(true)
     try {
-      const result = await updateMeService({ name, avatar: selectedAvatar })
+      const result = await updateMeService({ name: trimmed, avatar: selectedAvatar })
       if (!result.success || !result.user) {
-        toast.error(result.error || "Error al actualizar perfil")
+        toast.error(result.error || "No se pudo actualizar tu perfil")
         return
       }
       login({ ...session, user: result.user })
@@ -79,7 +88,14 @@ export default function WorkProfilePage() {
                 ))}
               </div>
             </div>
-            <Button onClick={handleSave} className="self-start" disabled={saving}>
+            <div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Sonido de notificaciones</p>
+                <p className="text-xs text-muted-foreground">Reproduce un sonido cuando llegue una notificación</p>
+              </div>
+              <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+            </div>
+            <Button onClick={handleSave} className="self-start">
               {saving ? "Guardando..." : "Guardar"}
             </Button>
           </CardContent>

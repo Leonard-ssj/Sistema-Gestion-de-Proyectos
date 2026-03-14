@@ -6,17 +6,35 @@ import type { Notification } from '@/mock/types'
 // MAPEO DE NOTIFICACIÓN
 // ============================================
 
+function getTitleForNotification(type: string) {
+  if (type === "task_assigned") return "Tarea asignada"
+  if (type === "comment") return "Nuevo comentario"
+  if (type === "status_change") return "Cambio de estado"
+  if (type === "task_updated") return "Tarea actualizada"
+  if (type === "invite_accepted") return "Invitación aceptada"
+  if (type === "invite") return "Invitación"
+  if (type === "mention") return "Mención"
+  return "Notificación"
+}
+
+function getLinkForNotification(notification: BackendNotification): string | undefined {
+  if (notification.entity_type === "task" && notification.entity_id) {
+    return `/app/tasks/${notification.entity_id}`
+  }
+  return undefined
+}
+
 function mapNotificationFromBackend(notification: BackendNotification): Notification {
   return {
     id: notification.id,
     user_id: notification.user_id,
     project_id: notification.project_id,
-    type: notification.type,
-    title: notification.title,
+    type: notification.type as any,
+    title: getTitleForNotification(notification.type),
     message: notification.message,
-    read: notification.is_read,
+    read: notification.read,
     created_at: notification.created_at,
-    link: notification.link,
+    link: getLinkForNotification(notification),
   }
 }
 
@@ -25,16 +43,20 @@ function mapNotificationFromBackend(notification: BackendNotification): Notifica
 // ============================================
 
 export async function fetchNotifications(
-  userId?: string,
-  isRead?: boolean
-): Promise<Notification[]> {
+  options?: { unreadOnly?: boolean; limit?: number; offset?: number }
+): Promise<{ notifications: Notification[]; total: number }> {
   try {
-    const query = isRead !== undefined ? `?is_read=${isRead}` : ''
-    const response = await api.get<BackendNotification[]>(`/notifications${query}`)
-    return response.map(mapNotificationFromBackend)
+    const params = new URLSearchParams()
+    if (options?.unreadOnly !== undefined) params.set('unread_only', String(options.unreadOnly))
+    if (options?.limit !== undefined) params.set('limit', String(options.limit))
+    if (options?.offset !== undefined) params.set('offset', String(options.offset))
+
+    const query = params.toString() ? `?${params.toString()}` : ''
+    const response = await api.get<{ notifications: BackendNotification[]; total: number }>(`/notifications${query}`)
+    return { notifications: response.notifications.map(mapNotificationFromBackend), total: response.total }
   } catch (error) {
     console.error('Error fetching notifications:', error)
-    return []
+    return { notifications: [], total: 0 }
   }
 }
 

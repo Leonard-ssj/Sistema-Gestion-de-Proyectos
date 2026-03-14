@@ -90,6 +90,22 @@ export async function deactivateMember(membershipId: string): Promise<{ success:
   }
 }
 
+// ============================================
+// ACTIVATE MEMBER (Activar miembro)
+// ============================================
+
+export async function activateMember(membershipId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await api.patch(`/members/${membershipId}/activate`, {})
+    return { success: true }
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || 'Error al activar miembro'
+    }
+  }
+}
+
 
 // ============================================
 // UPDATE MEMBER PROFILE (Actualizar perfil de miembro)

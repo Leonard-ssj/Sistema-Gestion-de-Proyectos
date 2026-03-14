@@ -181,10 +181,10 @@ def list_tasks():
                 return jsonify({
                     'success': False,
                     'error': {
-                        'code': 'NO_MEMBERSHIP',
-                        'message': 'No perteneces a ningún proyecto'
+                        'code': 'MEMBERSHIP_INACTIVE',
+                        'message': 'Tu acceso al proyecto fue desactivado por el Owner.'
                     }
-                }), 400
+                }), 403
             project_id = membership.project_id
         
         else:
@@ -345,6 +345,26 @@ def update_task(task_id):
             user_agent=request.headers.get('User-Agent')
         )
         db.session.add(audit_log)
+
+        # Notificaciones por cualquier modificación
+        changer = User.query.get(user_id)
+        if user_role == 'OWNER':
+            if task.assigned_to and task.assigned_to != user_id:
+                TaskService.create_task_notification(
+                    task,
+                    'task_updated',
+                    task.assigned_to,
+                    f'{changer.name if changer else "Owner"} actualizó “{task.title}”.'
+                )
+        elif user_role == 'EMPLOYEE':
+            project = Project.query.get(task.project_id)
+            if project and project.owner_id and project.owner_id != user_id:
+                TaskService.create_task_notification(
+                    task,
+                    'task_updated',
+                    project.owner_id,
+                    f'{changer.name if changer else "Empleado"} actualizó “{task.title}”.'
+                )
         
         db.session.commit()
         
@@ -482,10 +502,10 @@ def get_my_tasks():
             return jsonify({
                 'success': False,
                 'error': {
-                    'code': 'NO_MEMBERSHIP',
-                    'message': 'No perteneces a ningún proyecto'
+                    'code': 'MEMBERSHIP_INACTIVE',
+                    'message': 'Tu acceso al proyecto fue desactivado por el Owner.'
                 }
-            }), 400
+            }), 403
         
         project_id = membership.project_id
         
@@ -579,7 +599,7 @@ def assign_task(task_id):
             task,
             'task_assigned',
             assignee_id,
-            f'{assigner.name} te asignó la tarea "{task.title}"'
+            f'{assigner.name} te asignó “{task.title}”.'
         )
         
         # Si había un asignado anterior, notificarle
@@ -588,7 +608,7 @@ def assign_task(task_id):
                 task,
                 'task_unassigned',
                 old_assigned_to,
-                f'La tarea "{task.title}" fue reasignada'
+                f'La tarea “{task.title}” fue reasignada.'
             )
         
         # Crear audit log
@@ -684,8 +704,20 @@ def change_task_status(task_id):
                 task,
                 'status_change',
                 task.assigned_to,
-                f'{changer.name} cambió el estado de "{task.title}" a {new_status}'
+                f'{changer.name} actualizó el estado de “{task.title}” a {new_status}.'
             )
+        
+        # Si el empleado cambió el estado de su tarea, notificar al Owner del proyecto
+        if user_role == 'EMPLOYEE':
+            project = Project.query.get(task.project_id)
+            if project and project.owner_id and project.owner_id != user_id:
+                changer = User.query.get(user_id)
+                TaskService.create_task_notification(
+                    task,
+                    'status_change',
+                    project.owner_id,
+                    f'{changer.name} actualizó el estado de “{task.title}” a {new_status}.'
+                )
         
         # Crear audit log
         audit_log = AuditLog(

@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { UserPlus, Mail, Shield, User, Loader2, RefreshCw, Trash2, Edit, Copy } from "lucide-react"
 import { toast } from "sonner"
 import { sendInvite, listInvites, resendInvite, cancelInvite } from "@/services/inviteService"
-import { listMembers, updateMemberProfile, type MemberProfileUpdateData } from "@/services/memberService"
+import { listMembers, updateMemberProfile, deactivateMember, activateMember, type MemberProfileUpdateData } from "@/services/memberService"
 import type { Invite, Membership } from "@/mock/types"
 import { normalizeAvatarUrl } from "@/lib/avatars"
 
@@ -61,6 +61,7 @@ export default function TeamPage() {
   const [loadingData, setLoadingData] = useState(true)
   const [resendingId, setResendingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [statusChangingId, setStatusChangingId] = useState<string | null>(null)
 
   // Calcular total de miembros (activos + pendientes)
   const teamLimit = 20
@@ -197,6 +198,33 @@ export default function TeamPage() {
       toast.error("Error al enviar la invitación")
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleToggleMemberStatus(m: Membership) {
+    if (m.role !== "employee") return
+    if (!m.id) return
+    setStatusChangingId(m.id)
+    try {
+      if (m.status === "active") {
+        const res = await deactivateMember(m.id)
+        if (!res.success) {
+          toast.error(res.error || "No se pudo desactivar")
+          return
+        }
+        setMembers((prev) => prev.map((x) => (x.id === m.id ? { ...x, status: "inactive" } : x)))
+        toast.success("Empleado desactivado")
+      } else {
+        const res = await activateMember(m.id)
+        if (!res.success) {
+          toast.error(res.error || "No se pudo activar")
+          return
+        }
+        setMembers((prev) => prev.map((x) => (x.id === m.id ? { ...x, status: "active" } : x)))
+        toast.success("Empleado activado")
+      }
+    } finally {
+      setStatusChangingId(null)
     }
   }
 
@@ -677,14 +705,30 @@ export default function TeamPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       {m.role === "employee" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditMember(m)}
-                          disabled={loading}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditMember(m)}
+                            disabled={loading}
+                            title="Editar"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleMemberStatus(m)}
+                            disabled={loading || statusChangingId === m.id}
+                            title={m.status === "active" ? "Desactivar" : "Activar"}
+                          >
+                            {statusChangingId === m.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <span className="text-xs">{m.status === "active" ? "Desactivar" : "Activar"}</span>
+                            )}
+                          </Button>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>

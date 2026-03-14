@@ -60,6 +60,12 @@ async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const isPublicAuthEndpoint =
+    endpoint.includes('/auth/login') ||
+    endpoint.includes('/auth/register') ||
+    endpoint.includes('/auth/forgot-password') ||
+    endpoint.includes('/auth/refresh')
+
   // 1. Obtener token
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   
@@ -74,7 +80,7 @@ async function apiClient<T>(
     })
   }
   
-  if (token && !endpoint.includes('/auth/refresh')) {
+  if (token && !isPublicAuthEndpoint) {
     headers['Authorization'] = `Bearer ${token}`
   }
   
@@ -140,6 +146,23 @@ async function apiClient<T>(
   
   // 7. Manejar errores (Requirement 16.2, 16.3, 16.4, 16.5)
   if (!response.ok || data.success === false) {
+    const isMembershipInactive =
+      response.status === 403 &&
+      data?.error &&
+      typeof data.error === 'object' &&
+      'code' in data.error &&
+      (data.error as any).code === 'MEMBERSHIP_INACTIVE'
+    if (isMembershipInactive) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('session_data')
+        if (!window.location.pathname.startsWith('/auth/login') && !endpoint.includes('/auth/login')) {
+          window.location.href = '/auth/login'
+        }
+      }
+    }
+
     // Extraer mensaje de error del campo error (Requirement 16.3, 16.4)
     let errorMessage = `Error ${response.status}`
     

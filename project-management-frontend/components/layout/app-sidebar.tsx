@@ -4,11 +4,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useUIStore } from "@/stores/uiStore"
+import { useNotificationStore } from "@/stores/notificationStore"
 import {
   LayoutDashboard, ListTodo, Columns3, CalendarDays, GanttChart,
   BarChart3, Users, Settings, UserCircle, FolderKanban, ChevronLeft
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 const ownerNav = [
   { label: "Dashboard", href: "/app/dashboard", icon: LayoutDashboard },
@@ -46,9 +48,22 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const pathname = usePathname()
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
+  const sectionCounts = useNotificationStore((s) => s.sectionCounts)
 
   const nav = role === "owner" ? ownerNav : role === "employee" ? employeeNav : adminNav
   const projectLabel = role === "superadmin" ? "Super Admin" : role === "owner" ? "Owner Panel" : "Empleado"
+  const getBadge = (href: string) => {
+    if (role === "owner") {
+      if (href === "/app/tasks" || href === "/app/board" || href === "/app/timeline" || href === "/app/calendar") return sectionCounts.tasks || 0
+      if (href === "/app/team") return sectionCounts.team || 0
+      return 0
+    }
+    if (role === "employee") {
+      if (href === "/work/my-tasks" || href === "/work/board" || href === "/work/timeline") return sectionCounts.tasks || 0
+      return 0
+    }
+    return 0
+  }
 
   return (
     <>
@@ -93,7 +108,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
                     )}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
-                    {item.label}
+                    <span className="truncate">{item.label}</span>
+                    {getBadge(item.href) > 0 ? (
+                      <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
+                        {getBadge(item.href) > 99 ? "99+" : getBadge(item.href)}
+                      </Badge>
+                    ) : null}
                   </Link>
                 </li>
               )

@@ -76,7 +76,7 @@
 
 ### Gestión de Tareas
 - CRUD completo de tareas
-- Estados: Pending, In Progress, Blocked, Done
+- Estados: Pending, In Progress, In Review, Blocked, Done
 - Prioridades: Low, Medium, High, Urgent
 - Asignación de tareas a empleados
 - Fechas de vencimiento obligatorias
@@ -517,6 +517,12 @@ cat playwright-tests/team-credentials.json
 ```
 
 **Guía completa de testing:** `playwright-tests/README.md`
+
+**E2E Team Scenarios (Playwright):**
+- `playwright-tests/GUIA-E2E-TEAM.md`
+
+**Especificación de módulos de Empleado (/work):**
+- `playwright-tests/docs/empleado/00-README.md`
 
 ---
 

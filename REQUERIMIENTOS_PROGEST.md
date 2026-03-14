@@ -8,8 +8,8 @@
 
 ### Especificación de Requerimientos de Software (SRS)
 
-**Versión:** 2.0.0\
-**Fecha:** 24 de Febrero de 2026\
+**Versión:** 2.1.0\
+**Fecha:** 14 de Marzo de 2026\
 **Estado:** Producción
 
 ***
@@ -29,6 +29,7 @@ Confidencial
 | 1.0.0   | 15/01/2026 | Equipo Dev | Versión inicial del documento                            |
 | 1.5.0   | 10/02/2026 | Equipo Dev | Agregados requerimientos de comentarios y notificaciones |
 | 2.0.0   | 24/02/2026 | Equipo Dev | Versión completa con 70+ requerimientos                  |
+| 2.1.0   | 14/03/2026 | Equipo Dev | SSE, reactivación, sonido, UI notificaciones, deploy     |
 
 ***
 
@@ -229,7 +230,7 @@ El sistema ProGest proporciona las siguientes funciones principales:
 
 **F5. Sistema de Notificaciones**
 
-- Notificaciones en tiempo real
+- Notificaciones en tiempo real (SSE)
 - Tipos variados (asignación, comentarios, cambios)
 - Contador de notificaciones no leídas
 - Marcado de leídas/no leídas
@@ -375,7 +376,10 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 - El token de acceso debe expirar en 15 minutos
 - El token de refresh debe expirar en 7 días
 - El sistema debe retornar información del usuario y proyecto
-- Los usuarios desactivados no deben poder iniciar sesión
+- Los empleados con membresía desactivada no deben poder iniciar sesión
+- En ese caso el backend debe responder 403 con `error.code = MEMBERSHIP_INACTIVE`
+- El mensaje debe indicar que el acceso fue desactivado por el Owner
+- El frontend debe mostrar el mensaje como alerta visible (no solo toast)
 
 **Endpoint:** `POST /api/auth/login`
 
@@ -1276,9 +1280,9 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 
 - Solo OWNER puede desactivar miembros
 - No se puede desactivar al Owner
-- Cambiar estado de membership a "inactive"
+- Cambiar estado de membership a "disabled"
 - El usuario no puede acceder al proyecto
-- Las tareas asignadas quedan sin asignar
+- Las tareas asignadas se mantienen (se recuperan al reactivar)
 - No se eliminan datos históricos (comentarios, audit logs)
 - Crear notificación al usuario desactivado
 - Registrar desactivación en audit logs
@@ -1300,7 +1304,9 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 - Crear notificación al usuario reactivado
 - Registrar reactivación en audit logs
 
-**Estado:** Pendiente de implementación
+**Endpoint:** `PATCH /api/members/{id}/activate`
+
+**Estado:** Implementado
 
 ***
 
@@ -1421,10 +1427,12 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 
 - Eventos que generan notificaciones:
   - Tarea asignada (task\_assigned)
+  - Tarea actualizada (task\_updated)
   - Nuevo comentario en tarea (comment)
   - Estado de tarea cambiado (status\_change)
   - Invitación aceptada (invite\_accepted)
-  - Miembro agregado/desactivado (member)
+  - Miembro desactivado (member\_deactivated)
+  - Miembro reactivado (member\_reactivated)
 - Incluir: tipo, mensaje descriptivo, referencia al recurso (entity\_type/entity\_id)
 - Asociar con usuario destinatario y proyecto (project\_id)
 - Estado inicial: unread (no leída)
@@ -1458,11 +1466,14 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 **Criterios de aceptación:**
 
 - Retornar número de notificaciones con read = false
-- Actualizar por polling cada 30–60 segundos (MVP)
+- Actualizar por SSE en tiempo real cuando esté disponible
+- Fallback por polling cada 15–60 segundos según pantalla
 - Mostrar badge en icono de notificaciones
 - Máximo mostrado: 99+ si hay más de 99
 
 **Endpoint:** `GET /api/notifications/unread-count`
+
+**Tiempo real (SSE):** `GET /api/notifications/stream?token=<access_token>`
 
 ***
 
@@ -1544,12 +1555,15 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 **Criterios de aceptación:**
 
 - Tipos implementados:
-  - task\_assigned: "Te han asignado la tarea '{título}'"
-  - comment: "{usuario} comentó en '{título}'"
-  - status\_change: "La tarea '{título}' cambió a {estado}"
-  - invite: "{usuario} aceptó tu invitación"
-  - member: "Nuevo miembro: {usuario}"
+-  - task\_assigned: "{usuario} te asignó “{título}”."
+-  - task\_updated: "{usuario} actualizó “{título}”."
+-  - comment: "{usuario} comentó en “{título}”."
+-  - status\_change: "{usuario} actualizó el estado de “{título}” a {estado}."
+-  - invite\_accepted: "{usuario} aceptó la invitación y se unió al proyecto"
+-  - member\_deactivated: "Tu acceso al proyecto fue desactivado por el Owner."
+-  - member\_reactivated: "Tu acceso al proyecto fue reactivado por el Owner."
 - Cada tipo tiene icono y color distintivo
+- Las notificaciones leídas mantienen un color suave (no gris)
 - Mensajes personalizados con nombres de usuarios/tareas
 - Links directos al recurso relacionado
 
@@ -1580,12 +1594,13 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 **Criterios de aceptación:**
 
 - Permitir activar/desactivar tipos de notificaciones
+- Permitir activar/desactivar sonido de notificaciones in-app
 - Configurar frecuencia de emails de resumen
 - Configurar notificaciones push (futuro)
 - Guardar preferencias por usuario
 - Aplicar preferencias al crear notificaciones
 
-**Estado:** Pendiente de implementación
+**Estado:** Parcialmente implementado (sonido en frontend)
 
 ***
 
@@ -2832,15 +2847,29 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 
 ***
 
-#### IC-002: WebSockets
+#### IC-002: Server-Sent Events (SSE)
+
+**Descripción:** Comunicación unidireccional (servidor → cliente) para tiempo real.
+
+**Características:**
+
+- Protocolo: HTTP/1.1 (EventSource)
+- Uso: Notificaciones en tiempo real
+- Endpoint: `GET /api/notifications/stream?token=<access_token>`
+
+**Estado:** Implementado
+
+***
+
+#### IC-003: WebSockets (Futuro)
 
 **Descripción:** Comunicación bidireccional en tiempo real.
 
 **Características:**
 
 - Protocolo: WSS (WebSocket Secure)
-- Uso: Notificaciones en tiempo real, actualizaciones de tareas
-- Librería: Socket.IO
+- Uso: Colaboración en vivo, actualizaciones de tareas
+- Librería: Socket.IO o alternativa
 
 **Estado:** Pendiente de implementación
 
@@ -2970,6 +2999,7 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 | 10/02/2026 | 1.5.0   | Agregados requerimientos de comentarios y notificaciones               |
 | 20/02/2026 | 1.8.0   | Agregados requerimientos no funcionales                                |
 | 24/02/2026 | 2.0.0   | Documento completo con 85+ requerimientos funcionales y no funcionales |
+| 14/03/2026 | 2.1.0   | SSE, reactivación, sonido, UI notificaciones, ajustes de deploy        |
 
 ***
 

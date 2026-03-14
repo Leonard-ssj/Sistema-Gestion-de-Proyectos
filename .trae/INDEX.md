@@ -193,7 +193,10 @@ Monorepo_gestion_proyectos_saas/
 │   └── generated-tests/            # Tests generados
 │
 └── postman/                        # Coleccion Postman
-    └── ProGest_API_Complete.postman_collection.json
+    ├── ProGest_API_Complete.postman_collection.json
+    ├── ProGest_Development.postman_environment.json
+    ├── ProGest_E2E_Marketing.postman_environment.json
+    └── README.md
 ```
 
 ---

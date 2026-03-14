@@ -403,7 +403,7 @@ npm run dev
 ### Mejoras Tecnicas
 1. Implementar Redis para cache
 2. Implementar Celery para tareas asincronas
-3. Implementar WebSockets para notificaciones en tiempo real
+3. Implementar Redis PubSub para notificaciones SSE (escalabilidad)
 4. Optimizar queries con indices adicionales
 5. Implementar paginacion en backend
 6. Agregar tests de carga

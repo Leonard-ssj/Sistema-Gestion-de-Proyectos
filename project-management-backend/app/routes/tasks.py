@@ -472,8 +472,36 @@ def get_my_tasks():
                 }
             }), 403
         
-        # Obtener tareas del usuario
-        tasks = TaskService.get_my_tasks(user_id)
+        # Obtener project_id de la membresía activa
+        membership = Membership.query.filter_by(
+            user_id=user_id,
+            status='active'
+        ).first()
+        
+        if not membership:
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 'NO_MEMBERSHIP',
+                    'message': 'No perteneces a ningún proyecto'
+                }
+            }), 400
+        
+        project_id = membership.project_id
+        
+        # Filtros opcionales (mismo contrato que list_tasks)
+        filters = {
+            'status': request.args.get('status'),
+            'priority': request.args.get('priority'),
+            'assigned_to': None,
+            'search': request.args.get('search'),
+            'sprint_id': request.args.get('sprint_id'),
+            'include_old_done': (request.args.get('include_old_done') or '').lower() in ['1', 'true', 'yes'],
+            'sort_by': request.args.get('sort_by', 'created_at'),
+            'sort_order': request.args.get('sort_order', 'desc')
+        }
+        
+        tasks = TaskService.list_tasks(project_id, filters, user_id, user_role)
         
         # Serializar respuesta
         tasks_data = task_schema.dump(tasks, many=True)

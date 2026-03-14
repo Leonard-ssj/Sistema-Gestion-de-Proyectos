@@ -5,7 +5,7 @@ Scripts E2E para crear un equipo completo (Owner + 10 empleados) con sprints, ta
 ## Docs
 
 - Guía E2E Team: [GUIA-E2E-TEAM.md](file:///c:/Monorepo_gestion_proyectos_saas/playwright-tests/GUIA-E2E-TEAM.md)
-- Especificación módulos Empleado (/work): [docs/empleado/00-README.md](file:///c:/Monorepo_gestion_proyectos_saas/playwright-tests/docs/empleado/00-README.md)
+- Especificación módulos Empleado (/work): [docs/empleado/00-README.md](file:///c:/Monorepo_gestion_proyectos_saas/docs/empleado/00-README.md)
 
 ## Ejecutar (local)
 
@@ -48,3 +48,11 @@ npm run e2e:team -- marketing 500 https://sistema-gestion-de-proyectos-dev.verce
 
 Cada corrida crea:
 - `playwright-tests/team-credentials.<escenario>.<timestamp>.json`
+
+## Pendiente: E2E módulos de empleado (/work)
+
+Objetivo:
+- Agregar specs Playwright que validen que al empleado le persisten las tareas tras recargar (F5) y que puede cambiar estatus/comentar.
+
+Docs:
+- `docs/empleado/00-README.md`

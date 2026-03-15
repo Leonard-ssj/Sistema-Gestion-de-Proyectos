@@ -56,6 +56,7 @@ Confidencial
    - 3.6 Sistema de Comentarios (RF-071 a RF-075)
    - 3.7 Panel de Administración (RF-076 a RF-085)
    - 3.8 Gestión de Sprints (RF-086 a RF-095)
+   - 3.9 Reportes del Proyecto (RF-096 a RF-105)
 4. [Requerimientos No Funcionales](#4-requerimientos-no-funcionales)
    - 4.1 Rendimiento (RNF-001 a RNF-010)
    - 4.2 Seguridad (RNF-011 a RNF-020)
@@ -1147,14 +1148,17 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 **Criterios de aceptación:**
 
 - Solo OWNER puede enviar invitaciones
-- Campos obligatorios: email
-- Campos opcionales: job\_title, description, responsibilities, skills, shift, department, phone
+- Campos obligatorios: email, job\_title, shift, department, phone
+- phone debe ser de México (+52 + 10 dígitos) y validarse en backend y frontend
+- Campos opcionales: description, responsibilities, skills
 - Validar formato de email
 - Validar que el email no esté ya registrado
 - Validar que no exista invitación pendiente para ese email
 - Generar token único y seguro (32 caracteres)
 - Establecer fecha de expiración (7 días)
-- Enviar email con link de invitación
+- Permitir compartir el link de invitación:
+  - Copiar al portapapeles
+  - Compartir por WhatsApp usando el teléfono del empleado (wa.me)
 - Crear notificación para el Owner
 - Registrar invitación en audit logs
 
@@ -2055,6 +2059,122 @@ El sistema soporta tres tipos de usuarios con diferentes niveles de acceso:
 
 - Registrar eventos: sprint\_created, sprint\_updated, sprint\_deleted, project\_settings\_updated (cuando afecte sprints)
 - Incluir detalles mínimos: sprint\_id, nombre, status, color, fechas (si aplica)
+
+***
+
+### 3.9 Reportes del Proyecto
+
+#### RF-096: Dashboard de Reportes (OWNER)
+
+**Prioridad:** Alta\
+**Descripción:** El sistema debe proporcionar una página de reportes para OWNER con métricas del proyecto.
+
+**Criterios de aceptación:**
+
+- Solo OWNER puede acceder a `/app/reports`
+- Mostrar métricas KPI:
+  - Total de tareas
+  - Completadas y porcentaje
+  - Sin asignar
+- Soportar modo light/dark sin degradación visual
+
+**Estado:** Implementado
+
+***
+
+#### RF-097: Filtro de Reportes por Sprint
+
+**Prioridad:** Alta\
+**Descripción:** El sistema debe permitir filtrar reportes por sprint.
+
+**Criterios de aceptación:**
+
+- Filtros:
+  - Todos los sprints
+  - Backlog
+  - Sprint específico
+- El filtro debe aplicarse a métricas, gráficas y exportación
+
+**Estado:** Implementado
+
+***
+
+#### RF-098: Gráficas Modernas (Estado/Prioridad)
+
+**Prioridad:** Media\
+**Descripción:** El sistema debe mostrar gráficas de distribución por estado y prioridad.
+
+**Criterios de aceptación:**
+
+- Estado: gráfica tipo donut/pie
+- Prioridad: gráfica tipo barra
+- Tooltip con etiquetas legibles
+- Compatible con temas (light/dark)
+
+**Estado:** Implementado
+
+***
+
+#### RF-099: Rendimiento por Miembro
+
+**Prioridad:** Media\
+**Descripción:** El sistema debe mostrar avance por miembro del equipo.
+
+**Criterios de aceptación:**
+
+- Considerar solo miembros activos
+- Mostrar avatar, nombre y ratio completadas/total
+- Mostrar barra de progreso
+
+**Estado:** Implementado
+
+***
+
+#### RF-100: Reporte por Sprint (Resumen)
+
+**Prioridad:** Media\
+**Descripción:** El sistema debe mostrar un resumen por sprint.
+
+**Criterios de aceptación:**
+
+- Mostrar Backlog y cada sprint
+- Mostrar total y completadas por sprint
+- Mostrar porcentaje de avance
+
+**Estado:** Implementado
+
+***
+
+#### RF-101: Exportación de Reportes a Excel (XLSX)
+
+**Prioridad:** Alta\
+**Descripción:** El sistema debe permitir exportar reportes a formato Excel con buena presentación.
+
+**Criterios de aceptación:**
+
+- Exportar “Tareas” a XLSX con:
+  - Encabezados con estilo
+  - Auto filtro
+  - Formato de fechas (dd/mm/yyyy)
+  - Colores por estado
+- Exportar “Resumen” a XLSX con secciones y tablas
+- Evitar problemas de encoding (acentos) al abrir en Excel
+
+**Estado:** Implementado
+
+***
+
+#### RF-102: Exportación de Reportes (Compatibilidad)
+
+**Prioridad:** Baja\
+**Descripción:** El sistema debe soportar formatos adicionales de exportación.
+
+**Criterios de aceptación:**
+
+- CSV como formato alternativo (futuro)
+- PDF como formato alternativo (futuro)
+
+**Estado:** Parcialmente implementado (XLSX)
 
 ***
 

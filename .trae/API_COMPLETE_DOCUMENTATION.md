@@ -443,9 +443,14 @@ Crear invitacion (solo OWNER).
   "job_title": "Developer",
   "description": "Frontend developer",
   "shift": "morning",
-  "department": "Engineering"
+  "department": "Engineering",
+  "phone": "+52 55 1234 5678"
 }
 ```
+
+Notas:
+- `phone` es requerido para invitaciones y debe ser de México (+52 + 10 dígitos).
+- El frontend puede compartir el link de invitación por WhatsApp usando `phone` + `token`.
 
 **Response (201):**
 ```json
@@ -458,6 +463,7 @@ Crear invitacion (solo OWNER).
     "token": "secure-token",
     "status": "pending",
     "job_title": "Developer",
+    "phone": "+525512345678",
     "expires_at": "2026-03-03T10:00:00"
   }
 }

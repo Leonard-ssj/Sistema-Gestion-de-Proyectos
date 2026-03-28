@@ -23,64 +23,84 @@ def list_members():
         user_id = get_current_user_id()
         claims = get_jwt()
         user_role = claims.get('role')
+        role_upper = str(user_role).upper() if user_role else ''
         
-        # Solo OWNER puede ver miembros
-        if user_role != 'OWNER':
-            return jsonify({
-                'success': False,
-                'error': {
-                    'code': 'FORBIDDEN',
-                    'message': 'Solo los Owners pueden ver la lista de miembros'
-                }
-            }), 403
-        
-        # Buscar usuario
+        # Buscar usuario primero
         user = User.query.get(user_id)
-        
-        if not user or not user.owned_project:
+        if not user:
             return jsonify({
                 'success': False,
                 'error': {
-                    'code': 'NO_PROJECT',
-                    'message': 'No tienes un proyecto'
+                    'code': 'USER_NOT_FOUND',
+                    'message': 'Usuario no encontrado'
                 }
-            }), 400
-        
-        project = user.owned_project
-        project_id = project.id
-        
+            }), 404
+            
+        # Permitir tanto OWNER como EMPLOYEE ver miembros para poder etiquetarlos en el chat
+        if role_upper == 'OWNER':
+            if not user.owned_project:
+                return jsonify({
+                    'success': False,
+                    'error': {
+                        'code': 'NO_PROJECT',
+                        'message': 'No tienes un proyecto'
+                    }
+                }), 400
+            project_id = user.owned_project.id
+            project = user.owned_project
+        else:
+            # Si es empleado, buscar su membresía activa
+            membership = Membership.query.filter_by(
+                user_id=user_id,
+                status='active'
+            ).first()
+            if not membership:
+                return jsonify({
+                    'success': False,
+                    'error': {
+                        'code': 'FORBIDDEN',
+                        'message': 'No perteneces a ningún proyecto'
+                    }
+                }), 403
+            project_id = membership.project_id
+            project = Project.query.get(project_id)
+            
         # Obtener membresías del proyecto
         memberships = Membership.query.filter_by(project_id=project_id).all()
-        
-        # Preparar lista de miembros
+              # Preparar lista de miembros
         members_data = []
         
-        # Agregar Owner primero
-        owner_data = {
-            'id': user.id,
-            'email': user.email,
-            'name': user.name,
-            'role': 'OWNER',
-            'status': user.status,
-            'avatar': user.avatar,
-            'job_title': user.job_title,
-            'description': user.description,
-            'responsibilities': user.responsibilities,
-            'skills': user.skills,
-            'shift': user.shift,
-            'department': user.department,
-            'phone': user.phone,
-            'created_at': user.created_at.isoformat() if user.created_at else None,
-            'is_owner': True,
-            'membership_id': None
-        }
-        members_data.append(owner_data)
+        # Agregar Owner verdadero del proyecto al resultado
+        if project:
+            true_owner = User.query.get(project.owner_id)
+            if true_owner:
+                owner_data = {
+                    'id': true_owner.id,
+                    'email': true_owner.email,
+                    'name': true_owner.name,
+                    'role': 'OWNER',
+                    'status': true_owner.status,
+                    'avatar': true_owner.avatar,
+                    'job_title': true_owner.job_title,
+                    'description': true_owner.description,
+                    'responsibilities': true_owner.responsibilities,
+                    'skills': true_owner.skills,
+                    'shift': true_owner.shift,
+                    'department': true_owner.department,
+                    'phone': true_owner.phone,
+                    'created_at': true_owner.created_at.isoformat() if true_owner.created_at else None,
+                    'joined_at': None,
+                    'is_owner': True,
+                    'membership_id': None,
+                    'chat_enabled': True
+                }
+                members_data.append(owner_data)
         
         # Agregar Employees
         for membership in memberships:
             member_user = User.query.get(membership.user_id)
-            
-            if member_user:
+            # Asegurarse de no duplicar al owner si ya fue agregado
+            if member_user and member_user.id != project.owner_id:
                 member_data = {
                     'id': member_user.id,
                     'email': member_user.email,
@@ -98,7 +118,8 @@ def list_members():
                     'created_at': member_user.created_at.isoformat() if member_user.created_at else None,
                     'joined_at': membership.joined_at.isoformat() if membership.joined_at else None,
                     'is_owner': False,
-                    'membership_id': membership.id
+                    'membership_id': membership.id,
+                    'chat_enabled': getattr(membership, 'chat_enabled', True)
                 }
                 members_data.append(member_data)
         
@@ -346,6 +367,10 @@ def update_member_profile(user_id):
         if 'phone' in validated_data:
             target_user.phone = validated_data['phone']
         
+        # Actualizar chat_enabled en membership
+        if 'chat_enabled' in validated_data and membership:
+            membership.chat_enabled = validated_data['chat_enabled']
+        
         target_user.updated_at = datetime.utcnow()
         
         db.session.commit()
@@ -382,6 +407,7 @@ def update_member_profile(user_id):
             'department': target_user.department,
             'phone': target_user.phone,
             'status': target_user.status,
+            'chat_enabled': membership.chat_enabled if membership else True,
             'created_at': target_user.created_at.isoformat() if target_user.created_at else None,
             'updated_at': target_user.updated_at.isoformat() if target_user.updated_at else None
         }

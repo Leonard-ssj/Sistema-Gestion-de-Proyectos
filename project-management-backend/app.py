@@ -44,10 +44,10 @@ def log_request():
         print(f'Body: {body}')
 
 # Importar modelos después de inicializar db
-from app.models import User, Project, Membership, Task, Sprint, Invite, Notification, Comment, AuditLog
+from app.models import User, Project, Membership, Task, Sprint, Invite, Notification, Comment, AuditLog, TeamMessage
 
 # Importar rutas
-from app.routes import auth_bp, projects_bp, invites_bp, members_bp, tasks_bp, sprints_bp, notifications_bp, comments_bp, admin_bp
+from app.routes import auth_bp, projects_bp, invites_bp, members_bp, tasks_bp, sprints_bp, notifications_bp, comments_bp, admin_bp, team_chat_bp
 
 def ensure_project_schema():
     columns = db.session.execute(text("""
@@ -122,6 +122,21 @@ def ensure_project_schema():
     """))
     db.session.commit()
 
+    team_message_columns = db.session.execute(text("""
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'team_messages'
+    """)).fetchall()
+    team_message_existing = {row[0] for row in team_message_columns}
+
+    team_message_alters = []
+    if 'task_id' not in team_message_existing:
+        team_message_alters.append("ADD COLUMN task_id VARCHAR(36) NULL REFERENCES tasks(id) ON DELETE SET NULL")
+
+    if team_message_alters:
+        db.session.execute(text(f"ALTER TABLE team_messages {', '.join(team_message_alters)}"))
+        db.session.commit()
+
     bottts = {
         'Astra': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Astra&size=64&radius=12',
         'Bolt': 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=Bolt&size=64&radius=12',
@@ -153,6 +168,7 @@ app.register_blueprint(sprints_bp)
 app.register_blueprint(notifications_bp)
 app.register_blueprint(comments_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(team_chat_bp)
 
 # JWT Callbacks
 @jwt.expired_token_loader
@@ -209,6 +225,54 @@ def health():
         'database': db_status
     }
 
+# Verificar si existen los permisos en memberships para chat de equipo y mentions
+with app.app_context():
+    # Verificamos si podemos usar el inspector
+    from sqlalchemy import inspect
+    import logging
+    logger = logging.getLogger(__name__)
+
+    inspector = inspect(db.engine)
+    
+    # 1. Migración para membershipts.chat_enabled
+    if 'memberships' in inspector.get_table_names():
+        columns = [c['name'] for c in inspector.get_columns('memberships')]
+        if 'chat_enabled' not in columns:
+            try:
+                logger.info("Añadiendo columna 'chat_enabled' a la tabla 'memberships'...")
+                db.session.execute(text('ALTER TABLE memberships ADD COLUMN chat_enabled BOOLEAN DEFAULT TRUE NOT NULL;'))
+                db.session.commit()
+                logger.info("Migración: columna 'chat_enabled' añadida correctamente")
+            except Exception as e:
+                logger.error(f"Error al añadir columna 'chat_enabled': {e}")
+                db.session.rollback()
+    
+    # 2. Migración para team_messages.task_id y mentioned_user_id
+    if 'team_messages' in inspector.get_table_names():
+        columns = [c['name'] for c in inspector.get_columns('team_messages')]
+        try:
+            if 'task_id' not in columns:
+                logger.info("Añadiendo columna 'task_id' a la tabla 'team_messages'...")
+                # Agregamos la columna y la foreign key (esto puede variar dependiendo la bbdd)
+                if db.engine.dialect.name == 'sqlite':
+                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36);'))
+                else:
+                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36) REFERENCES tasks(id) ON DELETE SET NULL;'))
+                logger.info("Migración completada para 'task_id'")
+            
+            if 'mentioned_user_id' not in columns:
+                logger.info("Añadiendo columna 'mentioned_user_id' a la tabla 'team_messages'...")
+                if db.engine.dialect.name == 'sqlite':
+                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN mentioned_user_id VARCHAR(36);'))
+                else:
+                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN mentioned_user_id VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL;'))
+                logger.info("Migración completada para 'mentioned_user_id'")
+            
+            db.session.commit()
+        except Exception as e:
+            logger.error(f"Error al añadir columnas a team_messages: {e}")
+            db.session.rollback()
+
 if __name__ == '__main__':
     with app.app_context():
         try:
@@ -232,7 +296,8 @@ if __name__ == '__main__':
             print('  - invites')
             print('  - notifications')
             print('  - comments')
-            print('  - audit_logs\n')
+            print('  - audit_logs')
+            print('  - team_messages\n')
             
         except Exception as e:
             print(f'✗ Error: {e}')

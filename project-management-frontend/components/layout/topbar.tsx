@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { listSprints } from "@/services/sprintService"
 import { useEffect, useState } from "react"
 import type { Sprint } from "@/mock/types"
+import { fetchNotifications } from "@/services/notificationService"
 import { cn } from "@/lib/utils"
 import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
 import { normalizeAvatarUrl } from "@/lib/avatars"
@@ -22,6 +23,7 @@ export function Topbar() {
   const session = useAuthStore((s) => s.session)
   const logout = useAuthStore((s) => s.logout)
   const notifications = useDataStore((s) => s.notifications)
+  const setNotifications = useDataStore((s) => s.setNotifications)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const [activeSprint, setActiveSprint] = useState<Sprint | null>(null)
 
@@ -30,6 +32,18 @@ export function Topbar() {
   const sprintEnabled = !!session?.project?.sprint_enabled
 
   const notifRoute = role === "owner" ? "/app/notifications" : role === "employee" ? "/work/notifications" : "/admin"
+
+  useEffect(() => {
+    async function initNotifs() {
+      if (session?.user?.id) {
+        const notifs = await fetchNotifications()
+        if (notifs) {
+          setNotifications(notifs)
+        }
+      }
+    }
+    initNotifs()
+  }, [session?.user?.id, setNotifications])
 
   useEffect(() => {
     if (!sprintEnabled) return

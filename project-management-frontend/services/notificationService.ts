@@ -6,17 +6,17 @@ import type { Notification } from '@/mock/types'
 // MAPEO DE NOTIFICACIÓN
 // ============================================
 
-function mapNotificationFromBackend(notification: BackendNotification): Notification {
+function mapNotificationFromBackend(notification: any): Notification {
   return {
     id: notification.id,
     user_id: notification.user_id,
     project_id: notification.project_id,
     type: notification.type,
-    title: notification.title,
+    title: notification.title || (notification.type === 'chat_mention' ? 'Mención en chat' : 'Notificación'),
     message: notification.message,
-    read: notification.is_read,
+    read: notification.read !== undefined ? notification.read : !!notification.is_read,
     created_at: notification.created_at,
-    link: notification.link,
+    link: notification.link || (notification.type === 'chat_mention' ? '/work/chat' : undefined),
   }
 }
 
@@ -30,8 +30,11 @@ export async function fetchNotifications(
 ): Promise<Notification[]> {
   try {
     const query = isRead !== undefined ? `?is_read=${isRead}` : ''
-    const response = await api.get<BackendNotification[]>(`/notifications${query}`)
-    return response.map(mapNotificationFromBackend)
+    const response = await api.get<{ notifications: BackendNotification[] }>(`/notifications${query}`)
+    if (response && response.notifications) {
+      return response.notifications.map(mapNotificationFromBackend)
+    }
+    return []
   } catch (error) {
     console.error('Error fetching notifications:', error)
     return []

@@ -72,3 +72,4 @@ class UserProfileUpdateSchema(Schema):
     shift = fields.Str(required=False, validate=validate.OneOf(['morning', 'afternoon', 'night', 'flexible']), allow_none=True)
     department = fields.Str(required=False, validate=validate.Length(max=100), allow_none=True)
     phone = fields.Str(required=False, validate=validate.Length(max=20), allow_none=True)
+    chat_enabled = fields.Boolean(required=False)

@@ -80,6 +80,7 @@ export interface Membership {
   project_id: string
   role: Role
   status: MembershipStatus
+  chat_enabled?: boolean
   joined_at: string
   user?: User
 }

@@ -23,8 +23,16 @@ export async function fetchTasks(projectId?: string): Promise<Task[]> {
 
 export async function fetchMyTasks(): Promise<Task[]> {
   try {
-    const response = await api.get<BackendTask[]>('/tasks/my-tasks')
-    return response.map(mapTaskFromBackend)
+    const response = await api.get<any>('/tasks/my-tasks')
+    if (Array.isArray(response)) {
+      return response.map(mapTaskFromBackend)
+    } else if (response && Array.isArray(response.tasks)) {
+      return response.tasks.map(mapTaskFromBackend)
+    } else if (response && Array.isArray(response.data)) {
+      return response.data.map(mapTaskFromBackend)
+    }
+    console.warn('Unexpected response format for fetchMyTasks:', response)
+    return []
   } catch (error) {
     console.error('Error fetching my tasks:', error)
     return []

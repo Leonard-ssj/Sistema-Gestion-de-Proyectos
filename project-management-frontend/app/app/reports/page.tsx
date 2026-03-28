@@ -2,20 +2,59 @@
 
 import { useAuthStore } from "@/stores/authStore"
 import { useDataStore } from "@/stores/dataStore"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { TASK_STATUS_LABELS, TASK_STATUS_COLORS, TASK_PRIORITY_LABELS, TASK_PRIORITY_COLORS } from "@/lib/constants"
 import type { TaskStatus, TaskPriority } from "@/mock/types"
 import { normalizeAvatarUrl } from "@/lib/avatars"
+import { useEffect, useState } from "react"
+import { fetchTasks } from "@/services/taskService"
+import { listMembers } from "@/services/memberService"
+import { Loader2 } from "lucide-react"
 
 export default function ReportsPage() {
   const session = useAuthStore((s) => s.session)
   const tasks = useDataStore((s) => s.tasks)
   const users = useDataStore((s) => s.users)
   const memberships = useDataStore((s) => s.memberships)
+  const setMemberships = useDataStore((s) => s.setMemberships)
+  const setUsers = useDataStore((s) => s.setUsers)
+  const setTasks = useDataStore((s) => s.setTasks)
 
+  const [loading, setLoading] = useState(true)
   const projectId = session?.project?.id
+
+  // Load fresh data on mount
+  useEffect(() => {
+    async function loadData() {
+      if (!projectId) return
+      setLoading(true)
+      try {
+        const [tasksData, membersResp] = await Promise.all([
+          fetchTasks(),
+          listMembers()
+        ])
+        
+        if (tasksData) {
+          setTasks(tasksData)
+        }
+        
+        if (membersResp.success && membersResp.members) {
+          setMemberships(membersResp.members)
+          // Also set users from members
+          const extractedUsers = membersResp.members.map(m => m.user).filter(Boolean) as any[]
+          setUsers(extractedUsers)
+        }
+      } catch (err) {
+        console.error("Error loading reports data", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [projectId, setTasks, setMemberships, setUsers])
+
   const projectTasks = tasks.filter((t) => t.project_id === projectId)
   const total = projectTasks.length
 
@@ -40,6 +79,14 @@ export default function ReportsPage() {
     .filter((m) => m.user)
 
   const unassigned = projectTasks.filter((t) => !t.assigned_to).length
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">

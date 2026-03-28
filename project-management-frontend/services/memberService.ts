@@ -23,6 +23,7 @@ interface BackendMember {
   joined_at?: string
   is_owner: boolean
   membership_id?: string
+  chat_enabled?: boolean
 }
 
 function mapMemberFromBackend(member: BackendMember): Membership {
@@ -51,7 +52,8 @@ function mapMemberFromBackend(member: BackendMember): Membership {
       phone: member.phone,
       created_at: member.created_at,
       password: ''
-    }
+    },
+    chat_enabled: member.chat_enabled
   }
 }
 
@@ -104,6 +106,7 @@ export interface MemberProfileUpdateData {
   shift?: 'morning' | 'afternoon' | 'night' | 'flexible'
   department?: string
   phone?: string
+  chat_enabled?: boolean
 }
 
 export async function updateMemberProfile(

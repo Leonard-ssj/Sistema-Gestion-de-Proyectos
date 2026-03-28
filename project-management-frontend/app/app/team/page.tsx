@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Switch } from "@/components/ui/switch"
 import { UserPlus, Mail, Shield, User, Loader2, RefreshCw, Trash2, Edit, Copy } from "lucide-react"
 import { toast } from "sonner"
 import { sendInvite, listInvites, resendInvite, cancelInvite } from "@/services/inviteService"
@@ -55,7 +56,8 @@ export default function TeamPage() {
     skills: "",
     shift: "" as "" | "morning" | "afternoon" | "night" | "flexible",
     department: "",
-    phone: ""
+    phone: "",
+    chat_enabled: true
   })
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
@@ -267,7 +269,8 @@ export default function TeamPage() {
       skills: member.user?.skills || "",
       shift: member.user?.shift || "",
       department: member.user?.department || "",
-      phone: member.user?.phone || ""
+      phone: member.user?.phone || "",
+      chat_enabled: member.chat_enabled !== undefined ? member.chat_enabled : true
     })
     setEditDialogOpen(true)
   }
@@ -334,6 +337,7 @@ export default function TeamPage() {
       if (editData.shift) updateData.shift = editData.shift
       if (editData.department) updateData.department = editData.department
       if (editData.phone) updateData.phone = editData.phone
+      updateData.chat_enabled = editData.chat_enabled
       
       const userId = editingMember.user?.id || editingMember.user_id || editingMember.id
       const result = await updateMemberProfile(userId, updateData)
@@ -625,6 +629,20 @@ export default function TeamPage() {
                   maxLength={20}
                 />
                 <p className="text-xs text-muted-foreground mt-1">Incluye código de país (Ej: +52 para México)</p>
+              </div>
+
+              <div className="mt-4 flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Permiso de Chat</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Define si este empleado puede participar en el chat del equipo.
+                  </p>
+                </div>
+                <Switch
+                  checked={editData.chat_enabled}
+                  onCheckedChange={(c) => setEditData({ ...editData, chat_enabled: c })}
+                  disabled={loading}
+                />
               </div>
             </div>
             

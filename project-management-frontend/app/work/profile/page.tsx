@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
 import { BOTTTs_NEUTRAL_AVATARS, normalizeAvatarUrl } from "@/lib/avatars"
 import { updateMeService } from "@/services/authService"
 import { cn } from "@/lib/utils"
@@ -20,20 +20,41 @@ export default function WorkProfilePage() {
   const [name, setName] = useState(user?.name || "")
   const [avatar, setAvatar] = useState<string>(normalizeAvatarUrl(user?.avatar))
   const [saving, setSaving] = useState(false)
+  const [nameError, setNameError] = useState("")
 
   const selectedAvatar = useMemo(() => normalizeAvatarUrl(avatar), [avatar])
 
   async function handleSave() {
     if (!session) return
+
+    // Validation
+    const trimmedName = name.trim()
+    if (trimmedName.length < 3) {
+      setNameError("El nombre debe tener al menos 3 caracteres.")
+      return
+    }
+    if (trimmedName.length > 60) {
+      setNameError("El nombre no puede exceder los 60 caracteres.")
+      return
+    }
+
+    setNameError("")
     setSaving(true)
+
     try {
-      const result = await updateMeService({ name, avatar: selectedAvatar })
+      const result = await updateMeService({ name: trimmedName, avatar: selectedAvatar })
+      
       if (!result.success || !result.user) {
-        toast.error(result.error || "Error al actualizar perfil")
+        toast({ title: "Error", description: result.error || "Error al actualizar perfil", variant: "destructive" })
         return
       }
+
+      // Sync the authStore with the new user data.
+      // Topbar relies on useAuthStore(s => s.session) so it will reactively update.
       login({ ...session, user: result.user })
-      toast.success("Perfil actualizado")
+      toast({ title: "¡Éxito!", description: "Tu perfil ha sido actualizado correctamente." })
+    } catch (error: any) {
+      toast({ title: "Error de conexión", description: "Ocurrió un problema, intenta nuevamente.", variant: "destructive" })
     } finally {
       setSaving(false)
     }
@@ -43,25 +64,35 @@ export default function WorkProfilePage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Mi Perfil</h1>
-        <p className="text-muted-foreground">Administra tu informacion personal</p>
+        <p className="text-muted-foreground">Administra tu información personal</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2">
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Informacion Personal</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Información Personal</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div>
               <Label>Nombre</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              <Input 
+                value={name} 
+                onChange={(e) => {
+                  setName(e.target.value)
+                  if (nameError) setNameError("")
+                }} 
+                className={nameError ? "border-destructive focus-visible:ring-destructive" : ""}
+                placeholder="Ej. Juan Pérez"
+              />
+              {nameError && <p className="mt-1 text-xs text-destructive">{nameError}</p>}
+              <p className="mt-1 text-xs text-muted-foreground">Entre 3 y 60 caracteres.</p>
             </div>
             <div>
               <Label>Email</Label>
               <Input value={user?.email || ""} disabled className="bg-muted" />
-              <p className="mt-1 text-xs text-muted-foreground">El email no se puede modificar</p>
+              <p className="mt-1 text-xs text-muted-foreground">El email no se puede modificar.</p>
             </div>
             <div className="flex flex-col gap-2">
               <Label>Avatar</Label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-4 lg:grid-cols-6">
                 {BOTTTs_NEUTRAL_AVATARS.map((a) => (
                   <button
                     key={a.id}
@@ -70,17 +101,17 @@ export default function WorkProfilePage() {
                     aria-label={`Seleccionar avatar ${a.seed}`}
                     disabled={saving}
                     className={cn(
-                      "relative rounded-xl border bg-card p-2 transition-all hover:border-primary/40",
+                      "relative flex items-center justify-center rounded-xl border bg-card p-2 transition-all hover:border-primary/40",
                       selectedAvatar === a.src ? "border-primary bg-primary/10 shadow-sm" : "border-border"
                     )}
                   >
-                    <img alt="" src={a.src} className="h-10 w-10 rounded-full" />
+                    <img alt="" src={a.src} className="h-10 w-10 sm:h-12 sm:w-12 rounded-full" />
                   </button>
                 ))}
               </div>
             </div>
-            <Button onClick={handleSave} className="self-start" disabled={saving}>
-              {saving ? "Guardando..." : "Guardar"}
+            <Button onClick={handleSave} className="self-start mt-4" disabled={saving}>
+              {saving ? "Guardando..." : "Guardar cambios"}
             </Button>
           </CardContent>
         </Card>
@@ -88,10 +119,15 @@ export default function WorkProfilePage() {
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Resumen</CardTitle></CardHeader>
           <CardContent className="flex flex-col items-center gap-3">
-            <img alt="" src={selectedAvatar} className="h-16 w-16 rounded-full border border-border bg-muted/20" />
-            <p className="text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
-            <Badge>Empleado</Badge>
+            <img alt="" src={selectedAvatar} className="h-20 w-20 rounded-full border border-border bg-muted/10 object-cover" />
+            <div className="text-center">
+              <p className="text-sm font-medium">{user?.name}</p>
+              <p className="text-xs text-muted-foreground mt-1">{user?.email}</p>
+            </div>
+            <Badge variant="secondary">Empleado</Badge>
+            <p className="text-xs text-muted-foreground mt-2">
+              Miembro desde {user?.created_at ? new Date(user.created_at).toLocaleDateString("es-ES") : "-"}
+            </p>
           </CardContent>
         </Card>
       </div>

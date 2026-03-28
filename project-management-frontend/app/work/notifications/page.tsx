@@ -4,8 +4,10 @@ import { useAuthStore } from "@/stores/authStore"
 import { useDataStore } from "@/stores/dataStore"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Bell, CheckCheck, MessageSquare, UserPlus, ArrowRightLeft, AtSign } from "lucide-react"
+import { Bell, CheckCheck, MessageSquare, UserPlus, ArrowRightLeft, AtSign, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { fetchNotifications, markAllAsRead, markAsRead } from "@/services/notificationService"
 
 const iconMap = {
   task_assigned: Bell,
@@ -13,6 +15,7 @@ const iconMap = {
   invite: UserPlus,
   status_change: ArrowRightLeft,
   mention: AtSign,
+  chat_mention: AtSign,
 }
 
 export default function WorkNotificationsPage() {
@@ -21,9 +24,47 @@ export default function WorkNotificationsPage() {
   const markNotificationRead = useDataStore((s) => s.markNotificationRead)
   const markAllNotificationsRead = useDataStore((s) => s.markAllNotificationsRead)
 
+  const setNotifications = useDataStore((s) => s.setNotifications)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadNotifications() {
+      setIsLoading(true)
+      const data = await fetchNotifications()
+      if (data) {
+        setNotifications(data)
+      }
+      setIsLoading(false)
+    }
+    loadNotifications()
+  }, [setNotifications])
+
   const userId = session?.user?.id
   const userNotifs = notifications.filter((n) => n.user_id === userId).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   const unreadCount = userNotifs.filter((n) => !n.read).length
+
+  const handleMarkAllRead = async () => {
+    if (!userId) return
+    const success = await markAllAsRead()
+    if (success) {
+      markAllNotificationsRead(userId)
+    }
+  }
+
+  const handleMarkRead = async (id: string) => {
+    const success = await markAsRead(id)
+    if (success) {
+      markNotificationRead(id)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,7 +74,7 @@ export default function WorkNotificationsPage() {
           <p className="text-muted-foreground">{unreadCount} sin leer</p>
         </div>
         {unreadCount > 0 && (
-          <Button variant="outline" className="gap-2" onClick={() => userId && markAllNotificationsRead(userId)}>
+          <Button variant="outline" className="gap-2" onClick={handleMarkAllRead}>
             <CheckCheck className="h-4 w-4" /> Marcar todas como leidas
           </Button>
         )}
@@ -58,7 +99,7 @@ export default function WorkNotificationsPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {!n.read && (
-                      <Button variant="ghost" size="sm" onClick={() => markNotificationRead(n.id)} className="text-xs">Leida</Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleMarkRead(n.id)} className="text-xs">Leida</Button>
                     )}
                     {n.link && (
                       <Link href={n.link}><Button variant="outline" size="sm" className="text-xs">Ver</Button></Link>

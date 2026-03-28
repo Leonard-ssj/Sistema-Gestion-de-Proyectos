@@ -46,6 +46,11 @@ from .audit_log_schema import (
     AuditLogSchema,
     AuditLogWithUserSchema
 )
+from .team_message_schema import (
+    TeamMessageSchema,
+    TeamMessageCreateSchema,
+    TeamMessageWithUserSchema
+)
 
 __all__ = [
     # User schemas
@@ -87,4 +92,8 @@ __all__ = [
     # Audit log schemas
     'AuditLogSchema',
     'AuditLogWithUserSchema',
+    # Team message schemas
+    'TeamMessageSchema',
+    'TeamMessageCreateSchema',
+    'TeamMessageWithUserSchema',
 ]

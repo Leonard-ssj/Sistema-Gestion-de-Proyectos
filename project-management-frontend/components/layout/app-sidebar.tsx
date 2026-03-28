@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils"
 import { useUIStore } from "@/stores/uiStore"
 import {
   LayoutDashboard, ListTodo, Columns3, CalendarDays, GanttChart,
-  BarChart3, Users, Settings, UserCircle, FolderKanban, ChevronLeft
+  BarChart3, Users, Settings, UserCircle, FolderKanban, ChevronLeft,
+  MessageSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -16,6 +17,7 @@ const ownerNav = [
   { label: "Board", href: "/app/board", icon: Columns3 },
   { label: "Timeline", href: "/app/timeline", icon: GanttChart },
   { label: "Calendario", href: "/app/calendar", icon: CalendarDays },
+  { label: "Chat de Equipo", href: "/app/chat", icon: MessageSquare },
   { label: "Reportes", href: "/app/reports", icon: BarChart3 },
   { label: "Equipo", href: "/app/team", icon: Users },
   { label: "Configuracion", href: "/app/settings", icon: Settings },
@@ -26,6 +28,7 @@ const employeeNav = [
   { label: "Mis Tareas", href: "/work/my-tasks", icon: ListTodo },
   { label: "Board", href: "/work/board", icon: Columns3 },
   { label: "Timeline", href: "/work/timeline", icon: GanttChart },
+  { label: "Chat de Equipo", href: "/work/chat", icon: MessageSquare },
   { label: "Perfil", href: "/work/profile", icon: UserCircle },
 ]
 

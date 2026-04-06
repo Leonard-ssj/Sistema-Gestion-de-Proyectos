@@ -168,64 +168,76 @@ export default function TimelinePage() {
   }, [startDateTask, sprintEnabled, sprintById])
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Timeline</h1>
-        <p className="text-muted-foreground">Vista cronologica de las tareas del proyecto</p>
+    <div className="flex flex-col gap-[24px] relative z-[1]">
+      <div className="flex flex-wrap items-center justify-between gap-[16px]">
+        <div>
+          <h1 className="text-[36px] font-[600] mb-[10px] text-admin-dark">Timeline</h1>
+          <ul className="flex items-center gap-[16px]">
+            <li><Link href="/app/dashboard" className="text-admin-dark-grey hover:opacity-80 transition-opacity">Dashboard</Link></li>
+            <li><span className="text-admin-dark-grey">{'>'}</span></li>
+            <li><span className="text-admin-blue font-medium">Timeline</span></li>
+          </ul>
+        </div>
       </div>
+      
+      <p className="text-admin-dark-grey font-medium">Vista cronologica de las tareas del proyecto.</p>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
-          <div className="grid gap-2">
-            <Label>Buscar</Label>
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Título o descripción" />
-          </div>
-          <div className="grid gap-2">
-            <Label>Estado</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Asignado a</Label>
-            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="unassigned">Sin asignar</SelectItem>
-                {teamUsers.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Sprint</Label>
-            <Select value={sprintFilter} onValueChange={setSprintFilter} disabled={!sprintEnabled}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="backlog">Backlog</SelectItem>
-                {sprints.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Filtrado por sprints: muestra tareas del sprint seleccionado o del Backlog.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-1 rounded-xl bg-white/20 backdrop-blur-md border border-white/40 shadow-sm">
+        <Card className="bg-transparent border-none shadow-none">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-admin-dark-grey">Filtros de Cronograma</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Buscar</Label>
+              <Input 
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)} 
+                placeholder="Título o descripción" 
+                className="h-9 bg-white/50 border-white/30 focus:bg-white/80 transition-colors"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Estado</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 bg-white/50 border-white/30"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Asignado a</Label>
+              <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                <SelectTrigger className="h-9 bg-white/50 border-white/30"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="unassigned">Sin asignar</SelectItem>
+                  {teamUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Sprint</Label>
+              <Select value={sprintFilter} onValueChange={setSprintFilter} disabled={!sprintEnabled}>
+                <SelectTrigger className="h-9 bg-white/50 border-white/30"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="backlog">Backlog</SelectItem>
+                  {sprints.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {loading ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">Cargando…</CardContent></Card>
@@ -253,29 +265,30 @@ export default function TimelinePage() {
                     const sprint = sprintEnabled && t.sprint_id ? sprintById.get(t.sprint_id) : undefined
                     const sprintCls = sprint ? SPRINT_COLOR_CLASS[sprint.color] : null
                     return (
-                      <Card key={t.id}>
-                        <CardContent className="flex items-center gap-4 p-3">
+                      <Card key={t.id} className="bg-admin-blue border-none shadow-md transition-all hover:scale-[1.01] overflow-hidden group">
+                        <CardContent className="flex items-center gap-4 p-3 relative">
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/20" />
                           <div className="flex-1 min-w-0">
-                            <Link href={`/app/tasks/${t.id}`} className="text-sm font-medium hover:underline">{t.title}</Link>
-                            <div className="mt-1 flex flex-wrap items-center gap-2">
-                              <Badge variant="outline" className={`text-[10px] ${TASK_STATUS_COLORS[t.status]}`}>{TASK_STATUS_LABELS[t.status]}</Badge>
-                              <Badge variant="outline" className={`text-[10px] ${TASK_PRIORITY_COLORS[t.priority]}`}>{TASK_PRIORITY_LABELS[t.priority]}</Badge>
+                            <Link href={`/app/tasks/${t.id}`} className="text-sm font-bold text-white hover:underline drop-shadow-sm">{t.title}</Link>
+                            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                              <Badge variant="outline" className={cn("text-[10px] bg-white/10 border-white/20 text-white", TASK_STATUS_COLORS[t.status])}>{TASK_STATUS_LABELS[t.status]}</Badge>
+                              <Badge variant="outline" className={cn("text-[10px] bg-white/10 border-white/20 text-white", TASK_PRIORITY_COLORS[t.priority])}>{TASK_PRIORITY_LABELS[t.priority]}</Badge>
                               {sprintEnabled ? (
                                 t.sprint_id && sprint ? (
-                                  <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-medium", sprintCls?.pill ?? "border-border bg-muted/40")}>
-                                    <span className={cn("h-2 w-2 rounded-full", sprintCls?.dot ?? "bg-muted-foreground")} />
+                                  <span className={cn("inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-medium transition-colors bg-white/20 border-white/10 text-white")}>
+                                    <span className={cn("h-1.5 w-1.5 rounded-full", sprintCls?.dot?.replace("bg-", "bg-") ?? "bg-white")} />
                                     <span className="truncate">{sprint.name}</span>
                                   </span>
                                 ) : (
-                                  <Badge variant="secondary" className="text-[10px]">Backlog</Badge>
+                                  <Badge variant="secondary" className="text-[10px] bg-white/10 text-white border-white/20 border">Backlog</Badge>
                                 )
                               ) : null}
-                              {assignee ? <span className="text-[10px] text-muted-foreground">{assignee.name}</span> : null}
+                              {assignee ? <span className="text-[10px] text-white/80 ml-1">{assignee.name}</span> : null}
                             </div>
                           </div>
-                          <div className="text-right text-xs text-muted-foreground shrink-0">
+                          <div className="text-right text-xs text-white/90 font-medium shrink-0 bg-white/10 p-1.5 rounded-md border border-white/10">
                             <div>{new Date(t.start_date!).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</div>
-                            {t.due_date && <div className="text-muted-foreground/60">- {new Date(t.due_date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</div>}
+                            {t.due_date && <div className="text-white/60 text-[10px]">- {new Date(t.due_date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</div>}
                           </div>
                         </CardContent>
                       </Card>
@@ -289,7 +302,7 @@ export default function TimelinePage() {
       )}
 
       {isOwner && unscheduledTasks.length > 0 ? (
-        <Card>
+        <Card className="bg-white/30 backdrop-blur-md border border-white/40 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Tareas sin fecha de inicio</CardTitle>
           </CardHeader>

@@ -220,66 +220,78 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Calendario</h1>
-        <p className="text-muted-foreground">Tareas organizadas por fecha de vencimiento</p>
+    <div className="flex flex-col gap-[24px] relative z-[1]">
+      <div className="flex flex-wrap items-center justify-between gap-[16px]">
+        <div>
+          <h1 className="text-[36px] font-[600] mb-[10px] text-admin-dark">Calendario</h1>
+          <ul className="flex items-center gap-[16px]">
+            <li><Link href="/app/dashboard" className="text-admin-dark-grey hover:opacity-80 transition-opacity">Dashboard</Link></li>
+            <li><span className="text-admin-dark-grey">{'>'}</span></li>
+            <li><span className="text-admin-blue font-medium">Calendario</span></li>
+          </ul>
+        </div>
+      </div>
+      
+      <p className="text-admin-dark-grey font-medium">Tareas organizadas por fecha de vencimiento</p>
+
+      <div className="p-1 rounded-xl bg-white/20 backdrop-blur-md border border-white/40 shadow-sm">
+        <Card className="bg-transparent border-none shadow-none">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-admin-dark-grey">Filtros de Calendario</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Buscar</Label>
+              <Input 
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)} 
+                placeholder="Título o descripción" 
+                className="h-9 bg-white/50 border-white/30 focus:bg-white/80 transition-colors"
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Estado</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 bg-white/50 border-white/30"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Asignado a</Label>
+              <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                <SelectTrigger className="h-9 bg-white/50 border-white/30"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="unassigned">Sin asignar</SelectItem>
+                  {teamUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-[11px] font-semibold text-admin-dark/70">Sprint</Label>
+              <Select value={sprintFilter} onValueChange={setSprintFilter} disabled={!sprintEnabled}>
+                <SelectTrigger className="h-9 bg-white/50 border-white/30"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="backlog">Backlog</SelectItem>
+                  {sprints.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
-          <div className="grid gap-2">
-            <Label>Buscar</Label>
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Título o descripción" />
-          </div>
-          <div className="grid gap-2">
-            <Label>Estado</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Asignado a</Label>
-            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="unassigned">Sin asignar</SelectItem>
-                {teamUsers.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label>Sprint</Label>
-            <Select value={sprintFilter} onValueChange={setSprintFilter} disabled={!sprintEnabled}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="backlog">Backlog</SelectItem>
-                {sprints.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Filtrado por sprints: muestra tareas del sprint seleccionado o del Backlog.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
+      <Card className="bg-white/30 backdrop-blur-md border border-white/40 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <Button variant="ghost" size="icon" onClick={prevMonth}><ChevronLeft className="h-4 w-4" /></Button>
           <div className="flex flex-col items-center gap-1">
@@ -320,25 +332,24 @@ export default function CalendarPage() {
                 <div
                   key={i}
                   className={cn(
-                    "min-h-[80px] rounded-lg border p-1",
-                    day ? "bg-background" : "bg-muted/20",
-                    day ? "cursor-pointer hover:shadow-sm" : "",
-                    day && isToday(day) ? "ring-2 ring-primary" : "",
+                    "min-h-[100px] border p-2 transition-all overflow-hidden relative",
+                    day ? "bg-white/40 hover:bg-white/60 cursor-pointer" : "bg-admin-dark-grey/5",
+                    day && isToday(day) ? "ring-2 ring-admin-blue z-[2]" : "border-white/20",
                     day && inSprint ? sprintRangeClass : ""
                   )}
                   onClick={() => day && openDay(day)}
                 >
                   {day && (
                     <>
-                      <span className={`text-xs font-medium ${isToday(day) ? "text-primary font-bold" : "text-muted-foreground"}`}>{day}</span>
-                      <div className="mt-0.5 flex flex-col gap-0.5">
+                      <span className={cn("text-xs font-bold", isToday(day) ? "text-admin-blue" : "text-admin-dark-grey")}>{day}</span>
+                      <div className="mt-1 flex flex-col gap-1">
                         {dayTasks.slice(0, 3).map((t) => {
                           const sp = sprintEnabled && t.sprint_id ? sprintById.get(t.sprint_id) : null
                           const cls = sp ? SPRINT_COLOR_CLASS[sp.color] : null
                           return (
                             <Link key={t.id} href={`/app/tasks/${t.id}`} onClick={(e) => e.stopPropagation()}>
-                              <span className={cn("inline-flex w-full items-center gap-1 rounded-md border px-1 py-0 text-[9px] font-medium", TASK_PRIORITY_COLORS[t.priority])}>
-                                {cls ? <span className={cn("h-1.5 w-1.5 rounded-full", cls.dot)} /> : null}
+                              <span className={cn("inline-flex w-full items-center gap-1 rounded bg-admin-blue px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm transition-transform hover:scale-105")}>
+                                {cls ? <span className={cn("h-1.5 w-1.5 rounded-full", cls.dot?.replace("bg-", "bg-") ?? "bg-white")} /> : <div className="h-1.5 w-1.5 rounded-full bg-white/40" />}
                                 <span className="truncate">{t.title}</span>
                               </span>
                             </Link>

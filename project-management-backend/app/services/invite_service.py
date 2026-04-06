@@ -8,7 +8,9 @@ class InviteService:
     @staticmethod
     def generate_token() -> str:
         """Generar token único para invitación"""
-        return secrets.token_urlsafe(32)
+        token = secrets.token_urlsafe(32)
+        print(f"[SERVICE] Token generado: {token[:10]}...")
+        return token
     
     @staticmethod
     def count_active_employees(project_id: str) -> int:
@@ -100,8 +102,15 @@ class InviteService:
             invite.department = enrichment_data.get('department')
             invite.phone = enrichment_data.get('phone')
         
-        db.session.add(invite)
-        db.session.commit()
+        try:
+            print(f"[SERVICE] Guardando invitación para {email} de {invited_by}")
+            db.session.add(invite)
+            db.session.commit()
+            print(f"[SERVICE] Invitación guardada exitosamente en DB")
+        except Exception as e:
+            print(f"[SERVICE ERROR] Fallo al guardar invitación en DB: {str(e)}")
+            db.session.rollback()
+            raise e
         
         return invite
     

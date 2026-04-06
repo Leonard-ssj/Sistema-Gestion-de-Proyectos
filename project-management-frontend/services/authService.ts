@@ -170,7 +170,7 @@ export async function getMeService(): Promise<User | null> {
   }
 }
 
-export async function updateMeService(data: { name?: string; avatar?: string }): Promise<{ success: boolean; user?: User; error?: string }> {
+export async function updateMeService(data: { name?: string; avatar?: string; preferred_theme?: string }): Promise<{ success: boolean; user?: User; error?: string }> {
   try {
     const response = await api.patch<{ user: any }>('/auth/me', data)
     return { success: true, user: mapUserFromBackend(response.user) }

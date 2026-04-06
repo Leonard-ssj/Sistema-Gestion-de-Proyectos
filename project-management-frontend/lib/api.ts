@@ -60,6 +60,7 @@ async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  console.log(`[API DEBUG] Iniciando petición a ${endpoint}`, { method: options.method, body: options.body })
   // 1. Obtener token
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   
@@ -79,10 +80,12 @@ async function apiClient<T>(
   }
   
   // 3. Hacer peticion
+  console.log(`[API DEBUG] Fetching ${API_URL}${endpoint}...`)
   let response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
   })
+  console.log(`[API DEBUG] Respuesta recibida de ${endpoint}: Status ${response.status}`)
   
   // 4. Manejar 401 (token expirado) - intentar refresh
   if (response.status === 401 && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/login')) {

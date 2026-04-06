@@ -19,6 +19,7 @@ export interface User {
   name: string
   role: Role
   avatar?: string
+  preferred_theme?: string
   job_title?: string
   description?: string
   responsibilities?: string

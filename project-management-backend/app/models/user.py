@@ -19,6 +19,7 @@ class User(db.Model):
     
     # Optional fields
     avatar = db.Column(db.String(500), nullable=True)
+    preferred_theme = db.Column(db.String(50), default='barney', nullable=True)
     
     # Employee profile fields (enrichment data)
     job_title = db.Column(db.String(100), nullable=True)  # Puesto
@@ -71,6 +72,7 @@ class User(db.Model):
             'name': self.name,
             'role': self.role,
             'avatar': self.avatar,
+            'preferred_theme': self.preferred_theme,
             'job_title': self.job_title,
             'description': self.description,
             'responsibilities': self.responsibilities,

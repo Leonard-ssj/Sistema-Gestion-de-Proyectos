@@ -15,6 +15,7 @@ import { Task } from "@/mock/types"
 import { Badge } from "@/components/ui/badge"
 import { UserPlus } from "lucide-react"
 import { api } from "@/lib/api"
+import { cn } from "@/lib/utils"
 
 // Interfaces locales para miembros (simplificadas respecto a la BD)
 interface Member {
@@ -154,11 +155,12 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-white/40 bg-white/20 backdrop-blur-md shadow-lg relative">
+      <div className="absolute top-0 left-0 w-1.5 h-full bg-admin-blue/40" />
       {/* Header */}
-      <div className="border-b px-6 py-4">
-        <h2 className="text-lg font-semibold tracking-tight">Chat del Proyecto</h2>
-        <p className="text-sm text-muted-foreground">Conversa con tu equipo en tiempo real</p>
+      <div className="border-b border-white/10 px-6 py-4 bg-white/10">
+        <h2 className="text-lg font-bold tracking-tight text-admin-dark">Chat del Proyecto</h2>
+        <p className="text-xs font-medium text-admin-dark-grey">Conversa con tu equipo en tiempo real</p>
       </div>
 
       {/* Error / Disabled banner */}
@@ -212,11 +214,12 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
                   )}
 
                   <div
-                    className={`group relative flex max-w-[70%] flex-col rounded-2xl px-4 py-2 text-sm ${
+                    className={cn(
+                      "group relative flex max-w-[75%] flex-col rounded-2xl px-4 py-2.5 text-sm shadow-sm transition-all hover:shadow-md",
                       isMe
-                        ? "bg-primary text-primary-foreground rounded-br-none"
-                        : "bg-muted rounded-bl-none"
-                    }`}
+                        ? "bg-admin-blue text-white rounded-br-none"
+                        : "bg-white text-admin-dark border border-white/40 rounded-bl-none"
+                    )}
                   >
                     {!isMe && showAvatar && (
                       <span className="mb-1 text-xs font-medium text-muted-foreground">
@@ -237,9 +240,12 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
                         )}
                       </div>
                     )}
-                    <span className="whitespace-pre-wrap break-words">{msg.content}</span>
+                    <span className="whitespace-pre-wrap break-words font-medium leading-relaxed">{msg.content}</span>
                     <span 
-                      className={`mt-1 text-[10px] opacity-70 flex items-center justify-end ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                      className={cn(
+                        "mt-1.5 text-[9px] font-bold uppercase tracking-wider flex items-center justify-end",
+                        isMe ? "text-white/60" : "text-admin-dark-grey/60"
+                      )}
                     >
                       {formatTime(msg.created_at)}
                     </span>
@@ -253,7 +259,7 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t bg-background/50">
+      <div className="border-t border-white/10 bg-white/10 backdrop-blur-sm">
         {(selectedTask || mentionedUser) && (
           <div className="px-4 py-2 border-b flex items-center justify-start gap-4 text-xs bg-muted/30">
             {selectedTask && (
@@ -362,10 +368,10 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               disabled={isSending}
-              className="flex-1"
+              className="flex-1 bg-white/50 border-white/30 focus:bg-white/80 transition-colors h-10 font-medium"
               autoComplete="off"
             />
-            <Button type="submit" size="icon" disabled={!newMessage.trim() || isSending}>
+            <Button type="submit" size="icon" disabled={!newMessage.trim() || isSending} className="bg-admin-blue text-white hover:bg-admin-blue/90 h-10 w-10 shadow-md active:scale-95 transition-all">
               {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               <span className="sr-only">Enviar mensaje</span>
             </Button>

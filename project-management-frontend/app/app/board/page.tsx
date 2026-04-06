@@ -17,6 +17,8 @@ import { listSprints } from "@/services/sprintService"
 import type { Sprint } from "@/mock/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { normalizeAvatarUrl } from "@/lib/avatars"
+import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
+import { cn } from "@/lib/utils"
 
 const COLUMNS: TaskStatus[] = ["pending", "in_progress", "in_review", "blocked", "done"]
 
@@ -256,11 +258,17 @@ export default function BoardPage() {
   )
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Board</h1>
-        <p className="text-muted-foreground">Arrastra las tareas entre columnas para cambiar su estado</p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-[24px] relative z-[1]">
+      <div className="flex flex-wrap items-center justify-between gap-[16px]">
+        <div>
+          <h1 className="text-[36px] font-[600] mb-[10px] text-admin-dark">Board</h1>
+          <ul className="flex items-center gap-[16px]">
+            <li><Link href="/app/dashboard" className="text-admin-dark-grey hover:opacity-80 transition-opacity">Dashboard</Link></li>
+            <li><span className="text-admin-dark-grey">{'>'}</span></li>
+            <li><span className="text-admin-blue font-medium">Board</span></li>
+          </ul>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           {sprintEnabled ? (
             <div className="max-w-sm">
               <Select value={sprintFilter} onValueChange={setSprintFilter}>
@@ -282,6 +290,8 @@ export default function BoardPage() {
         </div>
       </div>
 
+      <p className="text-admin-dark-grey mb-4 font-medium">Arrastra las tareas entre columnas para cambiar su estado.</p>
+
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
         {hasError ? (
           <EmptyStateWithRetry />
@@ -291,7 +301,14 @@ export default function BoardPage() {
             return (
               <div
                 key={status}
-                className="min-w-0 flex flex-col rounded-xl border bg-muted/30 p-2"
+                className={cn(
+                  "min-w-0 flex flex-col rounded-xl border border-white/40 bg-white/20 backdrop-blur-md shadow-sm p-3 transition-colors hover:bg-white/30",
+                  status === "pending" && "border-t-4 border-t-admin-dark-grey/40",
+                  status === "in_progress" && "border-t-4 border-t-admin-blue",
+                  status === "in_review" && "border-t-4 border-t-admin-yellow",
+                  status === "blocked" && "border-t-4 border-t-admin-red",
+                  status === "done" && "border-t-4 border-t-admin-green"
+                )}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault()
@@ -299,8 +316,8 @@ export default function BoardPage() {
                   if (taskId) handleDrop(taskId, status)
                 }}
               >
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-[11px] font-semibold">{TASK_STATUS_LABELS[status]}</h3>
+                <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-2">
+                  <h3 className="text-[12px] font-bold text-admin-dark/80 tracking-wide uppercase">{TASK_STATUS_LABELS[status]}</h3>
                   <Badge variant="secondary" className="text-[10px]">
                     {isLoading ? "-" : columnTasks.length}
                   </Badge>
@@ -317,24 +334,27 @@ export default function BoardPage() {
                           key={t.id}
                           draggable
                           onDragStart={(e) => e.dataTransfer.setData("taskId", t.id)}
-                          className="cursor-grab active:cursor-grabbing"
+                          className="cursor-grab active:cursor-grabbing bg-admin-blue border-none shadow-md transition-transform hover:scale-[1.02] relative group overflow-hidden"
                         >
-                          <CardContent className="p-2">
-                            <Link href={`/app/tasks/${t.id}`} className="block truncate text-[11px] font-medium hover:underline">
+                          <div className="absolute top-0 right-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="h-1.5 w-1.5 rounded-full bg-white/50" />
+                          </div>
+                          <CardContent className="p-3">
+                            <Link href={`/app/tasks/${t.id}`} className="block truncate text-[12px] font-semibold text-white hover:underline mb-2">
                               {t.title}
                             </Link>
-                            <div className="mt-1 flex flex-wrap items-center gap-1">
-                              <Badge variant="outline" className={`text-[10px] ${TASK_PRIORITY_COLORS[t.priority]}`}>
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                              <Badge variant="outline" className={cn("text-[10px] bg-white/10 border-white/20 text-white", TASK_PRIORITY_COLORS[t.priority])}>
                                 {TASK_PRIORITY_LABELS[t.priority]}
                               </Badge>
                               {sprintEnabled && t.sprint_id ? (
-                                <Badge variant="secondary" className="max-w-[120px] truncate text-[10px]">
+                                <Badge variant="secondary" className="max-w-[120px] truncate text-[9px] bg-white/20 text-white border-none">
                                   {sprintNameById.get(t.sprint_id) || "Sprint"}
                                 </Badge>
                               ) : null}
                               {t.assigned_to && (
-                                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                  <img alt="" src={normalizeAvatarUrl(assignee?.avatar)} className="h-4 w-4 rounded-full border border-border bg-muted/20" />
+                                <span className="flex items-center gap-1.5 text-[10px] text-white/80 mt-1">
+                                  <img alt="" src={normalizeAvatarUrl(assignee?.avatar)} className="h-4 w-4 rounded-full border border-white/30 bg-white/10" />
                                   <span className="truncate">{assignee ? assignee.name.split(" ")[0] : "Sin asignar"}</span>
                                 </span>
                               )}

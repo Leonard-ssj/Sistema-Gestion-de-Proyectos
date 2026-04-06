@@ -45,12 +45,15 @@ export async function sendInvite(
   email: string, 
   enrichmentData?: InviteEnrichmentData
 ): Promise<{ success: boolean; invite?: Invite; error?: string; message?: string }> {
+  console.log("[SERVICE DEBUG] sendInvite START", { email, enrichmentData })
   try {
     const payload = {
       email,
       ...enrichmentData
     }
+    console.log("[SERVICE DEBUG] Making POST request to /invites", payload)
     const response = await api.post<{ invite: BackendInvite; message: string }>('/invites', payload)
+    console.log("[SERVICE DEBUG] POST response received:", response)
     return {
       success: true,
       invite: mapInviteFromBackend(response.invite),

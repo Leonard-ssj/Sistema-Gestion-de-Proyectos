@@ -35,13 +35,19 @@ export default function OwnerChatPage() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col space-y-4 overflow-hidden">
-      <div className="flex shrink-0 items-center justify-between">
+    <div className="flex h-full w-full flex-col gap-[24px] overflow-hidden relative z-[1]">
+      <div className="flex flex-wrap items-center justify-between gap-[16px] shrink-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Cómite / Equipo</h1>
-          <p className="text-muted-foreground">Comunícate con todos los miembros de tu proyecto</p>
+          <h1 className="text-[36px] font-[600] mb-[10px] text-admin-dark">Comité / Chat</h1>
+          <ul className="flex items-center gap-[16px]">
+            <li><Link href="/app/dashboard" className="text-admin-dark-grey hover:opacity-80 transition-opacity">Dashboard</Link></li>
+            <li><span className="text-admin-dark-grey">{'>'}</span></li>
+            <li><span className="text-admin-blue font-medium">Chat de Equipo</span></li>
+          </ul>
         </div>
       </div>
+      
+      <p className="text-admin-dark-grey font-medium shrink-0">Comunícate con todos los miembros de tu proyecto.</p>
       <div className="flex-1 min-h-0">
         <ChatRoom projectId={projectId} />
       </div>

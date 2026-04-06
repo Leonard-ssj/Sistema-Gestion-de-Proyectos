@@ -4,6 +4,7 @@ import { AppSidebar } from "./app-sidebar"
 import { Topbar } from "./topbar"
 import { RoleGate } from "./role-gate"
 import type { Role } from "@/mock/types"
+import { InteractiveGridBg } from "@/components/ui/interactive-grid-bg"
 
 interface PrivateLayoutProps {
   children: React.ReactNode
@@ -30,9 +31,10 @@ export function PrivateLayout({ children, role, currentPath }: PrivateLayoutProp
     <RoleGate allowedRole={role} currentPath={currentPath}>
       <div className="flex h-screen overflow-hidden">
         <AppSidebar role={role} />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col bg-admin-grey relative z-[0]">
+          <InteractiveGridBg />
           <Topbar />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <main className="flex-1 overflow-y-auto px-[24px] py-[36px] font-poppins relative z-[1]">
             {children}
           </main>
         </div>

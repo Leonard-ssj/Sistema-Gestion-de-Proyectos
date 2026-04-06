@@ -1,80 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme="dark"] *));
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.55 0.2 240);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+:root, [data-theme="light"] {
+  --background: #F7F8F9;
+  --foreground: #101214;
+  --card: #FFFFFF;
+  --card-foreground: #101214;
+  --popover: #FFFFFF;
+  --popover-foreground: #101214;
+  --primary: #1D7AFC;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E2E8F0;
+  --secondary-foreground: #101214;
+  --muted: #E2E8F0;
+  --muted-foreground: #64748b;
+  --accent: #E2E8F0;
+  --accent-foreground: #101214;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #1D7AFC;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #101214;
+  --sidebar-primary: #1D7AFC;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E2E8F0;
+  --sidebar-accent-foreground: #101214;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: #1D7AFC;
+
+  /* AdminHub variables */
+  --admin-poppins: 'Poppins', sans-serif;
+  --admin-lato: 'Lato', sans-serif;
+  --admin-light: #F9F9F9;
+  --admin-blue: #3C91E6;
+  --admin-light-blue: #CFE8FF;
+  --admin-grey: #eee;
+  --admin-dark-grey: #AAAAAA;
+  --admin-dark: #342E37;
+  --admin-red: #DB504A;
+  --admin-yellow: #FFCE26;
+  --admin-light-yellow: #FFF2C6;
+  --admin-orange: #FD7238;
+  --admin-light-orange: #FFE0D3;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.65 0.2 240);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+[data-theme="dark"] {
+  --background: #101214;
+  --foreground: #F8FAFC;
+  --card: #161A1D;
+  --card-foreground: #F8FAFC;
+  --popover: #161A1D;
+  --popover-foreground: #F8FAFC;
+  --primary: #1D7AFC;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1E293B;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  --destructive: #EF4444;
+  --destructive-foreground: #F8FAFC;
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #1D7AFC;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar: #101214;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #1D7AFC;
+  --sidebar-primary-foreground: #F8FAFC;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #F8FAFC;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #1D7AFC;
+
+  /* AdminHub variables (dark mode) */
+  --admin-light: #0C0C1E;
+  --admin-grey: #060714;
+  --admin-dark: #FBFBFB;
 }
 
-@theme inline {
+[data-theme="sunset"] {
+  --background: #151c19;
+  --foreground: #e8edea;
+  --card: #2f3834;
+  --card-foreground: #e8edea;
+  --popover: #2f3834;
+  --popover-foreground: #e8edea;
+  --primary: #C0AB92;
+  --primary-foreground: #151c19;
+  --secondary: #3b4540;
+  --secondary-foreground: #e8edea;
+  --muted: #3b4540;
+  --muted-foreground: #a2adab;
+  --accent: #3b4540;
+  --accent-foreground: #e8edea;
+  --destructive: #EF4444;
+  --destructive-foreground: #e8edea;
+  --border: #3b4540;
+  --input: #3b4540;
+  --ring: #C0AB92;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: #151c19;
+  --sidebar-foreground: #e8edea;
+  --sidebar-primary: #C0AB92;
+  --sidebar-primary-foreground: #151c19;
+  --sidebar-accent: #3b4540;
+  --sidebar-accent-foreground: #e8edea;
+  --sidebar-border: #3b4540;
+  --sidebar-ring: #C0AB92;
+}
+
+[data-theme="sunrise"] {
+  --background: #ecd2c5;
+  --foreground: #4a2c2c;
+  --card: #f3e8e5;
+  --card-foreground: #4a2c2c;
+  --popover: #f3e8e5;
+  --popover-foreground: #4a2c2c;
+  --primary: #a04d66;
+  --primary-foreground: #ffffff;
+  --secondary: #e2c0b5;
+  --secondary-foreground: #4a2c2c;
+  --muted: #e2c0b5;
+  --muted-foreground: #a87e74;
+  --accent: #e2c0b5;
+  --accent-foreground: #4a2c2c;
+  --destructive: #EF4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2c0b5;
+  --input: #e2c0b5;
+  --ring: #a04d66;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: #ecd2c5;
+  --sidebar-foreground: #4a2c2c;
+  --sidebar-primary: #a04d66;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e2c0b5;
+  --sidebar-accent-foreground: #4a2c2c;
+  --sidebar-border: #e2c0b5;
+  --sidebar-ring: #a04d66;
+}
+
+@theme {
   --font-sans: 'Inter', 'Inter Fallback', sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
@@ -113,6 +204,21 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* AdminHub theme variables */
+  --color-admin-light: var(--admin-light);
+  --color-admin-blue: var(--admin-blue);
+  --color-admin-light-blue: var(--admin-light-blue);
+  --color-admin-grey: var(--admin-grey);
+  --color-admin-dark-grey: var(--admin-dark-grey);
+  --color-admin-dark: var(--admin-dark);
+  --color-admin-red: var(--admin-red);
+  --color-admin-yellow: var(--admin-yellow);
+  --color-admin-light-yellow: var(--admin-light-yellow);
+  --color-admin-orange: var(--admin-orange);
+  --color-admin-light-orange: var(--admin-light-orange);
+  --font-lato: var(--admin-lato);
+  --font-poppins: var(--admin-poppins);
 }
 
 @layer base {
@@ -185,8 +291,40 @@
   animation: floaty 7s ease-in-out infinite;
 }
 
-.animate-float-slow {
-  animation: floaty 14s ease-in-out infinite;
+/* ── Dashed animated border (background-image technique) ─────────────── */
+@keyframes dashedBorderAnim {
+  from { background-position: 0 0, -20px 0, 100% -20px, 0 100%; }
+  to   { background-position: 0 -20px, 0 0, 100% 0, -20px 100%; }
+}
+
+/* lento en reposo, rápido en hover */
+.dashed-border {
+  --dash-clr: color-mix(in srgb, var(--primary) 55%, transparent);
+  --dash-w: 2px;
+  --dash-on: 10px;
+  --dash-off: 10px;
+  border: none !important;
+  background-color: var(--card);
+  background-image:
+    repeating-linear-gradient(0deg,   var(--dash-clr), var(--dash-clr) var(--dash-on), transparent var(--dash-on), transparent calc(var(--dash-on) + var(--dash-off))),
+    repeating-linear-gradient(90deg,  var(--dash-clr), var(--dash-clr) var(--dash-on), transparent var(--dash-on), transparent calc(var(--dash-on) + var(--dash-off))),
+    repeating-linear-gradient(180deg, var(--dash-clr), var(--dash-clr) var(--dash-on), transparent var(--dash-on), transparent calc(var(--dash-on) + var(--dash-off))),
+    repeating-linear-gradient(270deg, var(--dash-clr), var(--dash-clr) var(--dash-on), transparent var(--dash-on), transparent calc(var(--dash-on) + var(--dash-off)));
+  background-size:
+    var(--dash-w) calc(100% + var(--dash-on) + var(--dash-off)),
+    calc(100% + var(--dash-on) + var(--dash-off)) var(--dash-w),
+    var(--dash-w) calc(100% + var(--dash-on) + var(--dash-off)),
+    calc(100% + var(--dash-on) + var(--dash-off)) var(--dash-w);
+  background-position: 0 0, -20px 0, 100% -20px, 0 100%;
+  background-repeat: no-repeat;
+  animation: dashedBorderAnim 3s infinite linear;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.dashed-border:hover {
+  --dash-clr: color-mix(in srgb, var(--primary) 85%, transparent);
+  animation-duration: 1s;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .bg-noise {
@@ -209,4 +347,97 @@
 .rdp-cell {
   width: var(--rdp-cell-size);
   height: var(--rdp-cell-size);
+}
+
+/* ── View Transitions (Theme Toggle) ─────────────── */
+/* Disable default cross-fade animations on root */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(root) {
+  animation: none;
+  z-index: 2147483646;
+}
+
+/* Ensure the new generic theme content rests on top, we will animate its clip-path via JS */
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* Reverse z-index for dark mode if we want the dark to reveal the light, but the script usually handles animation on new(root) */
+/* .dark::view-transition-old(root) { z-index: 2; } */
+/* .dark::view-transition-new(root) { z-index: 1; } */
+
+/* Animated Search Component CSS */
+.finder-icon {
+  width: 40px;
+  height: 40px;
+  transition: all 0.2s;
+  box-shadow: inset 0 0 0 20px var(--color-admin-dark);
+  border-radius: 50%;
+  position: relative;
+}
+
+.finder-icon::after,
+.finder-icon::before {
+  display: block;
+  content: '';
+  position: absolute;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.finder-icon::after {
+  width: 10px;
+  height: 10px;
+  background-color: var(--color-admin-dark);
+  border: 3px solid var(--color-admin-light);
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0px;
+  right: 0;
+  margin: auto;
+  border-radius: 50%;
+}
+
+.active .finder-icon::after {
+  border-width: 10px;
+  background-color: var(--color-admin-light);
+}
+
+.finder-icon::before {
+  width: 4px;
+  height: 13px;
+  background-color: var(--color-admin-light);
+  top: 50%;
+  left: 20px;
+  transform: rotateZ(45deg) translate(-50%, 0);
+  transform-origin: 0 0;
+  border-radius: 4px;
+}
+
+.active .finder-icon::before {
+  background-color: var(--color-admin-dark);
+  width: 6px;
+  transform: rotateZ(45deg) translate(-50%, 25px);
+}
+
+.processing .finder-icon {
+  transform-origin: 50%;
+  animation: finder-spinner 0.3s linear infinite;
+  animation-delay: 0.5s;
+}
+
+.active .finder-icon {
+  transform: translateY(-5px);
+}
+
+@keyframes finder-spinner {
+  0% { transform: rotateZ(45deg); }
+  100% { transform: rotateZ(405deg); }
 }

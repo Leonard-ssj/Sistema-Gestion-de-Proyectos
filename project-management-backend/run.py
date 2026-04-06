@@ -30,7 +30,13 @@ migrate.init_app(app, db)
 jwt = JWTManager(app)
 
 # CORS
-CORS(app, origins=[os.getenv('FRONTEND_URL', 'http://localhost:3000')])
+allowed_origins = [
+    os.getenv('FRONTEND_URL', 'http://localhost:3000'),
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001'
+]
+CORS(app, origins=allowed_origins)
 
 # Middleware para logging de requests
 @app.before_request
@@ -48,6 +54,18 @@ from app.models import User, Project, Membership, Task, Sprint, Invite, Notifica
 
 # Importar rutas
 from app.routes import auth_bp, projects_bp, invites_bp, members_bp, tasks_bp, sprints_bp, notifications_bp, comments_bp, admin_bp, team_chat_bp
+
+def ensure_user_schema():
+    columns = db.session.execute(text("""
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'users'
+    """)).fetchall()
+    existing = {row[0] for row in columns}
+    
+    if 'preferred_theme' not in existing:
+        db.session.execute(text("ALTER TABLE users ADD COLUMN preferred_theme VARCHAR(50) DEFAULT 'barney'"))
+        db.session.commit()
 
 def ensure_project_schema():
     columns = db.session.execute(text("""
@@ -283,6 +301,7 @@ if __name__ == '__main__':
             # Crear todas las tablas
             print('\nCreando tablas en la base de datos...')
             db.create_all()
+            ensure_user_schema()
             ensure_project_schema()
             print('✓ Tablas creadas exitosamente\n')
             

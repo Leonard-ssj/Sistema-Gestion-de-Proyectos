@@ -271,13 +271,12 @@ with app.app_context():
         try:
             if 'task_id' not in columns:
                 logger.info("Añadiendo columna 'task_id' a la tabla 'team_messages'...")
-                # Agregamos la columna y la foreign key (esto puede variar dependiendo la bbdd)
                 if db.engine.dialect.name == 'sqlite':
                      db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36);'))
                 else:
                      db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36) REFERENCES tasks(id) ON DELETE SET NULL;'))
                 logger.info("Migración completada para 'task_id'")
-            
+
             if 'mentioned_user_id' not in columns:
                 logger.info("Añadiendo columna 'mentioned_user_id' a la tabla 'team_messages'...")
                 if db.engine.dialect.name == 'sqlite':
@@ -285,11 +284,57 @@ with app.app_context():
                 else:
                      db.session.execute(text('ALTER TABLE team_messages ADD COLUMN mentioned_user_id VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL;'))
                 logger.info("Migración completada para 'mentioned_user_id'")
-            
+
             db.session.commit()
         except Exception as e:
             logger.error(f"Error al añadir columnas a team_messages: {e}")
             db.session.rollback()
+
+    # 3. Migración para users: columnas de perfil de empleado y preferred_theme
+    if 'users' in inspector.get_table_names():
+        user_columns = [c['name'] for c in inspector.get_columns('users')]
+        try:
+            user_alters = []
+            if 'preferred_theme' not in user_columns:
+                user_alters.append("ADD COLUMN preferred_theme VARCHAR(50) DEFAULT 'barney'")
+            if 'job_title' not in user_columns:
+                user_alters.append("ADD COLUMN job_title VARCHAR(100) NULL")
+            if 'description' not in user_columns:
+                user_alters.append("ADD COLUMN description TEXT NULL")
+            if 'responsibilities' not in user_columns:
+                user_alters.append("ADD COLUMN responsibilities TEXT NULL")
+            if 'skills' not in user_columns:
+                user_alters.append("ADD COLUMN skills TEXT NULL")
+            if 'department' not in user_columns:
+                user_alters.append("ADD COLUMN department VARCHAR(100) NULL")
+            if 'phone' not in user_columns:
+                user_alters.append("ADD COLUMN phone VARCHAR(20) NULL")
+            if user_alters:
+                logger.info(f"Añadiendo columnas a 'users': {user_alters}")
+                db.session.execute(text(f"ALTER TABLE users {', '.join(user_alters)}"))
+                db.session.commit()
+                logger.info("Migración de columnas de usuario completada")
+        except Exception as e:
+            logger.error(f"Error en migración de columnas de usuario: {e}")
+            db.session.rollback()
+
+        # shift enum se maneja aparte por requerir CREATE TYPE
+        if 'shift' not in user_columns:
+            try:
+                db.session.execute(text("""
+                    DO $$
+                    BEGIN
+                      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'employee_shift') THEN
+                        CREATE TYPE employee_shift AS ENUM('morning', 'afternoon', 'night', 'flexible');
+                      END IF;
+                    END $$;
+                """))
+                db.session.execute(text("ALTER TABLE users ADD COLUMN shift employee_shift NULL"))
+                db.session.commit()
+                logger.info("Migración: columna 'shift' añadida a users")
+            except Exception as e:
+                logger.error(f"Error añadiendo columna 'shift': {e}")
+                db.session.rollback()
 
 if __name__ == '__main__':
     with app.app_context():

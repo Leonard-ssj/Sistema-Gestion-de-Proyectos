@@ -3,11 +3,13 @@ from sqlalchemy import text
 
 
 def main():
-    from wsgi import app, db, ensure_project_schema
+    from wsgi import app, db, ensure_project_schema, ensure_user_schema
 
     with app.app_context():
         db.session.execute(text("SELECT 1"))
         db.create_all()
+        if callable(ensure_user_schema):
+            ensure_user_schema()
         if callable(ensure_project_schema):
             ensure_project_schema()
 

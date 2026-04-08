@@ -166,7 +166,9 @@ def register():
                 'message': 'Error interno del servidor'
             }
         }), 500
-    except Exception:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return jsonify({
             'success': False,
@@ -326,7 +328,9 @@ def login():
                 'message': 'Error interno del servidor'
             }
         }), 500
-    except Exception:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return jsonify({
             'success': False,

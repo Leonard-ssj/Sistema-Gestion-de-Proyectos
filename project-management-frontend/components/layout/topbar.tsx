@@ -185,7 +185,7 @@ export const Topbar = memo(function Topbar() {
       </label>
 
       {/* Notification Dropdown */}
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={(open) => { setNotifOpen(open); if (open) loadPreview() }}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative text-admin-dark hover:bg-admin-grey/50 rounded-full shrink-0 transition-transform duration-150 hover:scale-110 active:scale-95">
             <Bell className="h-[20px] w-[20px]" />

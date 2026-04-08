@@ -117,17 +117,9 @@ export default function TeamPage() {
 
   async function handleInvite() {
     toast.info("Iniciando envío de invitación...")
-    console.log("[FRONTEND DEBUG] handleInvite INIT", { 
-      inviteEmailNormalized, 
-      projectId, 
-      inviteEmailValid,
-      inviteData 
-    })
-    
     if (!inviteEmailNormalized || !projectId) {
       const reason = !inviteEmailNormalized ? "email vacío" : "projectId faltante"
       toast.error(`Error: ${reason}`)
-      console.warn("[FRONTEND WARN] handleInvite abort:", reason, { inviteEmailNormalized, projectId })
       return
     }
 
@@ -211,7 +203,6 @@ export default function TeamPage() {
       if (inviteData.department) enrichmentData.department = inviteData.department.trim()
       enrichmentData.phone = normalizedPhone
       
-      console.log("[FRONTEND] Preparando invitación:", { email: inviteEmailNormalized, ...enrichmentData })
       const result = await sendInvite(inviteEmailNormalized, Object.keys(enrichmentData).length > 0 ? enrichmentData : undefined)
       
       if (!result.success) {

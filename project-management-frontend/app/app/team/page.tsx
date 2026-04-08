@@ -771,10 +771,10 @@ export default function TeamPage() {
               <Card 
                 className="group h-full relative overflow-hidden transition-all duration-500 hover:shadow-xl border-none bg-admin-blue shadow-md hover:scale-[1.02]"
               >
-                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                   <User className="h-24 w-24 text-white" />
                 </div>
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-white/20 group-hover:w-2 transition-all" />
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-white/20 group-hover:w-2 transition-all pointer-events-none" />
                 <CardContent className="p-5 flex flex-col gap-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">

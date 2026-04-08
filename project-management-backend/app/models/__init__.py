@@ -9,6 +9,7 @@ from app.models.invite import Invite
 from app.models.notification import Notification
 from app.models.comment import Comment
 from app.models.audit_log import AuditLog
+from app.models.team_message import TeamMessage
 
 __all__ = [
     'User',
@@ -19,5 +20,6 @@ __all__ = [
     'Invite',
     'Notification',
     'Comment',
-    'AuditLog'
+    'AuditLog',
+    'TeamMessage'
 ]

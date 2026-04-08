@@ -24,6 +24,7 @@ def _normalize_database_url(raw_url: str | None) -> str | None:
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
     
     DB_HOST = os.getenv('DB_HOST')
     DB_PORT = os.getenv('DB_PORT')
@@ -42,7 +43,7 @@ class Config:
     SQLALCHEMY_ECHO = os.getenv('SQLALCHEMY_ECHO', 'false').lower() == 'true'
     
     # JWT Configuration
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)  # 15 minutos
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=2)  # 2 horas (Desarrollo)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)  # 7 días
     JWT_TOKEN_LOCATION = ['headers']
     JWT_HEADER_NAME = 'Authorization'

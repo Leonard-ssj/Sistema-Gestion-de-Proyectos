@@ -19,6 +19,9 @@ class Membership(db.Model):
     # Status: active, disabled
     status = db.Column(db.Enum('active', 'disabled', name='membership_status'), default='active', nullable=False)
     
+    # Permissions
+    chat_enabled = db.Column(db.Boolean, default=True, nullable=False)
+    
     # Timestamps
     joined_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
@@ -41,5 +44,6 @@ class Membership(db.Model):
             'project_id': self.project_id,
             'role': self.role,
             'status': self.status,
+            'chat_enabled': self.chat_enabled,
             'joined_at': self.joined_at.isoformat() if self.joined_at else None
         }

@@ -713,11 +713,16 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-[24px] relative z-[1]">
+      <div className="flex flex-wrap items-start justify-between gap-[16px]">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tareas</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-[36px] font-[600] mb-[10px] text-admin-dark">Tareas</h1>
+          <ul className="flex items-center gap-[16px]">
+            <li><Link href="/app/dashboard" className="text-admin-dark-grey hover:opacity-80 transition-opacity">Dashboard</Link></li>
+            <li><span className="text-admin-dark-grey">{'>'}</span></li>
+            <li><span className="text-admin-blue font-medium">Tareas</span></li>
+          </ul>
+          <p className="text-admin-dark-grey font-medium mt-4">
             {filtered.length} {filtered.length === 1 ? "tarea encontrada" : "tareas encontradas"}
             {tasks.length !== filtered.length && ` de ${tasks.length} total`}
           </p>
@@ -998,54 +1003,56 @@ export default function TasksPage() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Buscar tareas..." 
-              value={search} 
-              onChange={(e) => setSearch(e.target.value)} 
-              className="pl-9" 
-            />
+        <div className="flex flex-col gap-3 p-4 rounded-xl bg-white/20 backdrop-blur-md border border-white/40 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-dark-grey" />
+              <Input 
+                placeholder="Buscar tareas..." 
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)} 
+                className="pl-9 bg-white/50 border-white/30 focus:bg-white/80 transition-colors" 
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40 bg-white/50 border-white/30"><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-full sm:w-40 bg-white/50 border-white/30"><SelectValue placeholder="Prioridad" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las prioridades</SelectItem>
+                {Object.entries(TASK_PRIORITY_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={assignedFilter} onValueChange={setAssignedFilter}>
+              <SelectTrigger className="w-full sm:w-40 bg-white/50 border-white/30"><SelectValue placeholder="Asignado" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="unassigned">Sin asignar</SelectItem>
+                {teamMembers.map((u) => u && (
+                  <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Estado" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Prioridad" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las prioridades</SelectItem>
-              {Object.entries(TASK_PRIORITY_LABELS).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={assignedFilter} onValueChange={setAssignedFilter}>
-            <SelectTrigger className="w-full sm:w-40"><SelectValue placeholder="Asignado" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="unassigned">Sin asignar</SelectItem>
-              {teamMembers.map((u) => u && (
-                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {hasActiveFilters && (
+            <div className="flex items-center gap-2 border-t border-white/10 pt-2">
+              <span className="text-xs font-semibold text-admin-dark-grey uppercase tracking-wider">Filtros activos:</span>
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 gap-1 text-admin-blue hover:text-admin-blue/80 hover:bg-admin-blue/10">
+                <X className="h-3 w-3" />
+                Limpiar filtros
+              </Button>
+            </div>
+          )}
         </div>
-        {hasActiveFilters && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Filtros activos:</span>
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 gap-1">
-              <X className="h-3 w-3" />
-              Limpiar filtros
-            </Button>
-          </div>
-        )}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -1064,23 +1071,24 @@ export default function TasksPage() {
             const isOverdue = t.due_date && new Date(t.due_date) < new Date() && t.status !== "done"
             
             return (
-              <Card key={t.id} className="transition-shadow hover:shadow-md">
+              <Card key={t.id} className="transition-all duration-300 hover:shadow-lg border-none bg-admin-blue shadow-md group relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-white/20 group-hover:w-1.5 transition-all" />
                 <CardContent className="flex items-start gap-4 p-4">
                   <div className="flex-1 min-w-0 space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <Link href={`/app/tasks/${t.id}`} className="text-base font-semibold hover:underline">
+                      <Link href={`/app/tasks/${t.id}`} className="text-base font-bold text-white hover:underline">
                         {t.title}
                       </Link>
                     </div>
                     
                     {t.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{t.description}</p>
+                      <p className="text-sm text-white/70 line-clamp-2 italic">{t.description}</p>
                     )}
                     
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
                       <Select value={t.status} onValueChange={(v) => handleQuickStatusChange(t.id, v as TaskStatus)}>
-                        <SelectTrigger className="h-7 w-auto gap-1 border-0 px-2">
-                          <Badge variant="outline" className={TASK_STATUS_COLORS[t.status]}>
+                        <SelectTrigger className="h-7 w-auto gap-1 border-white/20 bg-white/10 px-2 text-white hover:bg-white/20">
+                          <Badge variant="outline" className={cn("border-none text-[10px] text-white", TASK_STATUS_COLORS[t.status])}>
                             {TASK_STATUS_LABELS[t.status]}
                           </Badge>
                         </SelectTrigger>
@@ -1091,7 +1099,7 @@ export default function TasksPage() {
                         </SelectContent>
                       </Select>
                       
-                      <Badge variant="outline" className={TASK_PRIORITY_COLORS[t.priority]}>
+                      <Badge variant="outline" className={cn("text-[10px] bg-white/10 border-white/20 text-white", TASK_PRIORITY_COLORS[t.priority])}>
                         {TASK_PRIORITY_LABELS[t.priority]}
                       </Badge>
 
@@ -1103,32 +1111,33 @@ export default function TasksPage() {
                             return (
                               <span
                                 className={cn(
-                                  "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium",
-                                  cls?.pill ?? "border-border bg-muted/40 text-foreground"
+                                  "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-medium transition-colors",
+                                  cls?.pill?.replace("bg-", "bg-white/20 border-") ?? "border-white/20 bg-white/10 text-white"
                                 )}
+                                style={{ color: 'white' }}
                                 title={sp?.name || "Sprint"}
                               >
-                                <span className={cn("h-2 w-2 rounded-full", cls?.dot ?? "bg-muted-foreground")} />
+                                <span className={cn("h-1.5 w-1.5 rounded-full", cls?.dot ?? "bg-white")} />
                                 <span className="truncate">{sp?.name || sprintNameById.get(t.sprint_id) || "Sprint"}</span>
                               </span>
                             )
                           })()
                         ) : (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-[10px] bg-white/10 border-white/20 text-white border">
                             Backlog
                           </Badge>
                         )
                       ) : null}
                       
                       {assignee && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <img alt="" className="h-5 w-5 rounded-full border border-border bg-muted/20 object-cover" src={normalizeAvatarUrl(assignee.avatar)} />
+                        <div className="flex items-center gap-2 text-[11px] text-white/90">
+                          <img alt="" className="h-5 w-5 rounded-full border border-white/30 bg-white/10 object-cover" src={normalizeAvatarUrl(assignee.avatar)} />
                           <span>{assignee.name}</span>
                         </div>
                       )}
                       
                       {t.due_date && (
-                        <span className={`text-xs ${isOverdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+                        <span className={cn("text-[11px] px-2 py-0.5 rounded bg-white/10 border border-white/20", isOverdue ? "text-red-200 font-bold bg-admin-red/40" : "text-white/80")}>
                           {isOverdue ? "⚠️ Vencida: " : "📅 Vence: "}
                           {new Date(t.due_date).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
@@ -1150,7 +1159,7 @@ export default function TasksPage() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground" 
+                      className="h-8 w-8 text-white/60 hover:text-white hover:bg-white/10" 
                       onClick={() => openEditDialog(t)}
                     >
                       <Edit className="h-4 w-4" />
@@ -1158,7 +1167,7 @@ export default function TasksPage() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive" 
+                      className="h-8 w-8 text-white/40 hover:text-white hover:bg-admin-red" 
                       onClick={() => handleDelete(t.id)}
                       disabled={isDeleting}
                     >

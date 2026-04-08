@@ -11,12 +11,16 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Switch } from "@/components/ui/switch"
 import { UserPlus, Mail, Shield, User, Loader2, RefreshCw, Trash2, Edit, Copy, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import { sendInvite, listInvites, resendInvite, cancelInvite } from "@/services/inviteService"
 import { listMembers, updateMemberProfile, deactivateMember, activateMember, type MemberProfileUpdateData } from "@/services/memberService"
 import type { Invite, Membership } from "@/mock/types"
 import { normalizeAvatarUrl } from "@/lib/avatars"
+import { cn } from "@/lib/utils"
+import { FadeInStagger, FadeInItem } from "@/components/ui/fade-in"
+import Link from "next/link"
 
 export default function TeamPage() {
   const session = useAuthStore((s) => s.session)
@@ -67,7 +71,8 @@ export default function TeamPage() {
     skills: "",
     shift: "" as "" | "morning" | "afternoon" | "night" | "flexible",
     department: "",
-    phone: ""
+    phone: "",
+    chat_enabled: true
   })
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
@@ -111,7 +116,12 @@ export default function TeamPage() {
   }
 
   async function handleInvite() {
-    if (!inviteEmailNormalized || !projectId) return
+    toast.info("Iniciando envío de invitación...")
+    if (!inviteEmailNormalized || !projectId) {
+      const reason = !inviteEmailNormalized ? "email vacío" : "projectId faltante"
+      toast.error(`Error: ${reason}`)
+      return
+    }
 
     if (!inviteEmailValid) {
       toast.error("Ingresa un email válido")
@@ -334,7 +344,8 @@ export default function TeamPage() {
       skills: member.user?.skills || "",
       shift: member.user?.shift || "",
       department: member.user?.department || "",
-      phone: member.user?.phone || ""
+      phone: member.user?.phone || "",
+      chat_enabled: member.chat_enabled !== undefined ? member.chat_enabled : true
     })
     setEditDialogOpen(true)
   }
@@ -401,6 +412,7 @@ export default function TeamPage() {
       if (editData.shift) updateData.shift = editData.shift
       if (editData.department) updateData.department = editData.department
       if (editData.phone) updateData.phone = editData.phone
+      updateData.chat_enabled = editData.chat_enabled
       
       const userId = editingMember.user?.id || editingMember.user_id || editingMember.id
       const result = await updateMemberProfile(userId, updateData)
@@ -434,12 +446,17 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-[24px] relative z-[1]">
+      <div className="flex flex-wrap items-start justify-between gap-[16px]">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Equipo</h1>
-          <p className="text-muted-foreground">
-            {activeMembers} miembros activos {pendingInvites > 0 && `+ ${pendingInvites} invitaciones pendientes`} ({totalMembers}/10)
+          <h1 className="text-[36px] font-[600] mb-[10px] text-admin-dark">Equipo</h1>
+          <ul className="flex items-center gap-[16px]">
+            <li><Link href="/app/dashboard" className="text-admin-dark-grey hover:opacity-80 transition-opacity">Dashboard</Link></li>
+            <li><span className="text-admin-dark-grey">{'>'}</span></li>
+            <li><span className="text-admin-blue font-medium">Equipo</span></li>
+          </ul>
+          <p className="text-admin-dark-grey font-medium mt-4">
+            {activeMembers} miembros activos {pendingInvites > 0 && `+ ${pendingInvites} invitaciones pendientes`} ({totalMembers}/{teamLimit})
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -692,6 +709,20 @@ export default function TeamPage() {
                 />
                 <p className="text-xs text-muted-foreground mt-1">Incluye código de país (Ej: +52 para México)</p>
               </div>
+
+              <div className="mt-4 flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Permiso de Chat</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Define si este empleado puede participar en el chat del equipo.
+                  </p>
+                </div>
+                <Switch
+                  checked={editData.chat_enabled}
+                  onCheckedChange={(c) => setEditData({ ...editData, chat_enabled: c })}
+                  disabled={loading}
+                />
+              </div>
             </div>
             
             <Button onClick={handleUpdateMember} disabled={!editData.name.trim() || loading} className="mt-2">
@@ -702,175 +733,175 @@ export default function TeamPage() {
         </DialogContent>
       </Dialog>
 
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Miembros del Proyecto</CardTitle></CardHeader>
-        <CardContent>
-          {members.length === 0 ? (
-            <div className="flex min-h-[200px] items-center justify-center text-muted-foreground">
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold tracking-tight">Miembros del Proyecto</h2>
+        {members.length === 0 ? (
+          <Card>
+            <CardContent className="flex min-h-[200px] items-center justify-center text-muted-foreground pt-6">
               No hay miembros en el proyecto
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <img alt="" src={normalizeAvatarUrl(m.user?.avatar)} className="h-7 w-7 rounded-full border border-border bg-muted/20" />
-                        <span className="font-medium">{m.user?.name || "Desconocido"}</span>
+            </CardContent>
+          </Card>
+        ) : (
+          <FadeInStagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {members.map((m) => (
+              <FadeInItem key={m.id}>
+              <Card 
+                className="group h-full relative overflow-hidden transition-all duration-500 hover:shadow-xl border-none bg-admin-blue shadow-md hover:scale-[1.02]"
+              >
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <User className="h-24 w-24 text-white" />
+                </div>
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-white/20 group-hover:w-2 transition-all" />
+                <CardContent className="p-5 flex flex-col gap-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        alt={m.user?.name || "Avatar"} 
+                        src={normalizeAvatarUrl(m.user?.avatar)} 
+                        className="h-10 w-10 rounded-full border bg-muted object-cover group-hover:scale-105 transition-transform duration-300" 
+                      />
+                      <div className="flex flex-col">
+                        <h3 className="font-bold text-lg leading-tight text-white">{m.user?.name || "Usuario Desconocido"}</h3>
+                        <p className="text-xs text-white/70 mt-1 line-clamp-1 italic">{m.user?.job_title || "Sin puesto definido"}</p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{m.user?.email}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="gap-1">
-                        {m.role === "owner" ? <Shield className="h-3 w-3" /> : <User className="h-3 w-3" />}
-                        {m.role === "owner" ? "Propietario" : "Empleado"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={m.status === "active" ? "default" : "secondary"}>
-                        {m.status === "active" ? "Activo" : "Desactivado"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {m.role === "employee" && (
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditMember(m)}
-                            disabled={loading}
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleMemberStatus(m)}
-                            disabled={loading || statusChangingId === m.id}
-                            title={m.status === "active" ? "Desactivar" : "Activar"}
-                          >
-                            {statusChangingId === m.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <span className="text-xs">{m.status === "active" ? "Desactivar" : "Activar"}</span>
-                            )}
-                          </Button>
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                    </div>
+                    {m.role === "employee" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditMember(m)}
+                          disabled={loading}
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all active:scale-95 bg-white/10 hover:bg-white/30 text-white"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-3 text-sm text-white/80 pt-2 selection:bg-white/20">
+                    <div className="flex items-center gap-2.5">
+                      <Mail className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                      <span className="truncate" title={m.user?.email}>{m.user?.email}</span>
+                    </div>
+                    {m.user?.department && (
+                      <div className="flex items-center gap-2.5">
+                        <span className="h-3.5 w-3.5 flex items-center justify-center shrink-0 opacity-70">🏛️</span>
+                        <span className="truncate">{m.user?.department}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between pt-4 border-t border-white/10">
+                    <Badge variant="outline" className={cn("gap-1.5 bg-white/10 border-white/20 text-white", m.role === "owner" && "bg-white/30 border-white/40 shadow-sm")}>
+                      {m.role === "owner" ? <Shield className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                      {m.role === "owner" ? "Propietario" : "Empleado"}
+                    </Badge>
+                    <Badge variant={m.status === "active" ? "default" : "secondary"} className={cn("text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 h-auto", m.status === "active" ? "bg-white text-admin-blue" : "bg-white/20 text-white")}>
+                      {m.status === "active" ? "Activo" : "Inactivo"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+              </FadeInItem>
+            ))}
+          </FadeInStagger>
+        )}
+      </div>
 
       {invites.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Invitaciones</CardTitle></CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Enviada</TableHead>
-                  <TableHead>Expira</TableHead>
-                  <TableHead>Reenvíos</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invites.map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" /> {inv.email}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={inv.status === "pending" ? "outline" : inv.status === "accepted" ? "default" : "secondary"}>
+        <div className="space-y-4 pt-4">
+          <h2 className="text-lg font-semibold tracking-tight">Invitaciones Pendientes</h2>
+          <FadeInStagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {invites.map((inv) => (
+              <FadeInItem key={inv.id}>
+                <Card className="group h-full relative overflow-hidden transition-all duration-300 hover:shadow-md border border-white/40 bg-white/60 backdrop-blur-sm hover:bg-white/80 border-dashed">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-admin-yellow/40" />
+                  <CardContent className="p-5 flex flex-col gap-4 h-full">
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 shrink-0 rounded-full border border-white/20 bg-white/10 flex items-center justify-center text-admin-dark/60">
+                        <Mail className="h-5 w-5" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <h3 className="font-bold text-sm text-admin-dark truncate" title={inv.email}>{inv.email}</h3>
+                        <p className="text-[11px] text-admin-dark-grey leading-tight mt-0.5 capitalize">Miembro Invitado</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-white/20 p-2.5 rounded-lg border border-white/10">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold text-[10px] uppercase tracking-wider opacity-70">Enviada</span>
+                        <span className="text-admin-dark/80">{new Date(inv.created_at).toLocaleDateString("es-ES")}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold text-[10px] uppercase tracking-wider opacity-70">Expira</span>
+                        <span className={cn("text-admin-dark/80", new Date(inv.expires_at) < new Date() && "text-destructive font-bold")}>
+                          {new Date(inv.expires_at).toLocaleDateString("es-ES")}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 selection:bg-admin-yellow/20">
+                      <Badge variant={inv.status === "pending" ? "outline" : inv.status === "accepted" ? "default" : "secondary"} className="text-[10px] uppercase tracking-wider h-auto py-0.5 bg-white/30 border-white/40 text-admin-dark/70">
                         {inv.status === "pending" ? "Pendiente" : inv.status === "accepted" ? "Aceptada" : "Expirada"}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{new Date(inv.created_at).toLocaleDateString("es-ES")}</TableCell>
-                    <TableCell className="text-muted-foreground">{new Date(inv.expires_at).toLocaleDateString("es-ES")}</TableCell>
-                    <TableCell className="text-muted-foreground">{inv.resend_count || 0}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {inv.status === "pending" && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCopyInviteLink(inv.token)}
-                              title="Copiar link de invitación"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-emerald-600 hover:text-emerald-700"
-                              onClick={() => {
-                                const url = buildWhatsAppInviteUrl(inv)
-                                if (!url) {
-                                  toast.error("Agrega un teléfono válido (+52 + 10 dígitos) para compartir por WhatsApp")
-                                  return
-                                }
-                                window.open(url, "_blank", "noopener,noreferrer")
-                              }}
-                              title={inv.phone ? "Compartir por WhatsApp" : "Agregar teléfono para compartir por WhatsApp"}
-                              disabled={!buildWhatsAppInviteUrl(inv)}
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleResendInvite(inv.id)}
-                              disabled={resendingId === inv.id}
-                              title="Reenviar invitación"
-                            >
-                              {resendingId === inv.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <RefreshCw className="h-4 w-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteInvite(inv.id)}
-                              disabled={deletingId === inv.id}
-                              title="Eliminar invitación"
-                            >
-                              {deletingId === inv.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              )}
-                            </Button>
-                          </>
-                        )}
+                    </div>
+
+                    {inv.status === "pending" && (
+                      <div className="flex items-center gap-2 pt-4 border-t border-white/10 mt-auto">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-1 h-8 text-xs active:scale-95 transition-transform hover:bg-white/20"
+                          onClick={() => handleCopyInviteLink(inv.token)}
+                          title="Copiar link"
+                        >
+                          <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-none px-2.5 h-8 text-emerald-400 hover:bg-white/20 active:scale-95 transition-all"
+                          onClick={() => {
+                            const url = buildWhatsAppInviteUrl(inv)
+                            if (!url) {
+                              toast.error("Agrega un teléfono válido (+52 + 10 dígitos) para compartir por WhatsApp")
+                              return
+                            }
+                            window.open(url, "_blank", "noopener,noreferrer")
+                          }}
+                          title={inv.phone ? "Compartir por WhatsApp" : "Agrega teléfono para compartir"}
+                          disabled={!buildWhatsAppInviteUrl(inv)}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-1 h-8 text-xs active:scale-95 transition-transform hover:bg-white/20"
+                          onClick={() => handleResendInvite(inv.id)}
+                          disabled={resendingId === inv.id}
+                        >
+                          {resendingId === inv.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
+                          {inv.resend_count ? `Reenviar (${inv.resend_count})` : "Reenviar"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-none px-2.5 h-8 hover:bg-destructive/10 hover:text-destructive active:scale-95 transition-all text-muted-foreground"
+                          onClick={() => handleDeleteInvite(inv.id)}
+                          disabled={deletingId === inv.id}
+                          title="Eliminar invitación"
+                        >
+                          {deletingId === inv.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                        </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              </FadeInItem>
+            ))}
+          </FadeInStagger>
+        </div>
       )}
     </div>
   )

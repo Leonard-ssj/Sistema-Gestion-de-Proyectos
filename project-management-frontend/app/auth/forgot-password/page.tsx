@@ -12,7 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { forgotPasswordService } from "@/services/authService"
 import { toast } from "sonner"
 import { AuthAnimatedBackground } from "@/components/marketing/auth-animated-background"
-import { Loader2, FolderKanban, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Logo } from "@/components/ui/logo"
 
 const schema = z.object({ email: z.string().email("Email invalido") })
 
@@ -36,9 +37,8 @@ export default function ForgotPasswordPage() {
       <AuthAnimatedBackground />
       <Card className="relative z-10 w-full max-w-md backdrop-blur-sm bg-background/95 shadow-2xl">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <FolderKanban className="h-6 w-6" />
-          </div>
+          <Logo size={48} showText={false} className="mx-auto mb-2" />
+
           <CardTitle className="text-2xl font-bold">Recuperar Contrasena</CardTitle>
           <CardDescription>Te enviaremos un enlace para restablecer tu contrasena</CardDescription>
         </CardHeader>

@@ -19,6 +19,7 @@ const iconMap: Record<string, any> = {
   member_deactivated: UserPlus,
   member_reactivated: UserPlus,
   mention: AtSign,
+  chat_mention: AtSign,
 }
 
 function getAccent(type: string) {

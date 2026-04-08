@@ -8,6 +8,7 @@ class MembershipSchema(Schema):
     project_id = fields.Str(dump_only=True)
     role = fields.Str(dump_only=True)
     status = fields.Str(dump_only=True)
+    chat_enabled = fields.Boolean(dump_only=True)
     joined_at = fields.DateTime(dump_only=True)
 
 

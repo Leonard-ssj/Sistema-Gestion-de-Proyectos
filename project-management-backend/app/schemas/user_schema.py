@@ -51,6 +51,7 @@ class UserSchema(Schema):
     name = fields.Str(dump_only=True)
     role = fields.Str(dump_only=True)
     avatar = fields.Str(dump_only=True, allow_none=True)
+    preferred_theme = fields.Str(dump_only=True, allow_none=True)
     status = fields.Str(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True, allow_none=True)
@@ -60,6 +61,7 @@ class UserUpdateSchema(Schema):
     """Schema para actualizar usuario"""
     name = fields.Str(required=False, validate=validate.Length(min=2, max=255))
     avatar = fields.Str(required=False, allow_none=True, validate=validate.Length(max=500))
+    preferred_theme = fields.Str(required=False, allow_none=True, validate=validate.Length(max=50))
 
 
 class UserProfileUpdateSchema(Schema):
@@ -72,3 +74,4 @@ class UserProfileUpdateSchema(Schema):
     shift = fields.Str(required=False, validate=validate.OneOf(['morning', 'afternoon', 'night', 'flexible']), allow_none=True)
     department = fields.Str(required=False, validate=validate.Length(max=100), allow_none=True)
     phone = fields.Str(required=False, validate=validate.Length(max=20), allow_none=True)
+    chat_enabled = fields.Boolean(required=False)

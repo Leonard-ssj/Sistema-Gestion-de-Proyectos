@@ -19,6 +19,7 @@ export interface User {
   name: string
   role: Role
   avatar?: string
+  preferred_theme?: string
   job_title?: string
   description?: string
   responsibilities?: string
@@ -80,6 +81,7 @@ export interface Membership {
   project_id: string
   role: Role
   status: MembershipStatus
+  chat_enabled?: boolean
   joined_at: string
   user?: User
 }

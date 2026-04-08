@@ -344,6 +344,14 @@ export default function ReportsPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -469,9 +477,9 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Rendimiento por Miembro</CardTitle>
+      <Card className="bg-white/20 backdrop-blur-md border border-white/40 shadow-sm transition-all hover:bg-white/30">
+        <CardHeader className="pb-2 border-b border-white/10">
+          <CardTitle className="text-xs font-bold uppercase tracking-wider text-admin-dark-grey">Tareas por Miembro</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">

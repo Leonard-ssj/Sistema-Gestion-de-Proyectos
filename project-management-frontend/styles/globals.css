@@ -122,4 +122,61 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Gradual transitions for small elements */
+  *, *::before, *::after {
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+  }
+
+  /* View Transitions API for Circle Expansion */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  ::view-transition-new(root) {
+    z-index: 9999;
+  }
+
+  .dark::view-transition-old(root) {
+    z-index: 9999;
+  }
+
+  .dark::view-transition-new(root) {
+    z-index: 1;
+  }
 }
+
+/* Base View Transition Animations */
+@keyframes circle-expand {
+  from {
+    clip-path: circle(0% at var(--circle-x) var(--circle-y));
+  }
+  to {
+    clip-path: circle(150% at var(--circle-x) var(--circle-y));
+  }
+}
+
+@keyframes circle-collapse {
+  from {
+    clip-path: circle(150% at var(--circle-x) var(--circle-y));
+  }
+  to {
+    clip-path: circle(0% at var(--circle-x) var(--circle-y));
+  }
+}
+
+/* Assign animations to the View Transition roots */
+::view-transition-new(root) {
+  animation: 1000ms ease-in-out both circle-expand;
+}
+
+.dark::view-transition-old(root) {
+  animation: 1000ms ease-in-out both circle-collapse;
+}
+

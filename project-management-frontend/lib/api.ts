@@ -66,6 +66,7 @@ async function apiClient<T>(
     endpoint.includes('/auth/forgot-password') ||
     endpoint.includes('/auth/refresh')
 
+
   // 1. Obtener token
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   

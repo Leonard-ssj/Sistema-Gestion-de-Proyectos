@@ -30,11 +30,11 @@ function mapNotificationFromBackend(notification: BackendNotification): Notifica
     user_id: notification.user_id,
     project_id: notification.project_id,
     type: notification.type as any,
-    title: getTitleForNotification(notification.type),
+    title: notification.title || getTitleForNotification(notification.type),
     message: notification.message,
-    read: notification.read,
+    read: notification.read !== undefined ? notification.read : !!notification.is_read,
     created_at: notification.created_at,
-    link: getLinkForNotification(notification),
+    link: notification.link || getLinkForNotification(notification) || (notification.type === 'chat_mention' ? '/work/chat' : undefined),
   }
 }
 

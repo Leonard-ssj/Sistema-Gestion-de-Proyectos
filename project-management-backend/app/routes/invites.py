@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from marshmallow import ValidationError
 from datetime import datetime
@@ -53,9 +53,11 @@ def create_invite():
         project_id = user.owned_project.id
         
         data = request.get_json()
+        print(f"\n[BACKEND DEBUG] Recibiendo POST /api/invites: {data}")
         
         # Validar con Marshmallow
         try:
+            print("[BACKEND DEBUG] Validando datos con Marshmallow...")
             validated_data = invite_create_schema.load(data)
         except ValidationError as err:
             return jsonify({
@@ -122,7 +124,23 @@ def create_invite():
             }), 400
         
         # Crear invitación
+        print(f"[BACKEND DEBUG] Llamando a InviteService.create_invite para email: {email}")
         invite = InviteService.create_invite(project_id, email, user_id, enrichment_data)
+        print(f"[BACKEND DEBUG] Invitación creada en DB con ID: {invite.id} y Token: {invite.token}")
+        
+        # Simular envío de email (log en consola)
+        frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+        invite_url = f"{frontend_url}/invite/accept?token={invite.token}"
+        print(f"\n{'='*60}")
+        print("EMAIL SIMULADO - Invitación enviada")
+        print(f"{'='*60}")
+        print(f"Para: {email}")
+        print(f"De: {user.name} ({user.email})")
+        print(f"Proyecto: {user.owned_project.name}")
+        print(f"Link de invitación: {invite_url}")
+        print(f"Token: {invite.token}")
+        print(f"Expira: {invite.expires_at}")
+        print(f"{'='*60}\n")
         
         # Crear audit log
         audit_log = AuditLog(
@@ -138,19 +156,6 @@ def create_invite():
         db.session.add(audit_log)
         db.session.commit()
         
-        # Simular envío de email (log en consola)
-        invite_url = f"http://localhost:3000/invite/accept?token={invite.token}"
-        print(f"\n{'='*60}")
-        print("EMAIL SIMULADO - Invitación enviada")
-        print(f"{'='*60}")
-        print(f"Para: {email}")
-        print(f"De: {user.name} ({user.email})")
-        print(f"Proyecto: {user.owned_project.name}")
-        print(f"Link de invitación: {invite_url}")
-        print(f"Token: {invite.token}")
-        print(f"Expira: {invite.expires_at}")
-        print(f"{'='*60}\n")
-        
         # Preparar respuesta
         invite_data = InviteService.get_invite_summary(invite)
         invite_data['invite_url'] = invite_url
@@ -164,6 +169,9 @@ def create_invite():
         }), 201
         
     except Exception as e:
+        print(f"[BACKEND ERROR] Error en create_invite: {str(e)}")
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return jsonify({
             'success': False,
@@ -503,7 +511,8 @@ def resend_invite(invite_id):
         db.session.commit()
         
         # Simular reenvío de email
-        invite_url = f"http://localhost:3000/invite/accept?token={invite.token}"
+        frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:3000').rstrip('/')
+        invite_url = f"{frontend_url}/invite/accept?token={invite.token}"
         print(f"\n{'='*60}")
         print("EMAIL SIMULADO - Invitación reenviada")
         print(f"{'='*60}")

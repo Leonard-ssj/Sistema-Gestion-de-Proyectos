@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config:*)",
+      "Bash(git fetch:*)",
+      "Bash(git ls-tree:*)",
+      "Read(//c/Monorepo_gestion_proyectos_saas/**)"
+    ]
+  }
+}

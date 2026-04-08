@@ -113,7 +113,7 @@ export default function LoginPage() {
             className="hidden lg:block mt-24 text-center lg:text-left space-y-4"
           >
             <h2 className="text-4xl font-black tracking-tighter text-foreground drop-shadow-sm">
-              ACCESO A LA MEJOR<span className="text-primary italic"> HERRAMIENTA </span> DE JIRA.
+              ACCESO A LA MEJOR<span className="text-primary italic"> HERRAMIENTA </span> Que JIRA.
             </h2>
             <p className="text-lg text-muted-foreground/80 max-w-md font-medium leading-relaxed">
               Jira es una herramienta líder de gestión de proyectos y seguimiento de incidencias (bugs) diseñada para equipos de desarrollo de software ágil.

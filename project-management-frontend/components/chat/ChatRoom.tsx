@@ -64,9 +64,16 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
         // Fetch project members
         const membersRes = await api.get<any>('/members')
         if (membersRes.members) {
-           // Exclude self from members list for mentioning
-           const others = membersRes.members.filter((m: any) => m.id !== user?.id)
-           setProjectMembers(others)
+          // membersRes.members is an array of memberships, each has a `user` object
+          const others = membersRes.members
+            .filter((m: any) => (m.user?.id || m.user_id) !== user?.id)
+            .map((m: any) => ({
+              id: m.user?.id || m.user_id || m.id,
+              name: m.user?.name || m.name || 'Sin nombre',
+              email: m.user?.email || m.email || '',
+              avatar: m.user?.avatar || m.avatar || null,
+            }))
+          setProjectMembers(others)
         }
       } catch (err) {
         console.error("Error fetching tasks or members for chat", err)
@@ -143,7 +150,7 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
 
   const formatTime = (isoString: string) => {
     const date = new Date(isoString)
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' })
   }
 
   if (isLoading && messages.length === 0) {
@@ -240,7 +247,7 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
                         )}
                       </div>
                     )}
-                    <span className="whitespace-pre-wrap break-words font-medium leading-relaxed">{msg.content}</span>
+                    <span className="whitespace-pre-wrap break-words font-medium leading-relaxed">{msg.content || (msg as any).message || (msg as any).text || ''}</span>
                     <span 
                       className={cn(
                         "mt-1.5 text-[9px] font-bold uppercase tracking-wider flex items-center justify-end",

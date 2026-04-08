@@ -51,7 +51,7 @@ npm run e2e:team -- base 500
 ### Ejecutar con navegador visible (headed)
 
 ```powershell
-npm run e2e:team -- marketing 500 -- --headed
+npm run e2e:team -- marketing 500 --headed
 ```
 
 ### Ejecutar contra una URL externa (staging/prod)
@@ -68,6 +68,12 @@ O como flag:
 npm run e2e:team -- marketing 500 -- --base-url=https://sistema-gestion-de-proyectos-dev.vercel.app
 ```
 
+### Próximo paso: pruebas E2E para módulos de Empleado
+
+Requerido por el equipo:
+- Agregar pruebas Playwright para `/work/*` (empleado) y ejecutarlas junto al flujo.
+- Docs: `docs/empleado/00-README.md`
+
 Notas:
 - En URL externa no se depende del clipboard para invitaciones; el script intenta leer el token desde la respuesta del API.
 - Si tu despliegue tiene protecciones (CORS, rate limit, captchas), la prueba puede fallar.
@@ -82,4 +88,3 @@ Incluye:
 - owner (email/password)
 - empleados (email/password)
 - baseUrl
-

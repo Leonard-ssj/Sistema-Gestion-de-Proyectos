@@ -21,6 +21,9 @@
 10. **[frontend.md](frontend.md)** - Documentacion del frontend
 11. **[backend.md](backend.md)** - Documentacion del backend
 
+### Docs adicionales (operativas)
+12. **[NOTIFICACIONES.md](NOTIFICACIONES.md)** - Funcionamiento e implementación de notificaciones in-app
+
 ---
 
 ## DESCRIPCION DE CADA DOCUMENTO
@@ -190,7 +193,10 @@ Monorepo_gestion_proyectos_saas/
 │   └── generated-tests/            # Tests generados
 │
 └── postman/                        # Coleccion Postman
-    └── ProGest_API_Complete.postman_collection.json
+    ├── ProGest_API_Complete.postman_collection.json
+    ├── ProGest_Development.postman_environment.json
+    ├── ProGest_E2E_Marketing.postman_environment.json
+    └── README.md
 ```
 
 ---

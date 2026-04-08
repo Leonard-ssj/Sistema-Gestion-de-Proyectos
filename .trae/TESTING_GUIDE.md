@@ -20,7 +20,11 @@ El sistema ProGest utiliza multiples estrategias de testing:
 
 **Ubicacion:** `postman/ProGest_API_Complete.postman_collection.json`
 
-**Environment:** `postman/ProGest_Development.postman_environment.json`
+**Environments:**
+- `postman/ProGest_Development.postman_environment.json`
+- `postman/ProGest_E2E_Marketing.postman_environment.json`
+
+**Guia:** `postman/README.md`
 
 ### Importar en Postman
 
@@ -57,9 +61,10 @@ El sistema ProGest utiliza multiples estrategias de testing:
    - GET /api/invites/validate/:token
    - POST /api/invites/:id/resend
 
-5. **Members** (3 endpoints)
+5. **Members** (4 endpoints)
    - GET /api/members
    - PATCH /api/members/:id/deactivate
+   - PATCH /api/members/:id/activate
    - PATCH /api/members/:user_id/profile
 
 6. **Tasks** (9 endpoints)
@@ -73,9 +78,10 @@ El sistema ProGest utiliza multiples estrategias de testing:
    - PATCH /api/tasks/:id/status
    - GET /api/tasks/stats
 
-7. **Notifications** (5 endpoints)
+7. **Notifications** (6 endpoints)
    - GET /api/notifications
    - GET /api/notifications/unread-count
+   - GET /api/notifications/stream (SSE)
    - PATCH /api/notifications/:id/read
    - PATCH /api/notifications/read-all
    - DELETE /api/notifications/:id

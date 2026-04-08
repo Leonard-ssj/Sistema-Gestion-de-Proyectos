@@ -612,9 +612,9 @@ Load Balancer (AWS ALB / Nginx)
    - Envio de emails
    - Procesamiento en background
 
-3. **Implementar WebSockets**
-   - Notificaciones en tiempo real
-   - Actualizaciones de tareas en vivo
+3. **Escalar notificaciones en tiempo real**
+   - SSE ya implementado
+   - Agregar Redis PubSub para soportar multiples workers
 
 4. **Implementar CDN**
    - Static files del frontend
@@ -627,5 +627,5 @@ Load Balancer (AWS ALB / Nginx)
 
 ---
 
-**Ultima actualizacion:** 24 de febrero de 2026  
-**Version:** 2.0.0
+**Ultima actualizacion:** 14 de marzo de 2026  
+**Version:** 2.1.0

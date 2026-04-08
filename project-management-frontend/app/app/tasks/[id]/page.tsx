@@ -1,7 +1,6 @@
 "use client"
 
 import { use, useMemo, useState, useEffect } from "react"
-import { useDataStore } from "@/stores/dataStore"
 import { useAuthStore } from "@/stores/authStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -23,10 +22,11 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { SPRINT_COLOR_CLASS } from "@/lib/sprintColors"
 import { normalizeAvatarUrl } from "@/lib/avatars"
+import { listMembers } from "@/services/memberService"
+import type { User } from "@/mock/types"
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const users = useDataStore((s) => s.users)
   const session = useAuthStore((s) => s.session)
 
   // Estado local para la tarea y comentarios
@@ -37,6 +37,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [taskNotFound, setTaskNotFound] = useState(false)
   const [sprints, setSprints] = useState<Sprint[]>([])
   const [sprintEnabled, setSprintEnabled] = useState<boolean>(!!session?.project?.sprint_enabled)
+  const [memberUsers, setMemberUsers] = useState<Record<string, User>>({})
   
   const [commentText, setCommentText] = useState("")
   const [newCheckItem, setNewCheckItem] = useState("")
@@ -65,6 +66,18 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         
         setTask(taskData)
         setIsLoadingTask(false)
+
+        const membersResult = await listMembers()
+        if (membersResult.success && membersResult.members) {
+          const map: Record<string, User> = {}
+          for (const m of membersResult.members) {
+            if (m.user?.id) map[m.user.id] = m.user as any
+          }
+          if (session?.user?.id) map[session.user.id] = session.user as any
+          setMemberUsers(map)
+        } else if (session?.user?.id) {
+          setMemberUsers({ [session.user.id]: session.user as any })
+        }
 
         const settingsResult = await getProjectSettingsService()
         const enabled = settingsResult.success && settingsResult.project ? !!settingsResult.project.sprint_enabled : !!session?.project?.sprint_enabled
@@ -173,8 +186,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     return null
   }
 
-  const assignee = users.find((u) => u.id === task.assigned_to)
-  const creator = users.find((u) => u.id === task.created_by)
+  const assignee = task.assigned_to ? memberUsers[task.assigned_to] : undefined
+  const creator = task.created_by ? memberUsers[task.created_by] : undefined
   const checklistDone = task.checklist?.filter((c) => c.completed).length || 0
 
   // Actualizar status con optimistic update (16.1)
@@ -582,7 +595,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                       <div className="flex items-center gap-2">
                         <img
                           alt=""
-                          src={normalizeAvatarUrl(users.find((u) => u.id === c.user_id)?.avatar)}
+                          src={normalizeAvatarUrl(memberUsers[c.user_id]?.avatar)}
                           className="h-6 w-6 rounded-full border border-border bg-muted/20"
                         />
                         <span className="text-sm font-medium">{c.user_name || 'Usuario desconocido'}</span>
@@ -701,14 +714,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 <span className="text-muted-foreground">Asignado a</span>
                 <span className="flex items-center gap-2 font-medium">
                   <img alt="" src={normalizeAvatarUrl(assignee?.avatar)} className="h-5 w-5 rounded-full border border-border bg-muted/20" />
-                  <span>{assignee?.name || "Sin asignar"}</span>
+                  <span>{assignee?.name || (task as any).assignee_name || "Sin asignar"}</span>
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Creado por</span>
                 <span className="flex items-center gap-2 font-medium">
                   <img alt="" src={normalizeAvatarUrl(creator?.avatar)} className="h-5 w-5 rounded-full border border-border bg-muted/20" />
-                  <span>{creator?.name || "-"}</span>
+                  <span>{creator?.name || (task as any).creator_name || "-"}</span>
                 </span>
               </div>
               {task.due_date && <div className="flex justify-between"><span className="text-muted-foreground">Vence</span><span className="font-medium">{new Date(task.due_date).toLocaleDateString("es-ES")}</span></div>}

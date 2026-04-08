@@ -5,6 +5,7 @@ import { es } from "date-fns/locale"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useAuthStore } from "@/stores/authStore"
+import { useNotificationStore } from "@/stores/notificationStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,6 +51,8 @@ const SPRINT_COLORS: Array<{ id: SprintColor; label: string; className: string; 
 export default function SettingsPage() {
   const session = useAuthStore((s) => s.session)
   const setProject = useAuthStore((s) => s.setProject)
+  const soundEnabled = useNotificationStore((s) => s.soundEnabled)
+  const setSoundEnabled = useNotificationStore((s) => s.setSoundEnabled)
 
   const project = session?.project
   const [name, setName] = useState(project?.name || "")
@@ -374,6 +377,17 @@ export default function SettingsPage() {
           <Button onClick={handleSave} className="self-start" disabled={isSaving || isLoading}>
             {isSaving ? "Guardando..." : "Guardar Cambios"}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Notificaciones</CardTitle></CardHeader>
+        <CardContent className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Sonido</p>
+            <p className="text-xs text-muted-foreground">Reproduce un sonido cuando llegue una notificación</p>
+          </div>
+          <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
         </CardContent>
       </Card>
 

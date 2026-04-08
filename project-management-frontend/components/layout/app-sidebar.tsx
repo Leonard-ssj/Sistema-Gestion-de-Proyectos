@@ -4,13 +4,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useUIStore } from "@/stores/uiStore"
-import { 
-  LayoutDashboard, 
-  Columns3, 
-  CalendarDays, 
+import {
+  LayoutDashboard,
+  Columns3,
+  CalendarDays,
   GanttChart,
-  BarChart3, 
-  Users, 
+  BarChart3,
+  Users,
   MessageSquare,
   Building2,
   CheckCircle2,
@@ -57,7 +57,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const toggleDesktopSidebar = useUIStore((s) => s.toggleDesktopSidebar)
 
   const topNav = role === "owner" ? ownerNav : role === "employee" ? employeeNav : adminNav
-  
+
   const activeClassCSS = "before:content-[''] before:absolute before:w-[40px] before:h-[40px] before:rounded-full before:-top-[40px] before:right-0 before:shadow-[20px_20px_0_var(--color-admin-grey)] before:-z-10 after:content-[''] after:absolute after:w-[40px] after:h-[40px] after:rounded-full after:-bottom-[40px] after:right-0 after:shadow-[20px_-20px_0_var(--color-admin-grey)] after:-z-10"
 
   return (
@@ -105,8 +105,8 @@ export function AppSidebar({ role }: AppSidebarProps) {
           {topNav.map((item) => {
             const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href + "/"))
             return (
-              <li 
-                key={item.href} 
+              <li
+                key={item.href}
                 className={cn(
                   "h-[48px] bg-transparent ml-[6px] rounded-l-[48px] p-[4px] relative",
                   active ? `bg-admin-grey ${activeClassCSS}` : ""

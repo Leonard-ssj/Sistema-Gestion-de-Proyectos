@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, ValidationError, validates
 
 
 class InviteCreateSchema(Schema):
@@ -22,7 +22,22 @@ class InviteCreateSchema(Schema):
         'required': 'El departamento es requerido',
         'invalid': 'El departamento debe tener entre 2 y 100 caracteres'
     })
-    phone = fields.Str(required=False, validate=validate.Length(max=20), allow_none=True)
+    phone = fields.Str(required=True, validate=validate.Length(max=20), allow_none=False, error_messages={
+        'required': 'El teléfono es requerido'
+    })
+
+    @validates('phone')
+    def validate_phone(self, value):
+        if not isinstance(value, str) or not value.strip():
+            raise ValidationError('El teléfono es requerido')
+        if not all((ch.isdigit() or ch in '+-() ') for ch in value):
+            raise ValidationError('El teléfono contiene caracteres inválidos')
+        digits = ''.join(ch for ch in value if ch.isdigit())
+        if not digits.startswith('52'):
+            raise ValidationError('El teléfono debe iniciar con +52')
+        local = digits[2:]
+        if len(local) != 10:
+            raise ValidationError('El teléfono debe contener 10 dígitos después de +52')
 
 
 class InviteSchema(Schema):

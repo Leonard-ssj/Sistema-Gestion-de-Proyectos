@@ -9,12 +9,16 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
 import { BOTTTs_NEUTRAL_AVATARS, normalizeAvatarUrl } from "@/lib/avatars"
-import { updateMeService } from "@/services/authService"
 import { cn } from "@/lib/utils"
+import { updateMeService } from "@/services/authService"
+import { Switch } from "@/components/ui/switch"
+import { useNotificationStore } from "@/stores/notificationStore"
 
 export default function WorkProfilePage() {
   const session = useAuthStore((s) => s.session)
   const login = useAuthStore((s) => s.login)
+  const soundEnabled = useNotificationStore((s) => s.soundEnabled)
+  const setSoundEnabled = useNotificationStore((s) => s.setSoundEnabled)
 
   const user = session?.user
   const [name, setName] = useState(user?.name || "")
@@ -43,7 +47,6 @@ export default function WorkProfilePage() {
 
     try {
       const result = await updateMeService({ name: trimmedName, avatar: selectedAvatar })
-      
       if (!result.success || !result.user) {
         toast({ title: "Error", description: result.error || "Error al actualizar perfil", variant: "destructive" })
         return
@@ -109,6 +112,13 @@ export default function WorkProfilePage() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Sonido de notificaciones</p>
+                <p className="text-xs text-muted-foreground">Reproduce un sonido cuando llegue una notificación</p>
+              </div>
+              <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
             </div>
             <Button onClick={handleSave} className="self-start mt-4" disabled={saving}>
               {saving ? "Guardando..." : "Guardar cambios"}

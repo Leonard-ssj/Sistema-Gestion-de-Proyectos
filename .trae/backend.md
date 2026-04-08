@@ -130,10 +130,16 @@ FRONTEND_URL=http://localhost:3000
 **Build Command:** `pip install -r requirements.txt`  
 **Start Command:** `bash ./render-start.sh`
 
+Notas:
+- Para soportar SSE (`/api/notifications/stream`) en Render, `render-start.sh` usa Gunicorn con `gthread` y `timeout 0`.
+- Ajustar concurrencia con `WEB_CONCURRENCY` y `GUNICORN_THREADS` según el plan del servicio.
+
 **Variables en Render (Backend):**
 - SECRET_KEY
 - JWT_SECRET_KEY
 - FRONTEND_URL
+- WEB_CONCURRENCY
+- GUNICORN_THREADS
 - DATABASE_URL
 
 ---

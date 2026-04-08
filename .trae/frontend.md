@@ -113,8 +113,10 @@ Requieren autenticacion (token JWT).
 **Aplicacion Principal**
 - `/app/dashboard` - Dashboard principal
 - `/app/tasks` - Gestion de tareas
-- `/app/team` - Gestion de equipo
+- `/app/team` - Gestion de equipo (invitar, copiar link, compartir por WhatsApp)
 - `/app/profile` - Perfil de usuario
+- `/app/settings` - Configuracion (preferencias como sonido de notificaciones)
+- `/app/reports` - Reportes del proyecto (graficas, filtros por sprint, exportacion XLSX)
 
 **Administracion**
 - `/admin` - Panel de administracion (solo SUPERADMIN)

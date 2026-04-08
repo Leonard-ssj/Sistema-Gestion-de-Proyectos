@@ -443,9 +443,14 @@ Crear invitacion (solo OWNER).
   "job_title": "Developer",
   "description": "Frontend developer",
   "shift": "morning",
-  "department": "Engineering"
+  "department": "Engineering",
+  "phone": "+52 55 1234 5678"
 }
 ```
+
+Notas:
+- `phone` es requerido para invitaciones y debe ser de México (+52 + 10 dígitos).
+- El frontend puede compartir el link de invitación por WhatsApp usando `phone` + `token`.
 
 **Response (201):**
 ```json
@@ -458,6 +463,7 @@ Crear invitacion (solo OWNER).
     "token": "secure-token",
     "status": "pending",
     "job_title": "Developer",
+    "phone": "+525512345678",
     "expires_at": "2026-03-03T10:00:00"
   }
 }
@@ -598,7 +604,7 @@ Actualizar perfil de miembro.
 
 ---
 
-## 6. NOTIFICATIONS (5 ENDPOINTS)
+## 6. NOTIFICATIONS (6 ENDPOINTS)
 
 ### 6.1 GET /api/notifications
 
@@ -606,21 +612,29 @@ Listar notificaciones del usuario.
 
 **Headers:** `Authorization: Bearer <access_token>`
 
+**Query:**
+- `unread_only` (boolean)
+- `limit` (number)
+- `offset` (number)
+
 **Response (200):**
 ```json
 {
   "success": true,
-  "notifications": [
-    {
-      "id": "uuid",
-      "type": "task_assigned",
-      "message": "Te asignaron una nueva tarea",
-      "read": false,
-      "entity_type": "task",
-      "entity_id": "task-uuid",
-      "created_at": "2026-02-24T10:00:00"
-    }
-  ]
+  "data": {
+    "notifications": [
+      {
+        "id": "uuid",
+        "type": "task_assigned",
+        "message": "Andrea te asignó “Tarea A”.",
+        "read": false,
+        "entity_type": "task",
+        "entity_id": "task-uuid",
+        "created_at": "2026-02-24T10:00:00"
+      }
+    ],
+    "total": 123
+  }
 }
 ```
 
@@ -634,7 +648,9 @@ Obtener contador de no leidas.
 ```json
 {
   "success": true,
-  "count": 5
+  "data": {
+    "unread_count": 5
+  }
 }
 ```
 
@@ -648,7 +664,9 @@ Marcar notificacion como leida.
 ```json
 {
   "success": true,
-  "notification": { ... }
+  "data": {
+    "notification": { }
+  }
 }
 ```
 
@@ -662,7 +680,10 @@ Marcar todas como leidas.
 ```json
 {
   "success": true,
-  "message": "Todas las notificaciones marcadas como leidas"
+  "data": {
+    "message": "Todas las notificaciones marcadas como leídas",
+    "count": 12
+  }
 }
 ```
 
@@ -676,9 +697,18 @@ Eliminar notificacion.
 ```json
 {
   "success": true,
-  "message": "Notificacion eliminada"
+  "data": {
+    "message": "Notificación eliminada"
+  }
 }
 ```
+
+### 6.6 GET /api/notifications/stream?token=<access_token> (SSE)
+
+Notificaciones en tiempo real vía Server-Sent Events.
+
+- Entrega eventos `notification` con el payload `{ notification: { ... } }`.
+- Requiere `token` como query param (access token JWT).
 
 ---
 

@@ -12,10 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
-import { UserPlus, Mail, Shield, User, Loader2, RefreshCw, Trash2, Edit, Copy } from "lucide-react"
+import { UserPlus, Mail, Shield, User, Loader2, RefreshCw, Trash2, Edit, Copy, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import { sendInvite, listInvites, resendInvite, cancelInvite } from "@/services/inviteService"
-import { listMembers, updateMemberProfile, type MemberProfileUpdateData } from "@/services/memberService"
+import { listMembers, updateMemberProfile, deactivateMember, activateMember, type MemberProfileUpdateData } from "@/services/memberService"
 import type { Invite, Membership } from "@/mock/types"
 import { normalizeAvatarUrl } from "@/lib/avatars"
 import { cn } from "@/lib/utils"
@@ -33,6 +33,18 @@ export default function TeamPage() {
   const RESPONSIBILITIES_MAX = 1000
   const SKILLS_MAX = 500
   const PHONE_MAX = 20
+  const MEXICO_PREFIX = "+52"
+
+  function normalizeMxPhone(raw: string) {
+    const trimmed = raw.trim()
+    if (!trimmed) return null
+    const digits = trimmed.replace(/\D/g, "")
+    const hasPrefix = trimmed.startsWith(MEXICO_PREFIX) || digits.startsWith("52")
+    if (!hasPrefix) return null
+    const local = digits.startsWith("52") ? digits.slice(2) : digits
+    if (local.length !== 10) return null
+    return `+52${local}`
+  }
 
   const [members, setMembers] = useState<Membership[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -66,6 +78,7 @@ export default function TeamPage() {
   const [loadingData, setLoadingData] = useState(true)
   const [resendingId, setResendingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [statusChangingId, setStatusChangingId] = useState<string | null>(null)
 
   // Calcular total de miembros (activos + pendientes)
   const teamLimit = 20
@@ -139,13 +152,24 @@ export default function TeamPage() {
     }
     
     // Validaciones
-    if (inviteData.phone && !/^[\d+\-() ]+$/.test(inviteData.phone)) {
+    if (!inviteData.phone.trim()) {
+      toast.error("El teléfono es requerido")
+      return
+    }
+
+    if (!/^[\d+\-() ]+$/.test(inviteData.phone)) {
       toast.error("El teléfono solo puede contener números y símbolos +, -, (, )")
       return
     }
 
-    if (inviteData.phone && inviteData.phone.length > PHONE_MAX) {
+    if (inviteData.phone.length > PHONE_MAX) {
       toast.error(`El teléfono no puede exceder ${PHONE_MAX} caracteres`)
+      return
+    }
+
+    const normalizedPhone = normalizeMxPhone(inviteData.phone)
+    if (!normalizedPhone) {
+      toast.error("El teléfono debe ser de México e iniciar con +52 y tener 10 dígitos")
       return
     }
     
@@ -185,7 +209,7 @@ export default function TeamPage() {
       if (inviteData.skills) enrichmentData.skills = inviteData.skills
       if (inviteData.shift) enrichmentData.shift = inviteData.shift
       if (inviteData.department) enrichmentData.department = inviteData.department.trim()
-      if (inviteData.phone) enrichmentData.phone = inviteData.phone
+      enrichmentData.phone = normalizedPhone
       
       console.log("[FRONTEND] Preparando invitación:", { email: inviteEmailNormalized, ...enrichmentData })
       const result = await sendInvite(inviteEmailNormalized, Object.keys(enrichmentData).length > 0 ? enrichmentData : undefined)
@@ -217,6 +241,49 @@ export default function TeamPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleToggleMemberStatus(m: Membership) {
+    if (m.role !== "employee") return
+    if (!m.id) return
+    setStatusChangingId(m.id)
+    try {
+      if (m.status === "active") {
+        const res = await deactivateMember(m.id)
+        if (!res.success) {
+          toast.error(res.error || "No se pudo desactivar")
+          return
+        }
+        setMembers((prev) => prev.map((x) => (x.id === m.id ? { ...x, status: "inactive" } : x)))
+        toast.success("Empleado desactivado")
+      } else {
+        const res = await activateMember(m.id)
+        if (!res.success) {
+          toast.error(res.error || "No se pudo activar")
+          return
+        }
+        setMembers((prev) => prev.map((x) => (x.id === m.id ? { ...x, status: "active" } : x)))
+        toast.success("Empleado activado")
+      }
+    } finally {
+      setStatusChangingId(null)
+    }
+  }
+
+  function buildInviteUrl(token: string) {
+    return `${window.location.origin}/invite/accept?token=${token}`
+  }
+
+  function buildWhatsAppInviteUrl(inv: Invite) {
+    if (!inv.phone) return null
+    const phone = normalizeMxPhone(inv.phone)
+    if (!phone) return null
+    const waPhone = phone.replace(/\D/g, "")
+    const url = buildInviteUrl(inv.token)
+    const ownerName = session?.user?.name || "Hola"
+    const projectName = session?.project?.name || "mi proyecto"
+    const text = `Hola\n\nSoy ${ownerName}.\n\nTe comparto tu invitación para unirte a “${projectName}” en ProGest.\n\nLink de registro:\n${url}`
+    return `https://wa.me/${waPhone}?text=${encodeURIComponent(text)}`
   }
 
   async function handleResendInvite(inviteId: string) {
@@ -507,26 +574,25 @@ export default function TeamPage() {
                 </div>
                 
                 <div className="mt-4">
-                  <Label>Teléfono</Label>
+                  <Label>Teléfono *</Label>
                   <Input 
                     value={inviteData.phone} 
                     onChange={(e) => {
-                      // Solo permitir números, +, -, (, ), espacios
-                      const value = e.target.value.replace(/[^0-9+\-() ]/g, '')
-                      setInviteData({...inviteData, phone: value})
+                      const raw = e.target.value.replace(/[^0-9+\-() ]/g, "")
+                      setInviteData({ ...inviteData, phone: raw })
                     }} 
                     placeholder="Ej: +52 123 456 7890" 
                     type="tel"
                     disabled={loading}
                     maxLength={20}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Incluye código de país (Ej: +52 para México)</p>
+                  <p className="text-xs text-muted-foreground mt-1">Formato: +52 + 10 dígitos</p>
                 </div>
               </div>
               
               <Button
                 onClick={handleInvite}
-                disabled={!inviteEmailValid || !inviteData.job_title.trim() || !inviteData.department.trim() || !inviteData.shift || loading}
+                disabled={!inviteEmailValid || !inviteData.job_title.trim() || !inviteData.department.trim() || !inviteData.shift || !normalizeMxPhone(inviteData.phone) || loading}
                 className="mt-2"
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -720,7 +786,7 @@ export default function TeamPage() {
                         </Button>
                     )}
                   </div>
-                  
+
                   <div className="space-y-3 text-sm text-white/80 pt-2 selection:bg-white/20">
                     <div className="flex items-center gap-2.5">
                       <Mail className="h-3.5 w-3.5 shrink-0 opacity-70" />
@@ -803,11 +869,28 @@ export default function TeamPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="flex-none px-2.5 h-8 text-emerald-400 hover:bg-white/20 active:scale-95 transition-all"
+                          onClick={() => {
+                            const url = buildWhatsAppInviteUrl(inv)
+                            if (!url) {
+                              toast.error("Agrega un teléfono válido (+52 + 10 dígitos) para compartir por WhatsApp")
+                              return
+                            }
+                            window.open(url, "_blank", "noopener,noreferrer")
+                          }}
+                          title={inv.phone ? "Compartir por WhatsApp" : "Agrega teléfono para compartir"}
+                          disabled={!buildWhatsAppInviteUrl(inv)}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="flex-1 h-8 text-xs active:scale-95 transition-transform hover:bg-white/20"
                           onClick={() => handleResendInvite(inv.id)}
                           disabled={resendingId === inv.id}
                         >
-                          {resendingId === inv.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />} 
+                          {resendingId === inv.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
                           {inv.resend_count ? `Reenviar (${inv.resend_count})` : "Reenviar"}
                         </Button>
                         <Button

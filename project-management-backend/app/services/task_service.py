@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from app import db
 from app.models import Task, User, Project, Sprint, Membership, Notification, AuditLog
 from sqlalchemy import or_, and_
+from app.realtime.notifications_hub import notifications_hub
 
 
 class TaskService:
@@ -415,4 +416,6 @@ class TaskService:
             entity_id=task.id
         )
         db.session.add(notification)
+        db.session.flush()
+        notifications_hub.publish(user_id, {'notification': notification.to_dict()})
         return notification

@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/authStore"
+import { useDataStore } from "@/stores/dataStore"
 import { isRouteAllowed, getRedirectForRole } from "@/lib/guards"
 import { Loader2 } from "lucide-react"
 
@@ -17,10 +18,17 @@ export function RoleGate({ children, allowedRole, currentPath }: RoleGateProps) 
   const session = useAuthStore((s) => s.session)
   const hydrated = useAuthStore((s) => s.hydrated)
   const hydrate = useAuthStore((s) => s.hydrate)
+  const resetSeed = useDataStore((s) => s.resetSeed)
 
   useEffect(() => {
     hydrate()
   }, [hydrate])
+
+  useEffect(() => {
+    if (!hydrated) return
+    if (!session) return
+    resetSeed()
+  }, [hydrated, session?.user?.id, resetSeed])
 
   useEffect(() => {
     if (!hydrated) return

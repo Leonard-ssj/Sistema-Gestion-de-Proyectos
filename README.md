@@ -522,7 +522,7 @@ cat playwright-tests/team-credentials.json
 - `playwright-tests/GUIA-E2E-TEAM.md`
 
 **Especificación de módulos de Empleado (/work):**
-- `playwright-tests/docs/empleado/00-README.md`
+- `docs/empleado/00-README.md`
 
 ---
 
@@ -552,6 +552,19 @@ El proyecto cuenta con documentación exhaustiva en la carpeta `.trae/`:
 - Glosario y referencias
 
 ---
+
+## Módulos Empleado (/work) - Pendientes
+
+La UI base existe, pero falta completar la lógica e integración para Empleado.
+
+Docs:
+- `docs/empleado/00-README.md`
+
+Pendientes típicos por módulo:
+- Mis Tareas: listar/filtrar/buscar desde `GET /api/tasks/my-tasks` + navegación a detalle.
+- Board: columnas por estatus (incluye “En Revisión”) + cambio de estatus con `PATCH /api/tasks/<id>/status`.
+- Timeline: render de tareas con `start_date` y `due_date` (solo del empleado).
+- Perfil: validaciones + guardar `name/avatar` con `PATCH /api/auth/me` + refrescar sesión.
 
 ## Scripts Útiles
 

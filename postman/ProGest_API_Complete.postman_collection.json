@@ -56,7 +56,42 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"Password123\"\n}"
+							"raw": "{\n  \"email\": \"{{owner_email}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login (Employee)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"access_token\", jsonData.data.access_token);",
+									"    pm.environment.set(\"refresh_token\", jsonData.data.refresh_token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{employee_email}}\",\n  \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/login",
@@ -226,6 +261,23 @@
 							"raw": "{{base_url}}/api/members/{{membership_id}}/deactivate",
 							"host": ["{{base_url}}"],
 							"path": ["api", "members", "{{membership_id}}", "deactivate"]
+						}
+					}
+				},
+				{
+					"name": "Activate Member",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/members/{{membership_id}}/activate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "members", "{{membership_id}}", "activate"]
 						}
 					}
 				},
@@ -661,6 +713,23 @@
 								{
 									"key": "is_read",
 									"value": "false"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Stream Notifications (SSE)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/api/notifications/stream?token={{access_token}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "notifications", "stream"],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{access_token}}"
 								}
 							]
 						}

@@ -86,7 +86,7 @@ export default function WorkNotificationsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{n.title}</p>
                     <p className="text-sm text-muted-foreground">{n.message}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString("es-ES")}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{new Date(n.created_at.endsWith('Z') ? n.created_at : n.created_at + 'Z').toLocaleString("es-MX", { timeZone: "America/Mexico_City", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {!n.read && (

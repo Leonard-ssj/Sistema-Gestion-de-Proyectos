@@ -794,7 +794,7 @@ export default function TeamPage() {
                           size="icon"
                           onClick={() => handleEditMember(m)}
                           disabled={loading}
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all active:scale-95 bg-white/10 hover:bg-white/30 text-white"
+                          className="h-8 w-8 transition-all active:scale-95 bg-white/10 hover:bg-white/30 text-white"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>

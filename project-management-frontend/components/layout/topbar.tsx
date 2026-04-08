@@ -114,9 +114,12 @@ export const Topbar = memo(function Topbar() {
       
       {/* Categories / Sprint */}
       {canShowSprints && (
-        <span className="text-[16px] transition-all duration-300 hover:text-admin-blue text-admin-dark hidden md:inline-flex items-center gap-2 shrink-0">
-          <span className={cn("inline-block h-2 w-2 rounded-full shrink-0", sprintColor ?? "bg-admin-blue")} />
-          <span className="text-sm font-medium truncate max-w-[150px]">{sprintLabel}</span>
+        <span className={cn(
+          "hidden md:inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[13px] font-semibold shrink-0 max-w-[200px] transition-all duration-300",
+          sprintColor ? sprintColor.pill : "border-admin-blue/30 bg-admin-blue/10 text-admin-blue"
+        )}>
+          <span className={cn("inline-block h-2 w-2 rounded-full shrink-0", sprintColor ? sprintColor.dot : "bg-admin-blue")} />
+          <span className="truncate">{sprintLabel}</span>
         </span>
       )}
 

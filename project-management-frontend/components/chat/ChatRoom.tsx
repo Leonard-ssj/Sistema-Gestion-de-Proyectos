@@ -149,7 +149,10 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
   }
 
   const formatTime = (isoString: string) => {
-    const date = new Date(isoString)
+    // Python's datetime.utcnow() produces strings without 'Z', so JS may parse as local time.
+    // Append 'Z' to force UTC interpretation before converting to Mexico City time.
+    const utc = isoString.endsWith('Z') ? isoString : isoString + 'Z'
+    const date = new Date(utc)
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' })
   }
 

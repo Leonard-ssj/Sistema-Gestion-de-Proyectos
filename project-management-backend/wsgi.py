@@ -1,6 +1,6 @@
 """
 WSGI entry point para Flask
-Resuelve el conflicto de nombres entre app.py y el módulo app/
+Resuelve el conflicto de nombres entre run.py y el módulo app/
 """
 import sys
 import os
@@ -10,10 +10,10 @@ import importlib.util
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
-# Importar usando importlib para evitar conflictos
+# Importar usando importlib para evitar conflictos con el paquete app/
 spec = importlib.util.spec_from_file_location(
     "app_module",
-    os.path.join(current_dir, "app.py")
+    os.path.join(current_dir, "run.py")
 )
 app_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(app_module)

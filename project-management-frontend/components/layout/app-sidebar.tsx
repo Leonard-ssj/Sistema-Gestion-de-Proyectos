@@ -104,7 +104,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
           <div className="min-w-[60px] flex justify-center">
             <Smile className="h-8 w-8 transition-transform duration-150 group-hover:scale-110" />
           </div>
-          {!desktopCollapsed && <span className="whitespace-nowrap transition-all duration-300 ease-in-out">AdminHub</span>}
+          {!desktopCollapsed && <span className="whitespace-nowrap transition-all duration-300 ease-in-out">{role === "superadmin" ? "AdminHub" : "ProGest"}</span>}
         </Link>
 
         {/* Top Menu */}

@@ -113,8 +113,12 @@ export const Topbar = memo(function Topbar() {
     <nav className="h-[56px] bg-admin-light px-[24px] flex items-center gap-[24px] font-lato sticky top-0 left-0 z-[1000] transition-all before:content-[''] before:absolute before:w-[40px] before:h-[40px] before:-bottom-[40px] before:left-0 before:rounded-full before:shadow-[-20px_-20px_0_var(--color-admin-light)]">
       
       {/* Categories / Sprint */}
-      <span className="text-[16px] transition-all duration-300 hover:text-admin-blue text-admin-dark hidden md:inline-flex shrink-0">
-      </span>
+      {canShowSprints && (
+        <span className="text-[16px] transition-all duration-300 hover:text-admin-blue text-admin-dark hidden md:inline-flex items-center gap-2 shrink-0">
+          <span className={cn("inline-block h-2 w-2 rounded-full shrink-0", sprintColor ?? "bg-admin-blue")} />
+          <span className="text-sm font-medium truncate max-w-[150px]">{sprintLabel}</span>
+        </span>
+      )}
 
       {/* Spacer para empujar los iconos a la derecha en desktop */}
       <div className="mr-auto hidden md:block w-[1px]"></div>

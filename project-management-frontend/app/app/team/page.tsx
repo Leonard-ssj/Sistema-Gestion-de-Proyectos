@@ -725,6 +725,29 @@ export default function TeamPage() {
               </div>
             </div>
             
+            {editingMember && (
+              <div className="mt-2 flex flex-row items-center justify-between rounded-lg border border-destructive/30 p-4 bg-destructive/5">
+                <div>
+                  <p className="text-sm font-medium">Estado del empleado</p>
+                  <p className="text-xs text-muted-foreground">
+                    Actualmente:{" "}
+                    <span className={editingMember.status === "active" ? "text-green-600 font-semibold" : "text-red-500 font-semibold"}>
+                      {editingMember.status === "active" ? "Activo" : "Inactivo"}
+                    </span>
+                  </p>
+                </div>
+                <Button
+                  variant={editingMember.status === "active" ? "destructive" : "default"}
+                  size="sm"
+                  disabled={loading || statusChangingId === editingMember.id}
+                  onClick={() => { handleToggleMemberStatus(editingMember); setEditDialogOpen(false) }}
+                >
+                  {statusChangingId === editingMember.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingMember.status === "active" ? "Desactivar" : "Activar"}
+                </Button>
+              </div>
+            )}
+
             <Button onClick={handleUpdateMember} disabled={!editData.name.trim() || loading} className="mt-2">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar Cambios

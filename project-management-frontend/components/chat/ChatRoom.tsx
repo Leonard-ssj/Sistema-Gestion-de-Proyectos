@@ -162,12 +162,12 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-white/40 bg-white/20 backdrop-blur-md shadow-lg relative">
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card/80 backdrop-blur-md shadow-lg relative">
       <div className="absolute top-0 left-0 w-1.5 h-full bg-admin-blue/40" />
       {/* Header */}
-      <div className="border-b border-white/10 px-6 py-4 bg-white/10">
-        <h2 className="text-lg font-bold tracking-tight text-admin-dark">Chat del Proyecto</h2>
-        <p className="text-xs font-medium text-admin-dark-grey">Conversa con tu equipo en tiempo real</p>
+      <div className="border-b border-border px-6 py-4 bg-muted/30">
+        <h2 className="text-lg font-bold tracking-tight text-foreground">Chat del Proyecto</h2>
+        <p className="text-xs font-medium text-muted-foreground">Conversa con tu equipo en tiempo real</p>
       </div>
 
       {/* Error / Disabled banner */}
@@ -225,7 +225,7 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
                       "group relative flex max-w-[75%] flex-col rounded-2xl px-4 py-2.5 text-sm shadow-sm transition-all hover:shadow-md",
                       isMe
                         ? "bg-admin-blue text-white rounded-br-none"
-                        : "bg-white text-admin-dark border border-white/40 rounded-bl-none"
+                        : "bg-muted text-foreground border border-border rounded-bl-none"
                     )}
                   >
                     {!isMe && showAvatar && (
@@ -251,7 +251,7 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
                     <span 
                       className={cn(
                         "mt-1.5 text-[9px] font-bold uppercase tracking-wider flex items-center justify-end",
-                        isMe ? "text-white/60" : "text-admin-dark-grey/60"
+                        isMe ? "text-white/60" : "text-muted-foreground/70"
                       )}
                     >
                       {formatTime(msg.created_at)}
@@ -266,7 +266,7 @@ export function ChatRoom({ projectId }: ChatRoomProps) {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t border-white/10 bg-white/10 backdrop-blur-sm">
+      <div className="border-t border-border bg-muted/20 backdrop-blur-sm">
         {(selectedTask || mentionedUser) && (
           <div className="px-4 py-2 border-b flex items-center justify-start gap-4 text-xs bg-muted/30">
             {selectedTask && (

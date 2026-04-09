@@ -429,11 +429,11 @@ export const NOTIFICATIONS: Notification[] = [
 ]
 
 export const AUDIT_LOGS: AuditLog[] = [
-  { id: "audit-1", action: "login_success", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Inicio de sesion exitoso", ip: "192.168.1.10", created_at: "2026-02-14T08:00:00Z" },
-  { id: "audit-2", action: "invite_sent", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Invitacion enviada a nuevo@demo.com", ip: "192.168.1.10", created_at: "2026-02-10T10:00:00Z" },
-  { id: "audit-3", action: "invite_accepted", user_id: "user-emp-1", user_email: "employee@demo.com", project_id: "demo-project-1", details: "Invitacion aceptada", ip: "192.168.1.20", created_at: "2025-12-01T09:00:00Z" },
-  { id: "audit-4", action: "task_created", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Tarea creada: Disenar identidad visual", ip: "192.168.1.10", created_at: "2025-12-10T10:00:00Z" },
-  { id: "audit-5", action: "task_assigned", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Tarea asignada a Juan Lopez", ip: "192.168.1.10", created_at: "2025-12-10T10:05:00Z" },
+  { id: "audit-1", action: "login_success", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Inicio de sesion exitoso", ip: "192.168.1.10", created_at: "2026-03-14T08:00:00Z" },
+  { id: "audit-2", action: "invite_sent", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Invitacion enviada a nuevo@demo.com", ip: "192.168.1.10", created_at: "2026-03-10T10:00:00Z" },
+  { id: "audit-3", action: "invite_accepted", user_id: "user-emp-1", user_email: "employee@demo.com", project_id: "demo-project-1", details: "Invitacion aceptada", ip: "192.168.1.20", created_at: "2026-03-10T09:00:00Z" },
+  { id: "audit-4", action: "task_created", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Tarea creada: Disenar identidad visual", ip: "192.168.1.10", created_at: "2026-03-10T10:00:00Z" },
+  { id: "audit-5", action: "task_assigned", user_id: "user-owner-1", user_email: "owner@demo.com", project_id: "demo-project-1", details: "Tarea asignada a Juan Lopez", ip: "192.168.1.10", created_at: "2026-04-08T10:05:00Z" },
   { id: "audit-6", action: "task_status_changed", user_id: "user-emp-1", user_email: "employee@demo.com", project_id: "demo-project-1", details: "Tarea 'Disenar identidad visual' marcada como hecha", ip: "192.168.1.20", created_at: "2026-01-15T10:00:00Z" },
   { id: "audit-7", action: "tenant_disabled", user_id: "user-superadmin-1", user_email: "admin@demo.com", details: "Tenant desactivado: Proyecto Test", ip: "10.0.0.1", created_at: "2026-02-12T14:00:00Z" },
   { id: "audit-8", action: "login_success", user_id: "user-superadmin-1", user_email: "admin@demo.com", details: "Inicio de sesion de superadmin", ip: "10.0.0.1", created_at: "2026-02-14T07:30:00Z" },
@@ -443,8 +443,8 @@ export const AUDIT_LOGS: AuditLog[] = [
 
 export const HEALTH_CHECKS: HealthCheck[] = [
   { service: "Base de Datos (PostgreSQL)", status: "healthy", latency: 12, last_check: "2026-02-14T14:00:00Z" },
-  { service: "Servicio de Email (SMTP)", status: "healthy", latency: 245, last_check: "2026-02-14T14:00:00Z" },
-  { service: "Almacenamiento (S3)", status: "healthy", latency: 89, last_check: "2026-02-14T14:00:00Z" },
-  { service: "Cache (Redis)", status: "healthy", latency: 3, last_check: "2026-02-14T14:00:00Z" },
+  // { service: "Servicio de Email (SMTP)", status: "healthy", latency: 245, last_check: "2026-02-14T14:00:00Z" },
+  { service: "Almacenamiento (render)", status: "healthy", latency: 89, last_check: "2026-02-14T14:00:00Z" },
+  // { service: "Cache (Redis)", status: "healthy", latency: 3, last_check: "2026-02-14T14:00:00Z" },
   { service: "API Gateway", status: "healthy", latency: 15, last_check: "2026-02-14T14:00:00Z" },
 ]

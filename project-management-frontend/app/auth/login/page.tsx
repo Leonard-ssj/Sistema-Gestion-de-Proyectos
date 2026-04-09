@@ -116,7 +116,7 @@ export default function LoginPage() {
               ACCESO A LA MEJOR<span className="text-primary italic"> HERRAMIENTA </span> Que JIRA.
             </h2>
             <p className="text-lg text-muted-foreground/80 max-w-md font-medium leading-relaxed">
-              Jira es una herramienta líder de gestión de proyectos y seguimiento de incidencias (bugs) diseñada para equipos de desarrollo de software ágil.
+              Jira es una herramienta líder de gestión de proyectos y seguimiento de incidencias (bugs) diseñada para equipos de desarrollo de software ágil. Progest se centra en ser una herramienta general de gestión de proyectos.
             </p>
           </motion.div>
         </div>

@@ -191,7 +191,7 @@ export default function RegisterPage() {
             className="font-black uppercase tracking-widest text-[10px] border-2 border-transparent hover:border-black transition-all"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Vovler al inicio
+            Volver al inicio
           </Button>
         </motion.div>
 

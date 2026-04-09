@@ -39,11 +39,11 @@ export default function TeamPage() {
     const trimmed = raw.trim()
     if (!trimmed) return null
     const digits = trimmed.replace(/\D/g, "")
-    const hasPrefix = trimmed.startsWith(MEXICO_PREFIX) || digits.startsWith("52")
-    if (!hasPrefix) return null
-    const local = digits.startsWith("52") ? digits.slice(2) : digits
-    if (local.length !== 10) return null
-    return `+52${local}`
+    // Accept +52XXXXXXXXXX or 52XXXXXXXXXX (12 digits with country code)
+    if (digits.startsWith("52") && digits.length === 12) return `+52${digits.slice(2)}`
+    // Accept plain 10-digit local number (auto-prepend +52)
+    if (digits.length === 10) return `+52${digits}`
+    return null
   }
 
   const [members, setMembers] = useState<Membership[]>([])
@@ -81,7 +81,7 @@ export default function TeamPage() {
   const [statusChangingId, setStatusChangingId] = useState<string | null>(null)
 
   // Calcular total de miembros (activos + pendientes)
-  const teamLimit = 20
+  const teamLimit = 11
   const activeMembers = members.filter(m => m.status === "active").length
   const pendingInvites = invites.filter(i => i.status === "pending").length
   const totalMembers = activeMembers + pendingInvites

@@ -2,7 +2,7 @@
 set -e
 
 cd "$(dirname "$0")"
-python bootstrap_db.py
+python bootstrap_db.py || echo "Bootstrap DB omitido (se reintentará al iniciar gunicorn)"
 
 WORKERS="${WEB_CONCURRENCY:-1}"
 THREADS="${GUNICORN_THREADS:-8}"

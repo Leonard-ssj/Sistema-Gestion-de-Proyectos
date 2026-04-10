@@ -243,98 +243,93 @@ def health():
         'database': db_status
     }
 
-# Verificar si existen los permisos en memberships para chat de equipo y mentions
-with app.app_context():
-    # Verificamos si podemos usar el inspector
-    from sqlalchemy import inspect
+# Migraciones inline — se ejecutan al arrancar gunicorn.
+# Envueltas en try/except para no bloquear el arranque si la DB no está lista.
+def _run_inline_migrations():
+    from sqlalchemy import inspect as sa_inspect
     import logging
-    logger = logging.getLogger(__name__)
+    _logger = logging.getLogger(__name__)
+    try:
+        with app.app_context():
+            inspector = sa_inspect(db.engine)
 
-    inspector = inspect(db.engine)
-    
-    # 1. Migración para membershipts.chat_enabled
-    if 'memberships' in inspector.get_table_names():
-        columns = [c['name'] for c in inspector.get_columns('memberships')]
-        if 'chat_enabled' not in columns:
-            try:
-                logger.info("Añadiendo columna 'chat_enabled' a la tabla 'memberships'...")
-                db.session.execute(text('ALTER TABLE memberships ADD COLUMN chat_enabled BOOLEAN DEFAULT TRUE NOT NULL;'))
-                db.session.commit()
-                logger.info("Migración: columna 'chat_enabled' añadida correctamente")
-            except Exception as e:
-                logger.error(f"Error al añadir columna 'chat_enabled': {e}")
-                db.session.rollback()
-    
-    # 2. Migración para team_messages.task_id y mentioned_user_id
-    if 'team_messages' in inspector.get_table_names():
-        columns = [c['name'] for c in inspector.get_columns('team_messages')]
-        try:
-            if 'task_id' not in columns:
-                logger.info("Añadiendo columna 'task_id' a la tabla 'team_messages'...")
-                if db.engine.dialect.name == 'sqlite':
-                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36);'))
-                else:
-                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36) REFERENCES tasks(id) ON DELETE SET NULL;'))
-                logger.info("Migración completada para 'task_id'")
+            # 1. memberships.chat_enabled
+            if 'memberships' in inspector.get_table_names():
+                columns = [c['name'] for c in inspector.get_columns('memberships')]
+                if 'chat_enabled' not in columns:
+                    try:
+                        db.session.execute(text('ALTER TABLE memberships ADD COLUMN chat_enabled BOOLEAN DEFAULT TRUE NOT NULL;'))
+                        db.session.commit()
+                        _logger.info("Migración: columna 'chat_enabled' añadida")
+                    except Exception as e:
+                        _logger.error(f"Error añadiendo 'chat_enabled': {e}")
+                        db.session.rollback()
 
-            if 'mentioned_user_id' not in columns:
-                logger.info("Añadiendo columna 'mentioned_user_id' a la tabla 'team_messages'...")
-                if db.engine.dialect.name == 'sqlite':
-                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN mentioned_user_id VARCHAR(36);'))
-                else:
-                     db.session.execute(text('ALTER TABLE team_messages ADD COLUMN mentioned_user_id VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL;'))
-                logger.info("Migración completada para 'mentioned_user_id'")
+            # 2. team_messages.task_id / mentioned_user_id
+            if 'team_messages' in inspector.get_table_names():
+                columns = [c['name'] for c in inspector.get_columns('team_messages')]
+                try:
+                    if 'task_id' not in columns:
+                        if db.engine.dialect.name == 'sqlite':
+                            db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36);'))
+                        else:
+                            db.session.execute(text('ALTER TABLE team_messages ADD COLUMN task_id VARCHAR(36) REFERENCES tasks(id) ON DELETE SET NULL;'))
+                    if 'mentioned_user_id' not in columns:
+                        if db.engine.dialect.name == 'sqlite':
+                            db.session.execute(text('ALTER TABLE team_messages ADD COLUMN mentioned_user_id VARCHAR(36);'))
+                        else:
+                            db.session.execute(text('ALTER TABLE team_messages ADD COLUMN mentioned_user_id VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL;'))
+                    db.session.commit()
+                except Exception as e:
+                    _logger.error(f"Error en team_messages: {e}")
+                    db.session.rollback()
 
-            db.session.commit()
-        except Exception as e:
-            logger.error(f"Error al añadir columnas a team_messages: {e}")
-            db.session.rollback()
+            # 3. users: columnas de perfil
+            if 'users' in inspector.get_table_names():
+                user_columns = [c['name'] for c in inspector.get_columns('users')]
+                try:
+                    alters = []
+                    for col, definition in [
+                        ('preferred_theme', "ADD COLUMN preferred_theme VARCHAR(50) DEFAULT 'barney'"),
+                        ('job_title',       "ADD COLUMN job_title VARCHAR(100) NULL"),
+                        ('description',     "ADD COLUMN description TEXT NULL"),
+                        ('responsibilities',"ADD COLUMN responsibilities TEXT NULL"),
+                        ('skills',          "ADD COLUMN skills TEXT NULL"),
+                        ('department',      "ADD COLUMN department VARCHAR(100) NULL"),
+                        ('phone',           "ADD COLUMN phone VARCHAR(20) NULL"),
+                    ]:
+                        if col not in user_columns:
+                            alters.append(definition)
+                    if alters:
+                        db.session.execute(text(f"ALTER TABLE users {', '.join(alters)}"))
+                        db.session.commit()
+                        _logger.info(f"Migración users: {alters}")
+                except Exception as e:
+                    _logger.error(f"Error en migración users: {e}")
+                    db.session.rollback()
 
-    # 3. Migración para users: columnas de perfil de empleado y preferred_theme
-    if 'users' in inspector.get_table_names():
-        user_columns = [c['name'] for c in inspector.get_columns('users')]
-        try:
-            user_alters = []
-            if 'preferred_theme' not in user_columns:
-                user_alters.append("ADD COLUMN preferred_theme VARCHAR(50) DEFAULT 'barney'")
-            if 'job_title' not in user_columns:
-                user_alters.append("ADD COLUMN job_title VARCHAR(100) NULL")
-            if 'description' not in user_columns:
-                user_alters.append("ADD COLUMN description TEXT NULL")
-            if 'responsibilities' not in user_columns:
-                user_alters.append("ADD COLUMN responsibilities TEXT NULL")
-            if 'skills' not in user_columns:
-                user_alters.append("ADD COLUMN skills TEXT NULL")
-            if 'department' not in user_columns:
-                user_alters.append("ADD COLUMN department VARCHAR(100) NULL")
-            if 'phone' not in user_columns:
-                user_alters.append("ADD COLUMN phone VARCHAR(20) NULL")
-            if user_alters:
-                logger.info(f"Añadiendo columnas a 'users': {user_alters}")
-                db.session.execute(text(f"ALTER TABLE users {', '.join(user_alters)}"))
-                db.session.commit()
-                logger.info("Migración de columnas de usuario completada")
-        except Exception as e:
-            logger.error(f"Error en migración de columnas de usuario: {e}")
-            db.session.rollback()
+                # shift enum (requiere CREATE TYPE separado)
+                if 'shift' not in user_columns:
+                    try:
+                        db.session.execute(text("""
+                            DO $$
+                            BEGIN
+                              IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'employee_shift') THEN
+                                CREATE TYPE employee_shift AS ENUM('morning', 'afternoon', 'night', 'flexible');
+                              END IF;
+                            END $$;
+                        """))
+                        db.session.execute(text("ALTER TABLE users ADD COLUMN shift employee_shift NULL"))
+                        db.session.commit()
+                        _logger.info("Migración: columna 'shift' añadida")
+                    except Exception as e:
+                        _logger.error(f"Error añadiendo 'shift': {e}")
+                        db.session.rollback()
+    except Exception as e:
+        import logging as _log
+        _log.getLogger(__name__).warning(f"Migraciones inline omitidas (DB no disponible): {e}")
 
-        # shift enum se maneja aparte por requerir CREATE TYPE
-        if 'shift' not in user_columns:
-            try:
-                db.session.execute(text("""
-                    DO $$
-                    BEGIN
-                      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'employee_shift') THEN
-                        CREATE TYPE employee_shift AS ENUM('morning', 'afternoon', 'night', 'flexible');
-                      END IF;
-                    END $$;
-                """))
-                db.session.execute(text("ALTER TABLE users ADD COLUMN shift employee_shift NULL"))
-                db.session.commit()
-                logger.info("Migración: columna 'shift' añadida a users")
-            except Exception as e:
-                logger.error(f"Error añadiendo columna 'shift': {e}")
-                db.session.rollback()
+_run_inline_migrations()
 
 if __name__ == '__main__':
     with app.app_context():
